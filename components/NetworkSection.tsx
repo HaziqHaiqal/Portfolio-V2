@@ -85,7 +85,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
         }
     }, [history]);
 
-    const commandActions: { [key: string]: () => JSX.Element } = {
+    const commandActions: { [key: string]: () => React.ReactNode } = {
         email: () => {
             // Try the modal first, fallback to mailto if needed
             setTimeout(() => {
@@ -229,7 +229,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
             )
         });
 
-        let responseNode: JSX.Element | null = null;
+        let responseNode: React.ReactNode | null = null;
         if (commandLower in commandActions) {
             responseNode = commandActions[commandLower]();
         } else if (commandLower !== "") {
@@ -257,7 +257,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                         transition={{ duration: 0.3, delay: 0.1 }}
                         className="ml-8 py-1"
                     >
-                        {responseNode}
+                        <>{responseNode}</>
                     </motion.div>
                 )
             });
