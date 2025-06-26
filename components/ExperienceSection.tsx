@@ -46,6 +46,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
   return (
     <section
+      id="experience"
       className={`py-32 px-6 relative overflow-hidden`}
     >
       {/* Matrix-style background */}

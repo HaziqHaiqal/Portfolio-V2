@@ -1,8 +1,7 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Mail, Phone, MapPin, Download, Github, Linkedin, Sun, Moon, Terminal, Code2, Coffee, Zap, Star, Briefcase, Building2, Calendar, ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { motion } from "framer-motion";
+import { Mail, Github, Linkedin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePortfolioData } from "../hooks/usePortfolioData";
 import { useTheme, useThemeClasses } from "../components/providers/ThemeProvider";
