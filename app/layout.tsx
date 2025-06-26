@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
-import { ThemeProvider } from "../components/providers/ThemeProvider";
+import { ThemeProvider } from "@components/providers/ThemeProvider";
 
 const inter = Inter({
   subsets: ["latin"],

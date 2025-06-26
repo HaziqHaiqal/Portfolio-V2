@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useTheme } from '../components/providers/ThemeProvider'
+import { useTheme } from '@components/providers/ThemeProvider'
 
 // Hook for current time with automatic updates
 export function useCurrentTime(updateInterval = 1000) {

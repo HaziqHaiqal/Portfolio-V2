@@ -14,7 +14,7 @@ import {
   SiGithub,
   SiPython,
 } from "react-icons/si";
-import { useTheme } from "./providers/ThemeProvider";
+import { useTheme } from "@components/providers/ThemeProvider";
 
 const TechStackSection = () => {
   const { isDarkMode } = useTheme();

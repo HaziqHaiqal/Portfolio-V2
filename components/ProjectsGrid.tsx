@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Search, ExternalLink, Github, GitBranch, Calendar, Folder } from "lucide-react";
-import { getCategoryInfo } from "../lib/constants";
+import { getCategoryInfo } from "@lib/constants";
 
 interface Project {
   id: string;

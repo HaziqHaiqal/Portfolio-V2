@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, X } from "lucide-react";
-import { useTheme, useThemeClasses } from "./providers/ThemeProvider";
-import { useUIStore } from "../lib/stores";
+import { useTheme, useThemeClasses } from "@components/providers/ThemeProvider";
+import { useUIStore } from "@lib/stores";
 
 /**
  * Responsive navigation bar with mobile hamburger menu.

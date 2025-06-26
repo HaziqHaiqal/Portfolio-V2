@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ChevronRight } from "lucide-react";
-import { Experience } from "../lib/supabase";
+import { Experience } from "@lib/supabase";
 import Image from "next/image";
-import { useTheme } from "./providers/ThemeProvider";
+import { useTheme } from '@components/providers/ThemeProvider';
 
 interface ExperienceSectionProps {
   experience: Experience[] | null | undefined;

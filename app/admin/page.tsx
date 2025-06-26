@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabaseAuth } from '../../lib/supabase-client';
+import { supabaseAuth } from '@lib/supabase-client';
 
 // Tab components
-import ProfileEditor from '../../components/admin/ProfileEditor';
-import ProjectsEditor from '../../components/admin/ProjectsEditor';
-import ExperienceEditor from '../../components/admin/ExperienceEditor';
-import EducationEditor from '../../components/admin/EducationEditor';
-import SkillsEditor from '../../components/admin/SkillsEditor';
-import InterestsEditor from '../../components/admin/InterestsEditor';
+import ProfileEditor from '@components/admin/ProfileEditor';
+import ProjectsEditor from '@components/admin/ProjectsEditor';
+import ExperienceEditor from '@components/admin/ExperienceEditor';
+import EducationEditor from '@components/admin/EducationEditor';
+import SkillsEditor from '@components/admin/SkillsEditor';
+import InterestsEditor from '@components/admin/InterestsEditor';
 
 const tabs = [
     { id: 'profile', label: 'Profile', icon: '👤' },

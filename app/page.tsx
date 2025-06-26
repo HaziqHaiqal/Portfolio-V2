@@ -3,21 +3,21 @@
 import { motion } from "framer-motion";
 import { Mail, Github, Linkedin } from "lucide-react";
 import { useState, useEffect } from "react";
-import { usePortfolioData } from "../hooks/usePortfolioData";
-import { useTheme, useThemeClasses } from "../components/providers/ThemeProvider";
-import { useUIStore } from "../lib/stores";
-import { useKeyboardShortcuts } from "../hooks/useCommon";
-import ProjectModal from "../components/ProjectModal";
-import FloatingElements from "../components/FloatingElements";
-import NavBar from "../components/NavBar";
-import HeroSection from "../components/HeroSection";
-import ActivityOverview from "../components/ActivityOverview";
-import TechStackSection from "../components/TechStackSection";
-import ExperienceSection from "../components/ExperienceSection";
-import ProjectShowcaseSection from "../components/ProjectShowcaseSection";
-import NetworkSection from "../components/NetworkSection";
+import { usePortfolioData } from "@hooks/usePortfolioData";
+import { useTheme, useThemeClasses } from "@components/providers/ThemeProvider";
+import { useUIStore } from "@lib/stores";
+import { useKeyboardShortcuts } from "@hooks/useCommon";
+import ProjectModal from "@components/ProjectModal";
+import FloatingElements from "@components/FloatingElements";
+import NavBar from "@components/NavBar";
+import HeroSection from "@components/HeroSection";
+import ActivityOverview from "@components/ActivityOverview";
+import TechStackSection from "@components/TechStackSection";
+import ExperienceSection from "@components/ExperienceSection";
+import ProjectShowcaseSection from "@components/ProjectShowcaseSection";
+import NetworkSection from "@components/NetworkSection";
 
-import { ProjectProps } from "../types/portfolio";
+import { ProjectProps } from "types/portfolio";
 
 export default function Home() {
   // Prevent hydration mismatch by not rendering dynamic content on server

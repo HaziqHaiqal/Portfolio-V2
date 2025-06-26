@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Profile, Experience, Education, Skill, Interest } from './supabase'
-import { ProjectProps } from '../types/portfolio'
+import { Profile, Experience, Education, Skill, Interest } from '@lib/supabase'
+import { ProjectProps } from 'types/portfolio'
 
 // Theme Store
 interface ThemeState {

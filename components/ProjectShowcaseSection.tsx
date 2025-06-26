@@ -1,9 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
-import ProjectsGrid from "./ProjectsGrid";
-import { ProjectProps } from '../types/portfolio';
-import { useTheme } from "./providers/ThemeProvider";
+import ProjectsGrid from "@components/ProjectsGrid";
+import { ProjectProps } from 'types/portfolio';
+import { useTheme } from "@components/providers/ThemeProvider";
 
 interface ProjectShowcaseSectionProps {
   projects: ProjectProps[];

@@ -6,7 +6,7 @@ import {
   Terminal,
   MapPin,
 } from "lucide-react";
-import { useTheme } from "./providers/ThemeProvider";
+import { useTheme } from "@components/providers/ThemeProvider";
 
 interface HeroSectionProps {
   profile: Partial<Profile> | null;

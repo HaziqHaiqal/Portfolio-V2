@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Mail, User, MessageSquare } from "lucide-react";
-import { useTheme } from "./providers/ThemeProvider";
+import { useTheme } from "@components/providers/ThemeProvider";
 
 interface EmailModalProps {
     isOpen: boolean;

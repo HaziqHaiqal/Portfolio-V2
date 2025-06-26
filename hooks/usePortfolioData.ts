@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase, Profile, Experience, Education, Skill, Project, Interest } from '../lib/supabase'
-import { ProjectProps } from '../types/portfolio'
+import { usePortfolioStore } from '@lib/stores'
+import { supabase, Profile, Experience, Education, Skill, Project, Interest } from '@lib/supabase'
+import { ProjectProps } from 'types/portfolio'
 
 export function useProfile() {
     const [profile, setProfile] = useState<Profile | null>(null)

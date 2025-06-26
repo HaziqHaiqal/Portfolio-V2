@@ -42,17 +42,17 @@ export const supabaseDB = {
     return supabase.from(table).select(columns);
   },
 
-  async insert(table: string, data: any) {
+  async insert(table: string, data: Record<string, unknown>) {
     const supabase = await getSupabaseClient();
     return supabase.from(table).insert(data);
   },
 
-  async update(table: string, data: any, filter: any) {
+  async update(table: string, data: Record<string, unknown>, filter: Record<string, unknown>) {
     const supabase = await getSupabaseClient();
     return supabase.from(table).update(data).match(filter);
   },
 
-  async delete(table: string, filter: any) {
+  async delete(table: string, filter: Record<string, unknown>) {
     const supabase = await getSupabaseClient();
     return supabase.from(table).delete().match(filter);
   }

@@ -7,9 +7,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { useTheme } from "./providers/ThemeProvider";
-import { Week, GitHubStats, GitHubData } from "../types/github";
+} from "@components/ui/select";
+import { useTheme } from "@components/providers/ThemeProvider";
+import { Week, GitHubData, GitHubStats } from "types/github";
 
 const ActivityOverview = () => {
   const { isDarkMode } = useTheme();

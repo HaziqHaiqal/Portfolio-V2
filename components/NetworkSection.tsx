@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Mail, Phone, MapPin, Linkedin, Github, Trash2, HelpCircle } from "lucide-react";
-import { useTheme } from "./providers/ThemeProvider";
-import EmailModal from "./EmailModal";
-import type { Profile } from "./HeroSection";
+import { useTheme } from "@components/providers/ThemeProvider";
+import EmailModal from "@components/EmailModal";
+import type { Profile } from "@components/HeroSection";
 
 interface NetworkSectionProps {
     profile: Partial<Profile> | null;

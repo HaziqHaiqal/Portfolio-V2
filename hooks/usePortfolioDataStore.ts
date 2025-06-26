@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { usePortfolioStore } from '../lib/stores'
-import { supabase } from '../lib/supabase'
-import { ProjectProps } from '../types/portfolio'
+import { usePortfolioStore } from '@lib/stores'
+import { supabase } from '@lib/supabase'
+import { ProjectProps } from 'types/portfolio'
 
 // Hook to fetch and manage all portfolio data using Zustand
 export function usePortfolioData() {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { graphql } from '@octokit/graphql';
-import { GitHubData as LocalGitHubData } from '../../../types/github';
+import { GitHubData as LocalGitHubData } from 'types/github';
 
 const github = graphql.defaults({
   headers: { authorization: `token ${process.env.GITHUB_TOKEN}` },

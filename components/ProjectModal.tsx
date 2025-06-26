@@ -1,10 +1,10 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Globe, Github, Terminal, Zap, Star, Monitor, Heart, Share, MoreHorizontal, Code, Layers, Image as ImageIcon } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getCategoryInfo } from "../lib/constants";
-import ProjectImageGallery from "./ProjectImageGallery";
+import ProjectImageGallery from '@components/ProjectImageGallery';
+import { getCategoryInfo } from "@lib/constants";
 
 interface ProjectModalProps {
   isOpen: boolean;
