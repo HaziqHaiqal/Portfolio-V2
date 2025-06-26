@@ -8,38 +8,15 @@ import {
   SiJavascript,
   SiTypescript,
   SiNodedotjs,
-  SiExpress,
-  SiMongodb,
   SiMysql,
   SiPostgresql,
-  SiPrisma,
-  SiVite,
-  SiGraphql,
-  SiRust,
-  SiSolidity,
-  // SiVisualstudiocode,
   SiGit,
   SiGithub,
-  SiMarkdown,
-  SiLinux,
   SiPython,
-  // SiJava,
 } from "react-icons/si";
 import { useTheme } from "./providers/ThemeProvider";
 
-interface Skill {
-  name: string;
-  category?: string;
-  proficiency_level?: number;
-  color_from?: string;
-  color_to?: string;
-}
-
-interface CodeStackSectionProps {
-  skills: Skill[] | null | undefined;
-}
-
-const TechStackSection = ({ skills }: CodeStackSectionProps) => {
+const TechStackSection = () => {
   const { isDarkMode } = useTheme();
 
   const stacks = [
@@ -54,7 +31,6 @@ const TechStackSection = ({ skills }: CodeStackSectionProps) => {
     { name: "Git", icon: SiGit },
     { name: "GitHub", icon: SiGithub },
     { name: "Python", icon: SiPython },
-    // { name: "Java", icon: SiJava },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Profile, Experience, Education, Skill, Project, Interest } from './supabase'
+import { Profile, Experience, Education, Skill, Interest } from './supabase'
 import { ProjectProps } from '../types/portfolio'
 
 // Theme Store

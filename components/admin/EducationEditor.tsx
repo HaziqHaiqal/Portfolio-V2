@@ -293,7 +293,7 @@ interface EducationFormProps {
 function EducationForm({ education, onSave, onCancel, saving }: EducationFormProps) {
   const [formData, setFormData] = useState<EducationData>(education);
 
-  const handleInputChange = (field: keyof EducationData, value: any) => {
+  const handleInputChange = (field: keyof EducationData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

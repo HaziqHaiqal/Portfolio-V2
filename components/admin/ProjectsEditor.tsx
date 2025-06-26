@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 import { PROJECT_CATEGORIES, PROJECT_STATUSES, getCategoryInfo, getStatusInfo } from '../../lib/constants';
 import ProjectImageUpload from './ProjectImageUpload';
@@ -253,9 +254,11 @@ export default function ProjectsEditor() {
         {projects.map((project) => (
           <div key={project.id} className="bg-gray-800/50 border border-gray-600/50 rounded-lg overflow-hidden">
             {project.thumbnail_url && (
-              <img
+              <Image
                 src={project.thumbnail_url}
                 alt={project.title}
+                width={400}
+                height={192}
                 className="w-full h-48 object-cover"
               />
             )}
@@ -405,7 +408,7 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
 
   const [formData, setFormData] = useState<ProjectData>(normalizeProjectData(project));
 
-  const handleInputChange = (field: keyof ProjectData, value: any) => {
+  const handleInputChange = (field: keyof ProjectData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -773,14 +776,16 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                 </div>
               ) : projectImages.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {projectImages.map((image, index) => (
+                  {projectImages.map((image) => (
                     <div
                       key={image.id}
                       className="bg-gray-800 border border-gray-600 rounded-lg p-3 flex items-center gap-3"
                     >
-                      <img
+                      <Image
                         src={image.url}
                         alt={image.alt}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1 min-w-0">

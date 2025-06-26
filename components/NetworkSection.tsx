@@ -85,7 +85,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
         }
     }, [history]);
 
-    const commandActions: { [key: string]: () => React.ReactNode } = {
+    const commandActions: { [key: string]: () => JSX.Element } = {
         email: () => {
             // Try the modal first, fallback to mailto if needed
             setTimeout(() => {
@@ -98,7 +98,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                         <span className={isDarkMode ? 'text-gray-200' : 'text-gray-700'}>Opening email composer...</span>
                     </div>
                     <div className={`text-xs ml-6 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        If the form doesn't work, you can also email directly:
+                        If the form doesn&apos;t work, you can also email directly:
                         <a
                             href="mailto:woodyz.dev@gmail.com"
                             className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} underline hover:no-underline ml-1`}
@@ -123,7 +123,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
             );
         },
         whatsapp: () => {
-            const phone = profile?.phone || "017-7492150";
             const tel = `+60177492150`;
             setTimeout(() => window.open(`https://wa.me/${tel}`), 500);
             return (
@@ -212,7 +211,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
         const newId = historyIdCounter;
         setHistoryIdCounter(prev => prev + 2);
 
-        let newHistory = [...history];
+        const newHistory = [...history];
 
         // Add command entry with improved styling
         newHistory.push({
@@ -230,7 +229,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
             )
         });
 
-        let responseNode;
+        let responseNode: JSX.Element | null = null;
         if (commandLower in commandActions) {
             responseNode = commandActions[commandLower]();
         } else if (commandLower !== "") {
@@ -238,7 +237,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <span className="text-red-500">❌</span>
-                        <span className="text-red-500">Command not found: "{commandLower}"</span>
+                        <span className="text-red-500">Command not found: &quot;{commandLower}&quot;</span>
                     </div>
                     <div className={`text-xs ml-6 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                         Available commands: <span className={isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}>{commandList.join(', ')}</span>
@@ -258,7 +257,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                         transition={{ duration: 0.3, delay: 0.1 }}
                         className="ml-8 py-1"
                     >
-                        {responseNode as any}
+                        {responseNode}
                     </motion.div>
                 )
             });
@@ -308,7 +307,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                         network.connect()
                     </div>
                     <h2 className="text-4xl md:text-5xl font-extrabold mb-3">
-                        Let's <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">Connect</span>
+                        Let&apos;s <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">Connect</span>
                     </h2>
                 </motion.div>
 
@@ -335,8 +334,8 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                             </div>
                             {contactData.map(item => (
                                 <motion.div key={item.key} variants={itemVariants} className="flex items-center gap-2">
-                                    <span className={isDarkMode ? "text-purple-400" : "text-purple-600"}>"{item.key}"</span>:
-                                    <span className={isDarkMode ? "text-green-400" : "text-green-600"}>"{item.value}"</span>
+                                    <span className={isDarkMode ? "text-purple-400" : "text-purple-600"}>&quot;{item.key}&quot;</span>:
+                                    <span className={isDarkMode ? "text-green-400" : "text-green-600"}>&quot;{item.value}&quot;</span>
                                 </motion.div>
                             ))}
                         </motion.div>
@@ -411,7 +410,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                     </div>
                                     <div className="flex items-center gap-2 text-xs">
                                         <span className="text-yellow-500">⌨️</span>
-                                        <span>Try typing "<span className="font-mono text-yellow-500">help</span>" to see all available commands</span>
+                                        <span>Try typing &quot;<span className="font-mono text-yellow-500">help</span>&quot; to see all available commands</span>
                                     </div>
                                 </motion.div>
                             )}
@@ -424,7 +423,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                 {isFocused && <BlinkingCursor />}
                                 {!input && !isFocused && (
                                     <span className={`absolute left-0 pointer-events-none font-mono ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>
-                                        Type a command or "help" to see all commands...
+                                        Type a command or &quot;help&quot; to see all commands...
                                     </span>
                                 )}
                             </div>

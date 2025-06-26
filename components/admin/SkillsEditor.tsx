@@ -276,7 +276,7 @@ interface SkillFormProps {
 function SkillForm({ skill, onSave, onCancel, saving }: SkillFormProps) {
   const [formData, setFormData] = useState<SkillData>(skill);
 
-  const handleInputChange = (field: keyof SkillData, value: any) => {
+  const handleInputChange = (field: keyof SkillData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

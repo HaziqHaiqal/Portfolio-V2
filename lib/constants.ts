@@ -1,4 +1,4 @@
-import { Code2, Smartphone, Monitor, Palette, Gamepad2, Server, Brain, Wrench, Tag, LucideIcon } from 'lucide-react';
+import { Code2, Smartphone, Palette, Gamepad2, Server, Brain, Wrench, Tag } from 'lucide-react';
 
 // Project category constants with icons and colors
 export const PROJECT_CATEGORIES = [

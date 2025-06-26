@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { graphql } from '@octokit/graphql';
+import { GitHubData as LocalGitHubData } from '../../../types/github';
 
 const github = graphql.defaults({
   headers: { authorization: `token ${process.env.GITHUB_TOKEN}` },
 });
 
-type GitHubData = {
+type GitHubAPIResponse = {
   user: {
     contributionsCollection: {
       contributionCalendar: {
-        weeks: any[];
+        weeks: {
+          contributionDays: {
+            date: string;
+            contributionCount: number;
+            weekday: number;
+          }[];
+        }[];
         totalContributions: number;
       };
       totalCommitContributions: number;
@@ -35,7 +42,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const year = parseInt(searchParams.get('year') || '') || new Date().getFullYear();
     
-    const { user } = await github<GitHubData>(
+    const { user } = await github<GitHubAPIResponse>(
       `query ($login: String!, $from: DateTime!, $to: DateTime!) {
         user(login: $login) {
           contributionsCollection(from: $from, to: $to) {
@@ -76,7 +83,7 @@ export async function GET(request: Request) {
     const accountCreationDate = new Date(user.createdAt);
     const accountCreationYear = accountCreationDate.getFullYear();
     
-    const data = {
+    const data: LocalGitHubData = {
       calendar: user.contributionsCollection.contributionCalendar,
       stats: {
         currentYear: year,

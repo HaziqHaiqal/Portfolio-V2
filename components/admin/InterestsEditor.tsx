@@ -271,7 +271,7 @@ interface InterestFormProps {
 function InterestForm({ interest, onSave, onCancel, saving }: InterestFormProps) {
   const [formData, setFormData] = useState<InterestData>(interest);
 
-  const handleInputChange = (field: keyof InterestData, value: any) => {
+  const handleInputChange = (field: keyof InterestData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

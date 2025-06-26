@@ -46,7 +46,7 @@ function HomeContent() {
   } = useUIStore();
 
   // Fetch portfolio data from Supabase using the new store
-  const { profile, experience, education, skills, projects, interests, loading, error } = usePortfolioData();
+  const { profile, experience, projects, loading, error } = usePortfolioData();
 
   // Local mounted state for this component
   const [mounted, setMounted] = useState(false);
@@ -98,7 +98,7 @@ function HomeContent() {
         <ActivityOverview />
 
         {/* Code Stack Section */}
-        <TechStackSection skills={skills} />
+        <TechStackSection />
 
         {/* Experience Section */}
         <ExperienceSection experience={experience} />

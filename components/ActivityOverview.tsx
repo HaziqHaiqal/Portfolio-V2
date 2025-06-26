@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Github, Calendar } from "lucide-react";
 import {
@@ -9,13 +9,14 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useTheme } from "./providers/ThemeProvider";
+import { Week, GitHubStats, GitHubData } from "../types/github";
 
 const ActivityOverview = () => {
   const { isDarkMode } = useTheme();
 
-  const [weeksData, setWeeksData] = useState<any[]>([]);
+  const [weeksData, setWeeksData] = useState<Week[]>([]);
   const [maxCount, setMaxCount] = useState(1);
-  const [githubStats, setGithubStats] = useState<any>(null);
+  const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [accountCreationYear, setAccountCreationYear] = useState<number | null>(null);
@@ -26,11 +27,11 @@ const ActivityOverview = () => {
     ? Array.from({ length: currentYear - accountCreationYear + 1 }, (_, i) => accountCreationYear + i).reverse()
     : [currentYear]; // Only show current year while loading account creation date
 
-  const fetchGitHubData = (year: string) => {
+  const fetchGitHubData = useCallback((year: string) => {
     setLoading(true);
     fetch(`/api/github?year=${year}`)
       .then(r => r.json())
-      .then((data) => {
+      .then((data: GitHubData) => {
         if (data.calendar && data.stats) {
           setWeeksData(data.calendar.weeks);
           setGithubStats(data.stats);
@@ -42,7 +43,7 @@ const ActivityOverview = () => {
 
           // find maximum contribution count to scale intensity
           const max = Math.max(
-            ...data.calendar.weeks.flatMap((w: any) => w.contributionDays.map((d: any) => d.contributionCount))
+            ...data.calendar.weeks.flatMap((w) => w.contributionDays.map((d) => d.contributionCount))
           );
           setMaxCount(max || 1);
         }
@@ -52,11 +53,11 @@ const ActivityOverview = () => {
         setWeeksData([]);
         setLoading(false);
       });
-  };
+  }, [accountCreationYear]);
 
   useEffect(() => {
     fetchGitHubData(selectedYear);
-  }, [selectedYear]);
+  }, [selectedYear, fetchGitHubData]);
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
@@ -84,7 +85,7 @@ const ActivityOverview = () => {
   // Calculate longest streak
   let currentStreak = 0;
   let longestStreak = 0;
-  weeksData.flatMap((w: any) => w.contributionDays).forEach((d: any) => {
+  weeksData.flatMap((w) => w.contributionDays).forEach((d) => {
     if (d.contributionCount > 0) {
       currentStreak += 1;
       longestStreak = Math.max(longestStreak, currentStreak);
@@ -179,7 +180,7 @@ const ActivityOverview = () => {
                     <div className="flex gap-0.5 md:gap-1 min-w-max md:min-w-0">
                       {weeksData.map((week, wIdx) => (
                         <div key={wIdx} className="flex flex-col gap-0.5 md:gap-1">
-                          {week.contributionDays.map((day: any, dIdx: number) => {
+                          {week.contributionDays.map((day, dIdx: number) => {
                             const count = day.contributionCount;
                             return (
                               <motion.div

@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { Search, ExternalLink, Github, GitBranch, Calendar, Folder } from "lucide-react";
-import { PROJECT_CATEGORIES, getCategoryInfo } from "../lib/constants";
+import { getCategoryInfo } from "../lib/constants";
 
 interface Project {
   id: string;
@@ -178,8 +179,8 @@ export default function ProjectsGrid({
             <span className="text-green-500">{filteredProjects.length}</span> projects]
             {searchTerm && (
               <span className="block mt-1">
-                <span className="text-purple-500">// </span>
-                filtered by "{searchTerm}"
+                <span className="text-purple-500">{'// '}</span>
+                filtered by &quot;{searchTerm}&quot;
               </span>
             )}
           </p>
@@ -268,9 +269,11 @@ function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) 
         }`}>
         {project.thumbnail_url && (
           <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden">
-            <img
+            <Image
               src={project.thumbnail_url}
               alt={project.title}
+              layout="fill"
+              objectFit="cover"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           </div>

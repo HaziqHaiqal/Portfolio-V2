@@ -27,8 +27,6 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('profile');
 
     useEffect(() => {
-        let subscription: any;
-
         const initAuth = async () => {
             // Check current session
             const { data: { session } } = await supabase.auth.getSession();
@@ -45,27 +43,24 @@ export default function AdminDashboard() {
             }
 
             setLoading(false);
-
-            // Listen for auth changes
-            subscription = supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_OUT') {
-                    setUser(null);
-                    window.location.href = '/login';
-                } else if (session?.user) {
-                    const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-                    if (session.user.id === adminUserId) {
-                        setUser(session.user);
-                    }
-                }
-            });
         };
 
         initAuth();
 
-        return () => {
-            if (subscription?.unsubscribe) {
-                subscription.unsubscribe();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                setUser(null);
+                window.location.href = '/login';
+            } else if (session?.user) {
+                const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+                if (session.user.id === adminUserId) {
+                    setUser(session.user);
+                }
             }
+        });
+
+        return () => {
+            subscription.unsubscribe();
         };
     }, []);
 

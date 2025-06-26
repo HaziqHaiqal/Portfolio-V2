@@ -22,7 +22,7 @@ export async function uploadProjectImage(
     const fileName = `${projectId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
     // Upload file to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('project-images')
       .upload(fileName, file, {
         cacheControl: '3600',

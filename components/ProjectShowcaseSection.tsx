@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Zap, Code2, Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
 import ProjectsGrid from "./ProjectsGrid";
 import { ProjectProps } from '../types/portfolio';
 import { useTheme } from "./providers/ThemeProvider";
@@ -55,7 +55,7 @@ const ProjectShowcaseSection = ({
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <span className="text-orange-500">// </span>
+              <span className="text-orange-500">{'// '}</span>
               Building digital solutions that make a difference
             </motion.p>
           </motion.div>

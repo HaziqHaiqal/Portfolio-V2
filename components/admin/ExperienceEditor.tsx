@@ -329,7 +329,7 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
 
   const [formData, setFormData] = useState<ExperienceData>(normalizeExperienceData(experience));
 
-  const handleInputChange = (field: keyof ExperienceData, value: any) => {
+  const handleInputChange = (field: keyof ExperienceData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

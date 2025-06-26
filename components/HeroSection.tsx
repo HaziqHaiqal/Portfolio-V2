@@ -3,11 +3,10 @@ import { motion } from "framer-motion";
 import {
   Github,
   Linkedin,
-  Mail,
   Terminal,
   MapPin,
 } from "lucide-react";
-import { useTheme, useThemeClasses } from "./providers/ThemeProvider";
+import { useTheme } from "./providers/ThemeProvider";
 
 interface HeroSectionProps {
   profile: Partial<Profile> | null;
@@ -29,22 +28,23 @@ export interface Profile {
   phone: string;
 }
 
+const terminalCommands = [
+  "npm install creativity",
+  "git commit -m 'Add awesome features'",
+  "docker run --rm innovation",
+  "yarn build --production",
+  "git push origin main",
+];
+
+const roleTitles = ["Software Developer", "Gamer", "Music & Piano Lover 🎹"];
+
 const HeroSection = ({ profile }: HeroSectionProps) => {
   const { isDarkMode } = useTheme();
-  const classes = useThemeClasses();
 
   // Terminal command cycling
-  const terminalCommands = [
-    "npm install creativity",
-    "git commit -m 'Add awesome features'",
-    "docker run --rm innovation",
-    "yarn build --production",
-    "git push origin main",
-  ];
   const [terminalText, setTerminalText] = useState(terminalCommands[0]);
 
   // Role titles typing effect
-  const roleTitles = ["Software Developer", "Gamer", "Music & Piano Lover 🎹"];
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [displayedRole, setDisplayedRole] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -232,7 +232,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
               className={`text-5xl md:text-7xl font-black mb-4 ${isDarkMode ? "text-gray-100" : "text-gray-900"
                 }`}
             >
-              Hi, I'm {" "}
+              Hi, I&apos;m{" "}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {"Haziq"}
               </span>

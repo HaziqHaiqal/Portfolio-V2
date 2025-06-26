@@ -2,9 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Check } from 'lucide-react';
+import { Upload, X, Check } from 'lucide-react';
 import Image from 'next/image';
-import { uploadProjectImage, deleteProjectImage, type ProjectImage } from '../../lib/imageUpload';
+import { uploadProjectImage, type ProjectImage } from '../../lib/imageUpload';
 
 interface ProjectImageUploadProps {
   projectId: string;
@@ -85,7 +85,7 @@ export default function ProjectImageUpload({ projectId, onImagesUpdate }: Projec
         setErrorMessage(result.error || 'Upload failed');
         setUploadStatus('error');
       }
-    } catch (error) {
+    } catch {
       setErrorMessage('Unexpected error occurred');
       setUploadStatus('error');
     } finally {
