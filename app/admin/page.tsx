@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 // Tab components
@@ -28,6 +27,9 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         const initAuth = async () => {
+            // Import supabase only on client side
+            const { supabase } = await import('../../lib/supabase');
+
             // Check current session
             const { data: { session } } = await supabase.auth.getSession();
 
@@ -43,28 +45,29 @@ export default function AdminDashboard() {
             }
 
             setLoading(false);
+
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    setUser(null);
+                    window.location.href = '/login';
+                } else if (session?.user) {
+                    const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+                    if (session.user.id === adminUserId) {
+                        setUser(session.user);
+                    }
+                }
+            });
+
+            return () => {
+                subscription.unsubscribe();
+            };
         };
 
         initAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT') {
-                setUser(null);
-                window.location.href = '/login';
-            } else if (session?.user) {
-                const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-                if (session.user.id === adminUserId) {
-                    setUser(session.user);
-                }
-            }
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
     }, []);
 
     const handleSignOut = async () => {
+        const { supabase } = await import('../../lib/supabase');
         await supabase.auth.signOut();
     };
 
@@ -132,8 +135,8 @@ export default function AdminDashboard() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-4 py-2 rounded-lg border transition-all duration-200 flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'bg-green-400/20 text-green-400 border-green-400/50'
-                                    : 'bg-gray-800/50 text-gray-400 border-gray-600/30 hover:bg-gray-700/50 hover:text-green-400'
+                                ? 'bg-green-400/20 text-green-400 border-green-400/50'
+                                : 'bg-gray-800/50 text-gray-400 border-gray-600/30 hover:bg-gray-700/50 hover:text-green-400'
                                 }`}
                         >
                             <span>{tab.icon}</span>
