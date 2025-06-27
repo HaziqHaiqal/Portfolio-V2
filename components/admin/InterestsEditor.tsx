@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@utils/supabase/client';
 
 interface InterestData {
   id?: string;
@@ -33,6 +33,7 @@ export default function InterestsEditor() {
   const [editingInterest, setEditingInterest] = useState<InterestData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
+  const supabase = createClient();
 
   useEffect(() => {
     loadInterests();

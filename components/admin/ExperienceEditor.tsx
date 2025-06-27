@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@utils/supabase/client';
 
 interface ExperienceData {
   id?: string;
@@ -41,6 +41,7 @@ export default function ExperienceEditor() {
   const [editingExperience, setEditingExperience] = useState<ExperienceData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
+  const supabase = createClient();
 
   useEffect(() => {
     loadExperiences();

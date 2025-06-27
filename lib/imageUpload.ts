@@ -1,4 +1,6 @@
-import { supabase } from '@lib/supabase';
+import { createClient } from '@utils/supabase/client';
+
+const supabase = createClient();
 
 export interface ProjectImage {
   id: string;
@@ -26,11 +28,11 @@ export async function uploadProjectImage(
       .from('project-images')
       .upload(fileName, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
-      return { success: false, error: `Upload failed: ${uploadError.message}` };
+      throw new Error(`Storage error: ${uploadError.message}`);
     }
 
     // Get public URL

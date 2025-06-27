@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@utils/supabase/client';
 import { PROJECT_CATEGORIES, PROJECT_STATUSES, getCategoryInfo, getStatusInfo } from '../../lib/constants';
 import ProjectImageUpload from './ProjectImageUpload';
 import { getProjectImages, type ProjectImage } from '../../lib/imageUpload';
@@ -67,6 +67,8 @@ export default function ProjectsEditor() {
   const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
+
+  const supabase = createClient();
 
   useEffect(() => {
     loadProjects();

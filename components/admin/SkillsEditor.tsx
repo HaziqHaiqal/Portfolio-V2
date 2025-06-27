@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@utils/supabase/client';
 
 interface SkillData {
   id?: string;
@@ -37,6 +37,7 @@ export default function SkillsEditor() {
   const [editingSkill, setEditingSkill] = useState<SkillData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
+  const supabase = createClient();
 
   useEffect(() => {
     loadSkills();

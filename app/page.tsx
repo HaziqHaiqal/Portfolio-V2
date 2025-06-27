@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Mail, Github, Linkedin } from "lucide-react";
 import { useState, useEffect } from "react";
-import { usePortfolioData } from "@hooks/usePortfolioData";
+import { usePortfolioDataStore } from "@hooks/usePortfolioDataStore";
 import { useTheme, useThemeClasses } from "@components/providers/ThemeProvider";
 import { useUIStore } from "@lib/stores";
 import { useKeyboardShortcuts } from "@hooks/useCommon";
@@ -46,7 +46,18 @@ function HomeContent() {
   } = useUIStore();
 
   // Fetch portfolio data from Supabase using the new store
-  const { profile, experience, projects, loading, error } = usePortfolioData();
+  const {
+    profile,
+    experience,
+    projects,
+    loading,
+    error,
+    fetchData,
+  } = usePortfolioDataStore();
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Local mounted state for this component
   const [mounted, setMounted] = useState(false);
