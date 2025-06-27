@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Github,
   Linkedin,
-  Terminal,
   MapPin,
+  Terminal
 } from "lucide-react";
-import { useTheme } from "@components/providers/ThemeProvider";
+import { useTheme } from "./providers/ThemeProvider";
 
 interface HeroSectionProps {
   profile: Partial<Profile> | null;
@@ -26,6 +27,7 @@ export interface Profile {
   email: string;
   full_name: string;
   phone: string;
+  profile_image_url?: string;
 }
 
 const terminalCommands = [
@@ -95,10 +97,9 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
     }
   }, [currentRoleIndex, isTyping]);
 
-  const codeSnippet = `const developer = {\n  name: '${profile?.display_name || "Haziq"
-    }',\n  role: '${profile?.title || "Full-Stack Developer"
-    }',\n  location: '${profile?.location || "Damansara, Malaysia"
-    }',\n  skills: ['React', 'Java', 'Python'],\n  passion: 'Building amazing things ✨'\n};`;
+  const codeSnippet = `const developer = {\n  name: '${profile?.display_name
+    }',\n  location: '${profile?.location
+    }',\n  skills: ['Coding', 'Playing Music']\n};`;
 
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -106,15 +107,92 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
     transition: { duration: 0.6 },
   } as const;
 
+  // Floating dots configuration
+  const floatingDots = [
+    { 
+      color: "bg-blue-500", 
+      size: "w-3 h-3", 
+      position: { top: "20%", left: "15%" },
+      delay: 0,
+      duration: 4
+    },
+    { 
+      color: "bg-purple-500", 
+      size: "w-2 h-2", 
+      position: { top: "70%", left: "20%" },
+      delay: 1,
+      duration: 5
+    },
+    { 
+      color: "bg-pink-500", 
+      size: "w-4 h-4", 
+      position: { top: "30%", right: "10%" },
+      delay: 2,
+      duration: 3.5
+    },
+    { 
+      color: "bg-cyan-500", 
+      size: "w-2.5 h-2.5", 
+      position: { top: "60%", right: "25%" },
+      delay: 1.5,
+      duration: 4.5
+    },
+    { 
+      color: "bg-green-500", 
+      size: "w-3 h-3", 
+      position: { top: "15%", left: "70%" },
+      delay: 0.5,
+      duration: 6
+    },
+    { 
+      color: "bg-yellow-500", 
+      size: "w-2 h-2", 
+      position: { top: "80%", right: "15%" },
+      delay: 3,
+      duration: 4
+    }
+  ];
+
   return (
-    <section id="home" className={`min-h-screen flex items-center justify-center px-6 pt-48 relative`}>
+    <section id="home" className={`min-h-screen flex items-center justify-center px-6 pt-48 relative overflow-hidden`}>
+      {/* Floating Colored Dots */}
+      {floatingDots.map((dot, index) => (
+        <motion.div
+          key={index}
+          className={`absolute ${dot.color} ${dot.size} rounded-full opacity-60`}
+          style={dot.position}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.8, 0.4]
+          }}
+          transition={{
+            duration: dot.duration,
+            delay: dot.delay,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+
       <div className="max-w-4xl mx-auto text-center relative z-10">
         {/* Terminal Window */}
         <motion.div
           className="absolute -top-40 -right-80 hidden lg:block"
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1,
+            x: [-5, 5, -5],
+            y: [-3, 3, -3]
+          }}
+          transition={{ 
+            duration: 0.8, 
+            delay: 0.5,
+            x: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+            y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+          }}
         >
           <div className="bg-gray-900 rounded-lg p-4 shadow-2xl w-80">
             <div className="flex gap-2 mb-3">
@@ -133,8 +211,18 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
         <motion.div
           className="absolute -top-20 -left-80 hidden xl:block"
           initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          animate={{ 
+            opacity: 1, 
+            x: 0,
+            y: [-8, 8, -8],
+            rotate: [-1, 1, -1]
+          }}
+          transition={{ 
+            duration: 0.8, 
+            delay: 0.3,
+            y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 9, repeat: Infinity, ease: "easeInOut" }
+          }}
         >
           <div
             className={`backdrop-blur-sm rounded-lg p-4 shadow-xl border ${isDarkMode
@@ -142,7 +230,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
               : "bg-white/80 border-gray-200 text-gray-700"
               }`}
           >
-            <pre className="text-xs font-mono whitespace-pre-wrap">{codeSnippet}</pre>
+            <pre className="text-xs text-left font-mono whitespace-pre-wrap ">{codeSnippet}</pre>
           </div>
         </motion.div>
 
@@ -154,61 +242,118 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           transition={{ duration: 0.8 }}
         >
           <div className="relative w-56 h-56 mx-auto mb-8">
-            {/* Animated rings */}
+            {/* Animated Rings around Avatar */}
+            {[1, 2, 3].map((ring) => (
+              <motion.div
+                key={ring}
+                className="absolute inset-0 rounded-full border-2 pointer-events-none"
+                style={{
+                  borderColor: isDarkMode 
+                    ? `rgba(59, 130, 246, ${0.3 - ring * 0.08})`
+                    : `rgba(59, 130, 246, ${0.4 - ring * 0.1})`,
+                  top: `-${ring * 12}px`,
+                  left: `-${ring * 12}px`,
+                  right: `-${ring * 12}px`,
+                  bottom: `-${ring * 12}px`,
+                }}
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.6, 0.2, 0.6],
+                  rotate: ring % 2 === 0 ? [0, 360] : [360, 0],
+                }}
+                transition={{
+                  duration: 4 + ring,
+                  delay: ring * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
+
+            {/* Pulsing Background Glow */}
             <motion.div
-              className="absolute inset-0 border-2 border-dashed border-blue-300 rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            />
-            <motion.div
-              className="absolute inset-4 border border-purple-300 rounded-full"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-16 rounded-full pointer-events-none"
+              style={{
+                background: isDarkMode
+                  ? "radial-gradient(circle, transparent 20%, rgba(59, 130, 246, 0.15) 40%, transparent 80%)"
+                  : "radial-gradient(circle, transparent 20%, rgba(59, 130, 246, 0.1) 40%, transparent 80%)",
+                filter: "blur(12px)",
+              }}
+              animate={{
+                scale: [0.8, 1.3, 0.8],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
 
-            <div
+            {/* Main Avatar Container with Movement */}
+            <motion.div
               className={`absolute inset-8 rounded-full overflow-hidden border-4 shadow-2xl ${isDarkMode
                 ? "border-gray-700 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700"
                 : "border-white bg-gradient-to-br from-blue-100 via-white to-purple-100"
                 }`}
+              animate={{
+                x: [-8, 8, -8],
+                y: [-5, 5, -5],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                x: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              }}
             >
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  H
-                </span>
-              </div>
-            </div>
+              {profile?.profile_image_url ? (
+                <Image
+                  src={profile.profile_image_url}
+                  alt={profile.display_name || 'Profile Picture'}
+                  layout="fill"
+                  objectFit="cover"
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {(profile?.display_name || "H").charAt(0)}
+                  </span>
+                </div>
+              )}
+            </motion.div>
 
-            {/* Status indicator */}
-            <div
+            {/* Status indicator with enhanced animation */}
+            <motion.div
               className={`absolute bottom-8 right-8 w-8 h-8 bg-green-500 rounded-full border-4 flex items-center justify-center ${isDarkMode ? "border-gray-700" : "border-white"
                 }`}
+              animate={{
+                scale: [1, 1.3, 1],
+                rotate: [0, 10, -10, 0]
+              }}
+              transition={{
+                scale: { duration: 2, repeat: Infinity },
+                rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              }}
             >
               <motion.div
                 className="w-2 h-2 bg-white rounded-full"
-                animate={{ scale: [1, 1.5, 1] }}
+                animate={{ scale: [1, 1.8, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
-            </div>
-
-            {/* Floating skill */}
-            <motion.div
-              className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium"
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              React Expert
             </motion.div>
           </div>
 
+          {/* Social Icons with Enhanced Movement */}
           <div className="flex justify-center gap-4 mb-8">
             {[
               {
-                href: "#",
+                href: profile?.linkedin_url,
                 icon: <Linkedin size={20} className="text-white" />,
               },
               {
-                href: "#",
+                href: profile?.github_url,
                 icon: <Github size={20} className="text-white" />,
               }
             ].map((link, idx) => (
@@ -216,7 +361,18 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                 key={idx}
                 href={link.href}
                 className="w-12 h-12 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
-                whileHover={{ rotate: idx % 2 === 0 ? 5 : -5 }}
+                animate={{
+                  y: idx % 2 === 0 ? [-3, 3, -3] : [3, -3, 3],
+                  rotate: [-2, 2, -2]
+                }}
+                transition={{
+                  y: { duration: 3 + idx, repeat: Infinity, ease: "easeInOut" },
+                  rotate: { duration: 4 + idx, repeat: Infinity, ease: "easeInOut" }
+                }}
+                whileHover={{ 
+                  rotate: idx % 2 === 0 ? 15 : -15,
+                  scale: 1.2
+                }}
                 whileTap={{ scale: 0.95 }}
               >
                 {link.icon}
@@ -225,9 +381,24 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           </div>
         </motion.div>
 
-        {/* Intro + stats */}
-        <motion.div className="space-y-6 relative" variants={fadeInUp} initial="initial" animate="animate">
-          <div className="relative">
+        {/* Intro + stats with subtle movement */}
+        <motion.div 
+          className="space-y-6 relative" 
+          variants={fadeInUp} 
+          initial="initial" 
+          animate="animate"
+        >
+          <motion.div 
+            className="relative"
+            animate={{
+              y: [-2, 2, -2]
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
             <h1
               className={`text-5xl md:text-7xl font-black mb-4 ${isDarkMode ? "text-gray-100" : "text-gray-900"
                 }`}
@@ -237,14 +408,21 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                 {"Haziq"}
               </span>
             </h1>
-          </div>
+          </motion.div>
 
           <div className="space-y-2">
             <motion.h2
               className={`text-2xl font-bold ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.5 }}
+              animate={{ 
+                opacity: 1,
+                x: [-1, 1, -1]
+              }}
+              transition={{ 
+                duration: 1, 
+                delay: 0.5,
+                x: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              }}
             >
               <span className="inline-flex items-center justify-center gap-2">
                 <Terminal size={24} className="text-blue-600" />
@@ -258,8 +436,16 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
             <motion.div
               className={`flex items-center justify-center gap-2 font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                x: [-0.5, 0.5, -0.5]
+              }}
+              transition={{ 
+                duration: 0.6, 
+                delay: 0.8,
+                x: { duration: 7, repeat: Infinity, ease: "easeInOut" }
+              }}
             >
               <MapPin size={16} className="text-red-500" />
               <span>{profile?.location || "Damansara, Selangor"}</span>

@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { createClient } from '@utils/supabase/client';
 import { PROJECT_CATEGORIES, PROJECT_STATUSES, getCategoryInfo, getStatusInfo } from '../../lib/constants';
-import ProjectImageUpload from './ProjectImageUpload';
-import { getProjectImages, type ProjectImage } from '../../lib/imageUpload';
+import UniversalUpload from './UniversalUpload';
+import { getProjectImages, deleteProjectImage, type UploadedFile } from '../../lib/fileManager';
 
 interface ProjectData {
   id?: string;
@@ -355,7 +355,7 @@ interface ProjectFormProps {
 }
 
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
-  const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
+  const [projectImages, setProjectImages] = useState<UploadedFile[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
 
   // Load project images when editing an existing project
@@ -661,15 +661,18 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-green-400 mb-2">Thumbnail URL</label>
-              <input
-                type="url"
-                value={formData.thumbnail_url}
-                onChange={(e) => handleInputChange('thumbnail_url', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-400 focus:outline-none"
-              />
-            </div>
+            <UniversalUpload
+              uploadType="project_thumbnail"
+              entityId={formData.id || ''}
+              value={formData.thumbnail_url}
+              onChange={(url) => handleInputChange('thumbnail_url', url)}
+              label="Thumbnail Image"
+              description="Project thumbnail shown in the grid view"
+              placeholder="https://example.com/thumbnail.jpg"
+              enableCrop={true}
+              cropAspect={16/9}
+              allowUrlInput={true}
+            />
 
             <div>
               <label className="block text-sm font-medium text-green-400 mb-2">Commits Count</label>
@@ -754,14 +757,12 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Upload Section */}
             <div>
-              <ProjectImageUpload
-                projectId={project.id}
-                onImagesUpdate={() => {
-                  // Refresh images after upload
-                  getProjectImages(project.id!)
-                    .then(setProjectImages)
-                    .catch(console.error);
-                }}
+              <UniversalUpload
+                uploadType="project_image"
+                entityId={project.id}
+                onCollectionUpdate={setProjectImages}
+                label="Add Project Images"
+                description="Upload multiple images to showcase your project"
               />
             </div>
 
@@ -804,7 +805,6 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                         type="button"
                         onClick={async () => {
                           if (confirm('Delete this image?')) {
-                            const { deleteProjectImage } = await import('../../lib/imageUpload');
                             const result = await deleteProjectImage(image.id);
                             if (result.success) {
                               setProjectImages(prev => prev.filter(img => img.id !== image.id));

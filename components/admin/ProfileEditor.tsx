@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
+import UniversalUpload from './UniversalUpload';
 
 interface ProfileData {
   id: string;
@@ -234,25 +235,29 @@ export default function ProfileEditor() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-green-400 mb-2">Profile Image URL</label>
-              <input
-                type="url"
-                value={profile.profile_image_url || ''}
-                onChange={(e) => handleInputChange('profile_image_url', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-400 focus:outline-none"
-              />
-            </div>
+            <UniversalUpload
+              uploadType="profile_image"
+              entityId={profile.id}
+              value={profile.profile_image_url || ''}
+              onChange={(url: string) => handleInputChange('profile_image_url', url)}
+              label="Profile Image"
+              description="Your profile picture shown in the hero section"
+              placeholder="https://example.com/profile.jpg"
+              enableCrop={true}
+              cropAspect={1}
+              allowUrlInput={true}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-green-400 mb-2">Resume URL</label>
-              <input
-                type="url"
-                value={profile.resume_url || ''}
-                onChange={(e) => handleInputChange('resume_url', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-400 focus:outline-none"
-              />
-            </div>
+            <UniversalUpload
+              uploadType="resume"
+              entityId={profile.id}
+              value={profile.resume_url || ''}
+              onChange={(url: string) => handleInputChange('resume_url', url)}
+              label="Resume"
+              description="Your resume document for download"
+              placeholder="https://example.com/resume.pdf"
+              allowUrlInput={true}
+            />
 
             <div>
               <label className="block text-sm font-medium text-green-400 mb-2">LinkedIn URL</label>

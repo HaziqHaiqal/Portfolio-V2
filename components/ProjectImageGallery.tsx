@@ -5,14 +5,14 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
-import { getProjectImages, type ProjectImage } from '../lib/imageUpload';
+import { getProjectImages, type UploadedFile } from '../lib/fileManager';
 
 interface ProjectImageGalleryProps {
   projectId: string;
 }
 
 export default function ProjectImageGallery({ projectId }: ProjectImageGalleryProps) {
-  const [images, setImages] = useState<ProjectImage[]>([]);
+  const [images, setImages] = useState<UploadedFile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,7 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
               onClick={() => setIsFullscreen(true)}
               priority={true}
             />
-            
+
             {/* Navigation Arrows - Only show if multiple images */}
             {images.length > 1 && (
               <>
@@ -159,11 +159,10 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
                 <button
                   key={image.id}
                   onClick={() => setCurrentIndex(index)}
-                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                    index === currentIndex
+                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${index === currentIndex
                       ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
+                    }`}
                 >
                   <Image
                     src={image.url}

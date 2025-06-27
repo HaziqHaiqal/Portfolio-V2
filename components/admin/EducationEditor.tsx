@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
+import UniversalUpload from './UniversalUpload';
 
 interface EducationData {
   id?: string;
@@ -407,15 +408,18 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-green-400 mb-2">Institution Logo URL</label>
-              <input
-                type="url"
-                value={formData.institution_logo_url}
-                onChange={(e) => handleInputChange('institution_logo_url', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-400 focus:outline-none"
-              />
-            </div>
+            <UniversalUpload
+              uploadType="institution_logo"
+              entityId={formData.id || ''}
+              value={formData.institution_logo_url}
+              onChange={(url: string) => handleInputChange('institution_logo_url', url)}
+              label="Institution Logo"
+              description="Institution logo for education entry"
+              placeholder="https://example.com/logo.png"
+              enableCrop={true}
+              cropAspect={1}
+              allowUrlInput={true}
+            />
           </div>
         </div>
 
