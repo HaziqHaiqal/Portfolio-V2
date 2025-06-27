@@ -248,6 +248,49 @@ interface ProjectCardProps {
 
 function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
+
+  const handleClick = () => {
+    onClick();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    });
+    setIsHovered(true);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStart.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.y);
+    const deltaTime = Date.now() - touchStart.time;
+
+    // Only trigger click if:
+    // 1. Touch duration is reasonable (not too long)
+    // 2. Movement is minimal (not scrolling)
+    const maxMovement = 10; // pixels
+    const maxDuration = 500; // milliseconds
+
+    if (deltaTime < maxDuration && deltaX < maxMovement && deltaY < maxMovement) {
+      e.preventDefault();
+      onClick();
+    }
+
+    setTouchStart(null);
+    setIsHovered(false);
+  };
+
+  const handleTouchMove = () => {
+    // Reset hover state if user is scrolling
+    setIsHovered(false);
+  };
 
   return (
     <motion.div
@@ -262,7 +305,10 @@ function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) 
       whileHover={{ scale: 1.02, y: -5 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={onClick}
+      onClick={handleClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       {/* Inner card content */}
       <div className={`h-full rounded-2xl p-6 relative overflow-hidden ${isDarkMode ? "bg-gray-900/90" : "bg-white/90"
