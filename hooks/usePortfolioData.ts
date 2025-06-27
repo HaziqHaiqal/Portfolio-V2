@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { usePortfolioStore } from '@lib/stores'
-import { supabase, Profile, Experience, Education, Skill, Project, Interest } from '@lib/supabase'
+import { supabase, Profile, Experience, Education, Skill, Interest } from '@lib/supabase'
 import { ProjectProps } from 'types/portfolio'
 
 export function useProfile() {
@@ -140,7 +139,7 @@ export function useProjects(featured = false) {
                 const { data, error } = await query.order('sort_order', { ascending: true })
 
                 if (error) throw error
-                const mapped = (data || []).map((p:any)=>({
+                const mapped = (data || []).map((p: any) => ({
                     id: p.id,
                     title: p.title,
                     description: p.description,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabaseAuth } from '@lib/supabase-client';
+import { createClient } from '@utils/supabase/client';
 
 // Tab components
 import ProfileEditor from '@components/admin/ProfileEditor';
@@ -28,8 +28,10 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         const initAuth = async () => {
+            const supabase = createClient();
+
             // Check current session
-            const { data: { session } } = await supabaseAuth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
 
             if (session?.user) {
                 const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
@@ -44,7 +46,7 @@ export default function AdminDashboard() {
 
             setLoading(false);
 
-            const { data: { subscription } } = await supabaseAuth.onAuthStateChange((event, session) => {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT') {
                     setUser(null);
                     window.location.href = '/login';
@@ -65,7 +67,8 @@ export default function AdminDashboard() {
     }, []);
 
     const handleSignOut = async () => {
-        await supabaseAuth.signOut();
+        const supabase = createClient();
+        await supabase.auth.signOut();
     };
 
     if (loading) {

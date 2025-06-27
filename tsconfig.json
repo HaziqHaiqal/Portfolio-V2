@@ -19,6 +19,7 @@
       "@lib/*": ["./lib/*"],
       "@app/*": ["./app/*"],
       "@hooks/*": ["./hooks/*"],
+      "@utils/*": ["./utils/*"],
       "types/*": ["./types/*"]
     },
     "plugins": [
