@@ -116,11 +116,11 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                       <div className="flex items-start gap-4">
                         {/* Company node on main timeline */}
                         <div className="relative flex flex-col items-center">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
+                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 overflow-hidden ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
                             } shadow-lg z-10 cursor-pointer hover:scale-105 transition-transform`}
                             onClick={() => toggleCompany(company)}>
-                            {data.logo ? (
-                              <Image src={data.logo} alt={`${company} logo`} width={24} height={24} className="object-contain rounded" />
+                              {data.logo ? (
+                              <Image src={data.logo} alt={`${company} logo`} width={32} height={32} className="object-contain max-w-full max-h-full" />
                             ) : (
                               <Briefcase size={20} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
                             )}
