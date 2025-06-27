@@ -15,14 +15,14 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Muhammad Haziq Haiqal Kamaruddin - Developer, Gamer & Pianist",
+  title: "Haziq Haiqal @ Personal Website",
   description: "Software Developer at Maybank Berhad with expertise in React, JavaScript, Python, and SAP ABAP. Passionate about creating innovative solutions and exceptional user experiences.",
   keywords: ["Software Developer", "React", "JavaScript", "Python", "SAP ABAP", "Full Stack", "Frontend", "Backend"],
   authors: [{ name: "Muhammad Haziq Haiqal Kamaruddin" }],
   openGraph: {
-    title: "Muhammad Haziq Haiqal Kamaruddin - Developer, Gamer & Pianist",
+    title: "Haziq Haiqal @ Personal Website",
     description: "Software Developer at Maybank Berhad with expertise in React, JavaScript, Python, and SAP ABAP.",
-    url: "https://haziqhaiqal.netlify.app",
+    url: "https://haziqhaiqal.com",
     siteName: "Haziq Portfolio",
     type: "website",
   },
