@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { createClient } from '@utils/supabase/client';
 import { PROJECT_CATEGORIES, PROJECT_STATUSES, getCategoryInfo, getStatusInfo } from '../../lib/constants';
@@ -70,11 +70,7 @@ export default function ProjectsEditor() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -122,7 +118,11 @@ export default function ProjectsEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const handleEdit = (project: ProjectData) => {
     setEditingProject(project);

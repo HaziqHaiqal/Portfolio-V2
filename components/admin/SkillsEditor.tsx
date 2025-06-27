@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 
 interface SkillData {
@@ -39,11 +39,7 @@ export default function SkillsEditor() {
   const [message, setMessage] = useState('');
   const supabase = createClient();
 
-  useEffect(() => {
-    loadSkills();
-  }, []);
-
-  const loadSkills = async () => {
+  const loadSkills = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('skills')
@@ -63,7 +59,11 @@ export default function SkillsEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadSkills();
+  }, [loadSkills]);
 
   const handleEdit = (skill: SkillData) => {
     setEditingSkill(skill);

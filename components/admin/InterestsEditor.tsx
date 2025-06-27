@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 
 interface InterestData {
@@ -35,11 +35,7 @@ export default function InterestsEditor() {
   const [message, setMessage] = useState('');
   const supabase = createClient();
 
-  useEffect(() => {
-    loadInterests();
-  }, []);
-
-  const loadInterests = async () => {
+  const loadInterests = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('interests')
@@ -59,7 +55,11 @@ export default function InterestsEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadInterests();
+  }, [loadInterests]);
 
   const handleEdit = (interest: InterestData) => {
     setEditingInterest(interest);

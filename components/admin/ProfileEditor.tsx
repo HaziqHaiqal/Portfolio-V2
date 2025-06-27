@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 
 interface ProfileData {
@@ -34,11 +34,7 @@ export default function ProfileEditor() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profile')
@@ -58,7 +54,11 @@ export default function ProfileEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleInputChange = (field: keyof ProfileData, value: string | number) => {
     if (!profile) return;

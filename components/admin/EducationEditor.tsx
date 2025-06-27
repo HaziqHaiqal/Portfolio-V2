@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 
 interface EducationData {
@@ -51,11 +51,7 @@ export default function EducationEditor() {
   const [message, setMessage] = useState('');
   const supabase = createClient();
 
-  useEffect(() => {
-    loadEducations();
-  }, []);
-
-  const loadEducations = async () => {
+  const loadEducations = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('education')
@@ -75,7 +71,11 @@ export default function EducationEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadEducations();
+  }, [loadEducations]);
 
   const handleEdit = (education: EducationData) => {
     setEditingEducation(education);

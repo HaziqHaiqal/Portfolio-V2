@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 
 interface ExperienceData {
@@ -43,11 +43,7 @@ export default function ExperienceEditor() {
   const [message, setMessage] = useState('');
   const supabase = createClient();
 
-  useEffect(() => {
-    loadExperiences();
-  }, []);
-
-  const loadExperiences = async () => {
+  const loadExperiences = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('experience')
@@ -84,7 +80,11 @@ export default function ExperienceEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadExperiences();
+  }, [loadExperiences]);
 
   const handleEdit = (experience: ExperienceData) => {
     setEditingExperience(experience);
