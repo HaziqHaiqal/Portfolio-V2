@@ -1,18 +1,18 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, X, Check, FileText, ImageIcon, Trash2, Crop as CropIcon, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, X, Check, FileText, ImageIcon, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
 import Image from 'next/image';
-import { 
-  uploadFile, 
-  deleteFile, 
+import {
+  uploadFile,
+  deleteFile,
   getFiles,
   UPLOAD_CONFIGS,
   validateFile,
   type UploadResult,
   type DeleteResult,
-  type UploadedFile 
+  type UploadedFile
 } from '../../lib/fileManager';
 import ImageCropModal from './ImageCropModal';
 
@@ -22,24 +22,24 @@ interface UniversalUploadProps {
   // Core properties
   uploadType: keyof typeof UPLOAD_CONFIGS;
   entityId: string;
-  
+
   // Single file mode (like profile image, resume, thumbnails)
   value?: string;
   onChange?: (url: string) => void;
-  
+
   // Collection mode (like project images)
   onCollectionUpdate?: (files: UploadedFile[]) => void;
-  
+
   // UI customization
   label?: string;
   description?: string;
   placeholder?: string;
   required?: boolean;
-  
+
   // Crop functionality
   enableCrop?: boolean;
   cropAspect?: number;
-  
+
   // Mode selection
   allowUrlInput?: boolean;
 }
@@ -60,9 +60,9 @@ export default function UniversalUpload({
   cropAspect = 1,
   allowUrlInput = false
 }: UniversalUploadProps) {
-  
+
   // ============= STATE =============
-  
+
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [altText, setAltText] = useState('');
@@ -73,38 +73,40 @@ export default function UniversalUpload({
   const [urlInput, setUrlInput] = useState('');
   const [showCropModal, setShowCropModal] = useState(false);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
-  
+  const [showMetaFields, setShowMetaFields] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // ============= CONFIGURATION =============
-  
+
   const config = UPLOAD_CONFIGS[uploadType];
   const isCollectionMode = config.fieldName === 'image'; // Project images use collection mode
   const isImageUpload = config.allowedTypes.some(type => type.startsWith('image/'));
-  
+
   // ============= HELPER FUNCTIONS =============
-  
+
   const isImageFile = (file: File) => file.type.startsWith('image/');
   const isImageUrl = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-  
+
   const getAcceptAttribute = () => {
     return config.allowedTypes.join(',');
   };
-  
+
   const getTypeDescription = () => {
     const types = config.allowedTypes.map(type => {
       if (type.startsWith('image/')) return type.replace('image/', '').toUpperCase();
       if (type === 'application/pdf') return 'PDF';
       return type;
     }).join(', ');
-    
+
     const maxSizeMB = Math.round(config.maxSize / (1024 * 1024));
-    return `${types} up to ${maxSizeMB}MB`;
+    return `${types} • Max ${maxSizeMB}MB`;
   };
-  
+
   // ============= FILE HANDLING =============
-  
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -116,6 +118,9 @@ export default function UniversalUpload({
       return;
     }
 
+    // Store the selected file
+    setSelectedFile(file);
+
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -123,10 +128,11 @@ export default function UniversalUpload({
     };
     reader.readAsDataURL(file);
 
-    // Generate default alt text for images
+    // Generate default alt text for images and show meta fields
     if (isImageFile(file)) {
       const defaultAlt = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       setAltText(defaultAlt);
+      setShowMetaFields(true);
     }
     
     setUploadStatus('idle');
@@ -135,7 +141,7 @@ export default function UniversalUpload({
   };
 
   const handleUpload = async () => {
-    const file = croppedImageFile || fileInputRef.current?.files?.[0];
+    const file = croppedImageFile || selectedFile;
     if (!file) {
       setErrorMessage('Please select a file');
       setUploadStatus('error');
@@ -160,11 +166,11 @@ export default function UniversalUpload({
         isImageFile(file) ? altText : undefined,
         isImageFile(file) ? caption || undefined : undefined
       );
-      
+
       if (result.success && result.data) {
         setUploadStatus('success');
         clearPreview();
-        
+
         if (isCollectionMode && onCollectionUpdate) {
           // Refresh collection for project images
           const updatedFiles = await getFiles('project', entityId, 'image');
@@ -204,6 +210,8 @@ export default function UniversalUpload({
     setAltText('');
     setCaption('');
     setCroppedImageFile(null);
+    setSelectedFile(null);
+    setShowMetaFields(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -213,20 +221,20 @@ export default function UniversalUpload({
 
   const deleteCurrentFile = async () => {
     if (!value) return;
-    
+
     if (confirm('Delete this file?')) {
       try {
         const result: DeleteResult = await deleteFile(uploadType, entityId);
-        
+
         if (result.success) {
           onChange?.('');
         } else {
           alert(`Failed to delete file: ${result.error}`);
         }
-             } catch (err) {
-         alert('Failed to delete file: Unexpected error');
-         console.error('Delete error:', err);
-       }
+      } catch (err) {
+        alert('Failed to delete file: Unexpected error');
+        console.error('Delete error:', err);
+      }
     }
   };
 
@@ -242,276 +250,332 @@ export default function UniversalUpload({
     const croppedFile = new File([croppedImageBlob], 'cropped-image.jpg', {
       type: 'image/jpeg',
     });
-    
+
     setCroppedImageFile(croppedFile);
-    
+
     // Update preview with cropped version
     const reader = new FileReader();
     reader.onload = (e) => {
       setPreview(e.target?.result as string);
     };
     reader.readAsDataURL(croppedFile);
-    
+
     setShowCropModal(false);
   };
 
   // ============= RENDER =============
 
   return (
-    <div className="space-y-4">
-      {/* Label and Description */}
+    <div className="space-y-6">
+      {/* Header */}
       {label && (
-        <div>
-          <label className="block text-sm font-medium text-green-400 mb-1">
-            {label} {required && <span className="text-red-400">*</span>}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-white">
+            {label}
+            {required && <span className="text-red-400 ml-1">*</span>}
           </label>
           {description && (
-            <p className="text-xs text-gray-500 mb-3">{description}</p>
+            <p className="text-sm text-gray-400">{description}</p>
           )}
         </div>
       )}
 
-      {/* Mode Selector for URL Input */}
+      {/* Mode Toggle */}
       {allowUrlInput && !isCollectionMode && (
-        <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg mb-4">
+        <div className="flex items-center bg-gray-800/50 rounded-lg p-1 w-fit">
           <button
             type="button"
             onClick={() => setInputMode('upload')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              inputMode === 'upload'
-                ? 'bg-green-500 text-white'
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${inputMode === 'upload'
+                ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
-            Upload File
+            <Upload className="w-4 h-4" />
+            Upload
           </button>
           <button
             type="button"
             onClick={() => setInputMode('url')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              inputMode === 'url'
-                ? 'bg-green-500 text-white'
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${inputMode === 'url'
+                ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
-            Enter URL
+            <Link2 className="w-4 h-4" />
+            URL
           </button>
         </div>
       )}
 
-      {/* URL Input Mode */}
-      {allowUrlInput && inputMode === 'url' && !isCollectionMode ? (
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              placeholder={placeholder || "https://example.com/image.jpg"}
-              className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-400 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={handleUrlSubmit}
-              className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-400/30 rounded-lg hover:bg-green-500/30 transition-colors"
-            >
-              Add
-            </button>
-          </div>
-          
-          {/* Current URL Display */}
-          {value && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <ExternalLink className="w-4 h-4" />
-              <a 
-                href={value} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-green-400 transition-colors truncate"
-              >
-                {value}
-              </a>
-            </div>
-          )}
-        </div>
-      ) : (
-        /* Upload Mode */
-        <div className="space-y-4">
-          {/* Current file display */}
-          {!isCollectionMode && value && !preview && (
-            <div className="p-3 bg-gray-700 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {isImageUrl(value) ? (
-                    <ImageIcon className="w-4 h-4 text-green-400" />
-                  ) : (
-                    <FileText className="w-4 h-4 text-green-400" />
-                  )}
-                  <span className="text-sm text-gray-300">Current file</span>
-                </div>
+      {/* Main Content */}
+      <div className="space-y-4">
+        {/* Current File Display */}
+        {!isCollectionMode && value && !preview && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="group relative overflow-hidden rounded-xl bg-gray-800/50 border border-gray-700"
+          >
+            {isImageUrl(value) ? (
+              <div className="relative">
+                <Image
+                  src={value}
+                  alt="Current file"
+                  width={400}
+                  height={200}
+                  className="w-full h-32 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    deleteCurrentFile();
-                  }}
-                  className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                  title="Delete current file"
+                  onClick={deleteCurrentFile}
+                  className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600"
+                  title="Delete file"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              {isImageUrl(value) && (
-                <div className="mt-2">
-                  <Image
-                    src={value}
-                    alt="Current file"
-                    width={200}
-                    height={120}
-                    className="w-full max-w-xs h-24 object-cover rounded"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* File Input */}
-          <div className="mb-6">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={getAcceptAttribute()}
-              onChange={handleFileSelect}
-              className="hidden"
-              id={`file-upload-${uploadType}-${entityId}`}
-            />
-            
-            {!preview ? (
-              <label
-                htmlFor={`file-upload-${uploadType}-${entityId}`}
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-xl cursor-pointer hover:bg-gray-700 transition-colors"
-              >
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-300">
-                  Click to upload {isImageUpload ? 'image' : 'file'}
-                </span>
-                <span className="text-xs text-gray-500 mt-1">
-                  {getTypeDescription()}
-                </span>
-              </label>
             ) : (
-              <div className="relative">
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover rounded-xl"
-                />
-                {/* Crop button */}
-                {enableCrop && isImageUrl(preview) && (
-                  <button
-                    type="button"
-                    onClick={handleCropImage}
-                    className="absolute top-2 left-2 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-                    title="Crop image"
-                  >
-                    <CropIcon className="w-4 h-4" />
-                  </button>
-                )}
-                {/* Clear button */}
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <FileText className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">File attached</p>
+                    <p className="text-xs text-gray-400">Click to view</p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={clearPreview}
-                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  onClick={deleteCurrentFile}
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                  title="Delete file"
                 >
-                  <X className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             )}
-          </div>
+          </motion.div>
+        )}
 
-          {/* Form Fields for Images */}
-          {preview && fileInputRef.current?.files?.[0] && isImageFile(fileInputRef.current.files[0]) && (
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-green-400 mb-2">
-                  Alt Text *
-                </label>
-                <input
-                  type="text"
-                  value={altText}
-                  onChange={(e) => setAltText(e.target.value)}
-                  placeholder="Describe the image for accessibility"
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent bg-gray-800 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-green-400 mb-2">
-                  Caption (Optional)
-                </label>
-                <textarea
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Add a caption for this image"
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent bg-gray-800 text-white resize-none"
-                />
-              </div>
+        {/* URL Input Mode */}
+        {allowUrlInput && inputMode === 'url' && !isCollectionMode ? (
+          <div className="space-y-3">
+            <div className="flex gap-3">
+                             <input
+                 type="url"
+                 value={urlInput || ''}
+                 onChange={(e) => setUrlInput(e.target.value)}
+                 placeholder={placeholder || "https://example.com/image.jpg"}
+                 className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
+               />
+              <motion.button
+                type="button"
+                onClick={handleUrlSubmit}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
+              >
+                Add
+              </motion.button>
             </div>
-          )}
 
-          {/* Status Messages */}
-          {uploadStatus === 'success' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 p-3 mb-4 bg-green-900/20 text-green-400 rounded-lg border border-green-400/30"
-            >
-              <Check className="w-4 h-4" />
-              <span className="text-sm font-medium">File uploaded successfully!</span>
-            </motion.div>
-          )}
+            {value && (
+              <div className="flex items-center gap-2 p-3 bg-gray-800/30 rounded-lg">
+                <ExternalLink className="w-4 h-4 text-gray-400" />
+                <a
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-300 hover:text-green-400 transition-colors truncate"
+                >
+                  {value}
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Upload Mode */
+          <div className="space-y-4">
+            {/* File Upload Area */}
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={getAcceptAttribute()}
+                onChange={handleFileSelect}
+                className="hidden"
+                id={`file-upload-${uploadType}-${entityId}`}
+                key={`file-input-${preview ? 'with-preview' : 'empty'}`}
+              />
 
-          {uploadStatus === 'error' && errorMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 p-3 mb-4 bg-red-900/20 text-red-400 rounded-lg border border-red-400/30"
-            >
-              <X className="w-4 h-4" />
-              <span className="text-sm font-medium">{errorMessage}</span>
-            </motion.div>
-          )}
-
-          {/* Upload Button */}
-          {preview && (
-            <motion.button
-              type="button"
-              onClick={handleUpload}
-              disabled={uploading || (fileInputRef.current?.files?.[0] && isImageFile(fileInputRef.current.files[0]) && !altText.trim())}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all ${
-                uploading || (fileInputRef.current?.files?.[0] && isImageFile(fileInputRef.current.files[0]) && !altText.trim())
-                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-green-500/20 text-green-400 border border-green-400/30 hover:bg-green-500/30'
-              }`}
-              whileHover={{ scale: (uploading || (fileInputRef.current?.files?.[0] && isImageFile(fileInputRef.current.files[0]) && !altText.trim())) ? 1 : 1.02 }}
-              whileTap={{ scale: (uploading || (fileInputRef.current?.files?.[0] && isImageFile(fileInputRef.current.files[0]) && !altText.trim())) ? 1 : 0.98 }}
-            >
-              {uploading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                  Uploading...
-                </div>
+              {!preview ? (
+                <motion.label
+                  htmlFor={`file-upload-${uploadType}-${entityId}`}
+                  className="relative block w-full p-8 border-2 border-dashed border-gray-600 rounded-xl cursor-pointer group hover:border-green-400/50 transition-all"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <div className="text-center">
+                    <div className="mx-auto w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
+                      <Upload className="w-6 h-6 text-green-400" />
+                    </div>
+                    <p className="text-white font-medium mb-1">
+                      Click to upload {isImageUpload ? 'image' : 'file'}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {getTypeDescription()}
+                    </p>
+                  </div>
+                </motion.label>
               ) : (
-                'Upload File'
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative rounded-xl overflow-hidden bg-gray-800"
+                >
+                                     <Image
+                     src={preview}
+                     alt="Preview"
+                     width={400}
+                     height={250}
+                     className="w-full max-h-64 object-contain bg-gray-900"
+                   />
+
+                  {/* Action Buttons */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    {enableCrop && preview && isImageUrl(preview) && (
+                      <motion.button
+                        type="button"
+                        onClick={handleCropImage}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-lg"
+                        title="Crop image"
+                      >
+                        <CropIcon className="w-4 h-4" />
+                      </motion.button>
+                    )}
+                    <motion.button
+                      type="button"
+                      onClick={clearPreview}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      title="Remove"
+                    >
+                      <X className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </motion.div>
               )}
-            </motion.button>
-          )}
-        </div>
-      )}
+            </div>
+
+            {/* Meta Fields for Images */}
+            <AnimatePresence>
+              {showMetaFields && preview && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Alt Text
+                        <span className="text-red-400 ml-1">*</span>
+                      </label>
+                                             <input
+                         type="text"
+                         value={altText || ''}
+                         onChange={(e) => setAltText(e.target.value)}
+                         placeholder="Describe the image for accessibility"
+                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
+                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Caption
+                        <span className="text-sm text-gray-400 ml-2">(Optional)</span>
+                      </label>
+                                             <textarea
+                         value={caption || ''}
+                         onChange={(e) => setCaption(e.target.value)}
+                         placeholder="Add a caption for this image"
+                         rows={2}
+                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all resize-none"
+                       />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Upload Button */}
+            <AnimatePresence>
+              {preview && (
+                <motion.button
+                  type="button"
+                  onClick={handleUpload}
+                  disabled={uploading || (showMetaFields && !altText.trim())}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  whileHover={uploading ? {} : { scale: 1.02 }}
+                  whileTap={uploading ? {} : { scale: 0.98 }}
+                  className={`w-full py-4 px-6 rounded-xl font-medium transition-all ${uploading || (showMetaFields && !altText.trim())
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
+                    }`}
+                  style={uploading ? { pointerEvents: 'none' } : {}}
+                >
+                  {uploading ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                      Uploading...
+                    </div>
+                  ) : (
+                    'Upload File'
+                  )}
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {/* Status Messages */}
+      <AnimatePresence>
+        {uploadStatus === 'success' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex items-center gap-3 p-4 bg-green-500/10 text-green-400 rounded-xl border border-green-400/20"
+          >
+            <div className="p-1 bg-green-400 rounded-full">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm font-medium">File uploaded successfully!</span>
+          </motion.div>
+        )}
+
+        {uploadStatus === 'error' && errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex items-center gap-3 p-4 bg-red-500/10 text-red-400 rounded-xl border border-red-400/20"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Image Crop Modal */}
       {showCropModal && preview && (
