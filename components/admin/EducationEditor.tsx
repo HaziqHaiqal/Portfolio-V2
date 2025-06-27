@@ -200,7 +200,7 @@ export default function EducationEditor() {
         <div className={`p-4 rounded-lg border ${message.includes('Error')
             ? 'bg-red-500/20 text-red-400 border-red-400/30'
             : 'bg-green-500/20 text-green-400 border-green-400/30'
-          }`}>
+        }`}>
           {message}
         </div>
       )}
@@ -340,7 +340,7 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
           <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
             Basic Information
           </h3>
-
+          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-green-400 mb-2">Institution *</label>
@@ -424,7 +424,7 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
           <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
             Academic Details
           </h3>
-
+          
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -520,7 +520,7 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
         <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
           Additional Information
         </h3>
-
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-green-400 mb-2">

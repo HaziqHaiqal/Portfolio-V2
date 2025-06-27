@@ -3,8 +3,6 @@ import { create } from 'zustand'
 import { createClient } from '@utils/supabase/client'
 import { Profile, Experience, Education, Skill, Project, Interest } from '@lib/supabase'
 
-const supabaseClient = createClient()
-
 interface PortfolioState {
   profile: Profile | null;
   experience: Experience[];
@@ -29,6 +27,7 @@ export const usePortfolioDataStore = create<PortfolioState>((set) => ({
   fetchData: async () => {
     set({ loading: true, error: null });
     try {
+      const supabase = createClient();
       const [
         profileRes,
         experienceRes,
@@ -37,12 +36,12 @@ export const usePortfolioDataStore = create<PortfolioState>((set) => ({
         projectsRes,
         interestsRes,
       ] = await Promise.all([
-        supabaseClient.from('profile').select('*').single(),
-        supabaseClient.from('experience').select('*').order('sort_order'),
-        supabaseClient.from('education').select('*').order('sort_order'),
-        supabaseClient.from('skills').select('*').order('sort_order'),
-        supabaseClient.from('projects').select('*, images:project_images(*)').order('sort_order'),
-        supabaseClient.from('interests').select('*').order('sort_order'),
+        supabase.from('profile').select('*').single(),
+        supabase.from('experience').select('*').order('sort_order'),
+        supabase.from('education').select('*').order('sort_order'),
+        supabase.from('skills').select('*').order('sort_order'),
+        supabase.from('projects').select('*, images:project_images(*)').order('sort_order'),
+        supabase.from('interests').select('*').order('sort_order'),
       ]);
 
       if (profileRes.error) throw profileRes.error;

@@ -62,7 +62,7 @@ export default function ProfileEditor() {
 
   const handleInputChange = (field: keyof ProfileData, value: string | number) => {
     if (!profile) return;
-
+    
     setProfile({
       ...profile,
       [field]: value
@@ -71,7 +71,7 @@ export default function ProfileEditor() {
 
   const handleSave = async () => {
     if (!profile) return;
-
+    
     setSaving(true);
     setMessage('');
 
@@ -131,7 +131,7 @@ export default function ProfileEditor() {
         <div className={`p-4 rounded-lg border ${message.includes('Error')
             ? 'bg-red-500/20 text-red-400 border-red-400/30'
             : 'bg-green-500/20 text-green-400 border-green-400/30'
-          }`}>
+        }`}>
           {message}
         </div>
       )}
@@ -142,7 +142,7 @@ export default function ProfileEditor() {
           <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
             Basic Information
           </h3>
-
+          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-green-400 mb-2">Full Name</label>
@@ -212,7 +212,7 @@ export default function ProfileEditor() {
           <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
             Contact & Links
           </h3>
-
+          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-green-400 mb-2">Email</label>
@@ -292,7 +292,7 @@ export default function ProfileEditor() {
         <h3 className="text-lg font-semibold text-green-400 border-b border-green-400/30 pb-2">
           Stats & Status
         </h3>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-green-400 mb-2">Status</label>

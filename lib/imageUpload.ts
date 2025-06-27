@@ -1,7 +1,5 @@
 import { createClient } from '@utils/supabase/client';
 
-const supabase = createClient();
-
 export interface ProjectImage {
   id: string;
   url: string;
@@ -19,6 +17,8 @@ export async function uploadProjectImage(
   caption?: string
 ): Promise<{ success: boolean; data?: ProjectImage; error?: string }> {
   try {
+    const supabase = createClient();
+    
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${projectId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -77,6 +77,7 @@ export async function uploadProjectImage(
  * Get all images for a project
  */
 export async function getProjectImages(projectId: string): Promise<ProjectImage[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('project_images')
     .select('id, image_url, alt_text, caption')
@@ -101,6 +102,8 @@ export async function getProjectImages(projectId: string): Promise<ProjectImage[
  */
 export async function deleteProjectImage(imageId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const supabase = createClient();
+    
     // First get the image details to find the storage path
     const { data: imageData, error: fetchError } = await supabase
       .from('project_images')
