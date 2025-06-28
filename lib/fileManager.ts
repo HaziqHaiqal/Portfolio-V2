@@ -47,7 +47,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     maxSize: 5 * 1024 * 1024, // 5MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
   },
-  
+
   resume: {
     entityType: 'profile',
     entityId: '', // Set dynamically
@@ -62,7 +62,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
   project_thumbnail: {
     entityType: 'project',
     entityId: '', // Set dynamically
-    fieldName: 'thumbnail',
+    fieldName: 'project_thumbnail',
     bucket: 'project-thumbnails',
     path: 'thumbnails',
     maxSize: 5 * 1024 * 1024, // 5MB
@@ -72,7 +72,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
   project_image: {
     entityType: 'project',
     entityId: '', // Set dynamically
-    fieldName: 'image',
+    fieldName: 'project_collection',
     bucket: 'project-images',
     path: '', // Will use entityId as path
     maxSize: 5 * 1024 * 1024, // 5MB
@@ -139,13 +139,13 @@ export async function uploadFile(
 ): Promise<UploadResult> {
   try {
     const supabase = createClient();
-    
+
     // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
     if (!config) {
       return { success: false, error: `Unknown upload type: ${uploadType}` };
     }
-    
+
     config.entityId = entityId;
 
     // Validate file
@@ -203,8 +203,8 @@ export async function uploadFile(
       return { success: false, error: `Database error: ${dbError.message}` };
     }
 
-    // Update main entity table if needed (for single file fields)
-    if (config.fieldName !== 'image') { // 'image' is for collections like project images
+    // Update main entity table if needed (skip collections)
+    if (config.fieldName !== 'project_collection') {
       await updateEntityTable(config.entityType, config.entityId, config.fieldName, publicUrl);
     }
 
@@ -235,13 +235,13 @@ export async function deleteFile(
 ): Promise<DeleteResult> {
   try {
     const supabase = createClient();
-    
+
     // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
     if (!config) {
       return { success: false, error: `Unknown upload type: ${uploadType}` };
     }
-    
+
     config.entityId = entityId;
 
     // Find the file in uploads table
@@ -256,7 +256,7 @@ export async function deleteFile(
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
         // No file found, just clear the entity field
-        if (config.fieldName !== 'image') {
+        if (config.fieldName !== 'project_collection') {
           await clearEntityField(config.entityType, config.entityId, config.fieldName);
         }
         return { success: true };
@@ -284,7 +284,7 @@ export async function deleteFile(
     }
 
     // Clear entity field if needed
-    if (config.fieldName !== 'image') {
+    if (config.fieldName !== 'project_collection') {
       await clearEntityField(config.entityType, config.entityId, config.fieldName);
     }
 
@@ -300,7 +300,7 @@ export async function deleteFile(
 export async function deleteFileById(fileId: string): Promise<DeleteResult> {
   try {
     const supabase = createClient();
-    
+
     // Get file details
     const { data: fileData, error: fetchError } = await supabase
       .from('uploads')
@@ -346,17 +346,17 @@ export async function getFiles(
   fieldName?: string
 ): Promise<UploadedFile[]> {
   const supabase = createClient();
-  
+
   let query = supabase
     .from('uploads')
     .select('id, file_url, alt_text, caption, file_name, original_name, file_type, file_size')
     .eq('entity_type', entityType)
     .eq('entity_id', entityId);
-  
+
   if (fieldName) {
     query = query.eq('field_name', fieldName);
   }
-  
+
   const { data, error } = await query.order('sort_order', { ascending: true });
 
   if (error) {
@@ -388,7 +388,7 @@ async function updateEntityTable(
   fileUrl: string
 ): Promise<void> {
   const supabase = createClient();
-  
+
   const tableMap: Record<string, string> = {
     profile: 'profile',
     project: 'projects',
@@ -399,7 +399,7 @@ async function updateEntityTable(
   const fieldMap: Record<string, string> = {
     profile_image: 'profile_image_url',
     resume: 'resume_url',
-    thumbnail: 'thumbnail_url',
+    project_thumbnail: 'thumbnail_url',
     company_logo: 'company_logo_url',
     institution_logo: 'institution_logo_url'
   };
@@ -428,7 +428,7 @@ async function clearEntityField(
   fieldName: string
 ): Promise<void> {
   const supabase = createClient();
-  
+
   const tableMap: Record<string, string> = {
     profile: 'profile',
     project: 'projects',
@@ -439,7 +439,7 @@ async function clearEntityField(
   const fieldMap: Record<string, string> = {
     profile_image: 'profile_image_url',
     resume: 'resume_url',
-    thumbnail: 'thumbnail_url',
+    project_thumbnail: 'thumbnail_url',
     company_logo: 'company_logo_url',
     institution_logo: 'institution_logo_url'
   };
@@ -462,46 +462,46 @@ async function clearEntityField(
 // ============= CONVENIENCE FUNCTIONS =============
 
 // Profile functions
-export const uploadProfileImage = (entityId: string, file: File) => 
+export const uploadProfileImage = (entityId: string, file: File) =>
   uploadFile(file, 'profile_image', entityId);
 
-export const uploadResume = (entityId: string, file: File) => 
+export const uploadResume = (entityId: string, file: File) =>
   uploadFile(file, 'resume', entityId);
 
-export const deleteProfileImage = (entityId: string) => 
+export const deleteProfileImage = (entityId: string) =>
   deleteFile('profile_image', entityId);
 
-export const deleteResume = (entityId: string) => 
+export const deleteResume = (entityId: string) =>
   deleteFile('resume', entityId);
 
 // Project functions
-export const uploadProjectThumbnail = (entityId: string, file: File) => 
+export const uploadProjectThumbnail = (entityId: string, file: File) =>
   uploadFile(file, 'project_thumbnail', entityId);
 
-export const uploadProjectImage = (entityId: string, file: File, altText: string, caption?: string) => 
+export const uploadProjectImage = (entityId: string, file: File, altText: string, caption?: string) =>
   uploadFile(file, 'project_image', entityId, altText, caption);
 
-export const deleteProjectThumbnail = (entityId: string) => 
+export const deleteProjectThumbnail = (entityId: string) =>
   deleteFile('project_thumbnail', entityId);
 
-export const deleteProjectImage = (fileId: string) => 
+export const deleteProjectImage = (fileId: string) =>
   deleteFileById(fileId);
 
-export const getProjectImages = (projectId: string) => 
-  getFiles('project', projectId, 'image');
+export const getProjectImages = (projectId: string) =>
+  getFiles('project', projectId, 'project_collection');
 
 // Experience functions
-export const uploadCompanyLogo = (entityId: string, file: File) => 
+export const uploadCompanyLogo = (entityId: string, file: File) =>
   uploadFile(file, 'company_logo', entityId);
 
-export const deleteCompanyLogo = (entityId: string) => 
+export const deleteCompanyLogo = (entityId: string) =>
   deleteFile('company_logo', entityId);
 
 // Education functions
-export const uploadInstitutionLogo = (entityId: string, file: File) => 
+export const uploadInstitutionLogo = (entityId: string, file: File) =>
   uploadFile(file, 'institution_logo', entityId);
 
-export const deleteInstitutionLogo = (entityId: string) => 
+export const deleteInstitutionLogo = (entityId: string) =>
   deleteFile('institution_logo', entityId);
 
 // Legacy compatibility - for gradual migration

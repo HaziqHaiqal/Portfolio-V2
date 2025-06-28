@@ -13,7 +13,7 @@ import {
   type UploadResult,
   type DeleteResult,
   type UploadedFile
-} from '../../lib/fileManager';
+} from '@lib/fileManager';
 import ImageCropModal from './ImageCropModal';
 
 // ============= TYPES =============
@@ -81,7 +81,7 @@ export default function UniversalUpload({
   // ============= CONFIGURATION =============
 
   const config = UPLOAD_CONFIGS[uploadType];
-  const isCollectionMode = config.fieldName === 'image'; // Project images use collection mode
+  const isCollectionMode = config.fieldName === 'project_collection'; // Project images use collection mode
   const isImageUpload = config.allowedTypes.some(type => type.startsWith('image/'));
 
   // ============= HELPER FUNCTIONS =============
@@ -106,7 +106,7 @@ export default function UniversalUpload({
 
   // ============= FILE HANDLING =============
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -134,7 +134,7 @@ export default function UniversalUpload({
       setAltText(defaultAlt);
       setShowMetaFields(true);
     }
-    
+
     setUploadStatus('idle');
     setErrorMessage('');
     setCroppedImageFile(null);
@@ -173,7 +173,7 @@ export default function UniversalUpload({
 
         if (isCollectionMode && onCollectionUpdate) {
           // Refresh collection for project images
-          const updatedFiles = await getFiles('project', entityId, 'image');
+          const updatedFiles = await getFiles('project', entityId, 'project_collection');
           onCollectionUpdate(updatedFiles);
         } else if (onChange) {
           // Update single file reference
@@ -287,8 +287,8 @@ export default function UniversalUpload({
             type="button"
             onClick={() => setInputMode('upload')}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${inputMode === 'upload'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <Upload className="w-4 h-4" />
@@ -298,8 +298,8 @@ export default function UniversalUpload({
             type="button"
             onClick={() => setInputMode('url')}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${inputMode === 'url'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <Link2 className="w-4 h-4" />
@@ -315,16 +315,17 @@ export default function UniversalUpload({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="group relative overflow-hidden rounded-xl bg-gray-800/50 border border-gray-700"
+            className="group relative overflow-hidden rounded-xl bg-gray-800/50 border border-gray-700 inline-block max-w-full"
           >
             {isImageUrl(value) ? (
               <div className="relative">
                 <Image
                   src={value}
                   alt="Current file"
-                  width={400}
-                  height={200}
-                  className="w-full h-32 object-cover"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="w-auto h-auto max-h-[60vh] object-contain bg-gray-900"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
@@ -364,13 +365,13 @@ export default function UniversalUpload({
         {allowUrlInput && inputMode === 'url' && !isCollectionMode ? (
           <div className="space-y-3">
             <div className="flex gap-3">
-                             <input
-                 type="url"
-                 value={urlInput || ''}
-                 onChange={(e) => setUrlInput(e.target.value)}
-                 placeholder={placeholder || "https://example.com/image.jpg"}
-                 className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
-               />
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder={placeholder || "https://example.com/image.jpg"}
+                className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
+              />
               <motion.button
                 type="button"
                 onClick={handleUrlSubmit}
@@ -434,15 +435,15 @@ export default function UniversalUpload({
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative rounded-xl overflow-hidden bg-gray-800"
+                  className="relative rounded-xl overflow-hidden bg-gray-800 inline-block max-w-full"
                 >
-                                     <Image
-                     src={preview}
-                     alt="Preview"
-                     width={400}
-                     height={250}
-                     className="w-full max-h-64 object-contain bg-gray-900"
-                   />
+                  <Image
+                    src={preview}
+                    alt="Preview"
+                    width={400}
+                    height={250}
+                    className="w-full max-h-64 object-contain bg-gray-900"
+                  />
 
                   {/* Action Buttons */}
                   <div className="absolute top-3 right-3 flex gap-2">
@@ -488,13 +489,13 @@ export default function UniversalUpload({
                         Alt Text
                         <span className="text-red-400 ml-1">*</span>
                       </label>
-                                             <input
-                         type="text"
-                         value={altText || ''}
-                         onChange={(e) => setAltText(e.target.value)}
-                         placeholder="Describe the image for accessibility"
-                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
-                       />
+                      <input
+                        type="text"
+                        value={altText}
+                        onChange={(e) => setAltText(e.target.value)}
+                        placeholder="Describe the image for accessibility"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
+                      />
                     </div>
 
                     <div>
@@ -502,13 +503,13 @@ export default function UniversalUpload({
                         Caption
                         <span className="text-sm text-gray-400 ml-2">(Optional)</span>
                       </label>
-                                             <textarea
-                         value={caption || ''}
-                         onChange={(e) => setCaption(e.target.value)}
-                         placeholder="Add a caption for this image"
-                         rows={2}
-                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all resize-none"
-                       />
+                      <textarea
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        placeholder="Add a caption for this image"
+                        rows={2}
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all resize-none"
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -528,8 +529,8 @@ export default function UniversalUpload({
                   whileHover={uploading ? {} : { scale: 1.02 }}
                   whileTap={uploading ? {} : { scale: 0.98 }}
                   className={`w-full py-4 px-6 rounded-xl font-medium transition-all ${uploading || (showMetaFields && !altText.trim())
-                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
                     }`}
                   style={uploading ? { pointerEvents: 'none' } : {}}
                 >

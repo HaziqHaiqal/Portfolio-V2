@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
-import { 
+import {
   Plus,
   Edit,
   Trash2,
@@ -24,6 +25,8 @@ import { Label } from '@components/ui/label';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
 import { Checkbox } from '@components/ui/checkbox';
+import UniversalUpload from './UniversalUpload';
+import { getFiles, deleteFileById, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectData {
   id?: string;
@@ -317,7 +320,7 @@ export default function ProjectsEditor() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -348,7 +351,7 @@ export default function ProjectsEditor() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Button 
+          <Button
             onClick={() => {
               setEditingProject(null);
               setShowForm(true);
@@ -368,11 +371,10 @@ export default function ProjectsEditor() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${
-              message.type === 'success' 
-                ? 'bg-green-900/50 border-green-700 text-green-300' 
+            className={`p-4 rounded-lg border ${message.type === 'success'
+                ? 'bg-green-900/50 border-green-700 text-green-300'
                 : 'bg-red-900/50 border-red-700 text-red-300'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               {message.type === 'success' ? (
@@ -409,7 +411,7 @@ export default function ProjectsEditor() {
       </motion.div>
 
       {/* Projects Grid */}
-      <motion.div 
+      <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -437,7 +439,7 @@ export default function ProjectsEditor() {
               )}
 
               {/* Gradient Background */}
-              <div 
+              <div
                 className="absolute inset-0 opacity-5"
                 style={{
                   background: `linear-gradient(135deg, ${project.gradient_from || '#3b82f6'}, ${project.gradient_to || '#8b5cf6'})`
@@ -452,7 +454,7 @@ export default function ProjectsEditor() {
                       <CardTitle className="text-lg font-bold text-white">
                         {project.title}
                       </CardTitle>
-                      <Badge 
+                      <Badge
                         className="mt-1 bg-gray-700 text-gray-300 border-gray-600"
                       >
                         {project.category}
@@ -470,9 +472,9 @@ export default function ProjectsEditor() {
                 {/* Tech Stack */}
                 <div className="flex flex-wrap gap-1">
                   {project.tech_stack?.slice(0, 3).map((tech, techIndex) => (
-                    <Badge 
-                      key={techIndex} 
-                      variant="secondary" 
+                    <Badge
+                      key={techIndex}
+                      variant="secondary"
                       className="text-xs bg-gray-700 text-gray-300"
                     >
                       {tech}
@@ -554,7 +556,7 @@ export default function ProjectsEditor() {
             {filter ? 'Try adjusting your search filters.' : 'Get started by adding your first project.'}
           </p>
           {!filter && (
-            <Button 
+            <Button
               onClick={() => {
                 setEditingProject(null);
                 setShowForm(true);
@@ -583,7 +585,23 @@ interface ProjectFormProps {
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectData>(normalizeProjectData(project));
   const [newTech, setNewTech] = useState('');
+  const [projectImages, setProjectImages] = useState<UploadedFile[]>([]);
 
+  // Load existing images when editing an existing project
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (formData.id) {
+        try {
+          const images = await getFiles('project', formData.id, 'project_collection');
+          setProjectImages(images);
+        } catch (err) {
+          console.error('Error loading project images:', err);
+        }
+      }
+    };
+
+    fetchImages();
+  }, [formData.id]);
 
   const handleInputChange = (field: keyof ProjectData, value: string | number | boolean | string[]) => {
     // Ensure string values are never null or undefined
@@ -619,7 +637,7 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-              <Card className="bg-gray-800 border-gray-700 shadow-xl">
+      <Card className="bg-gray-800 border-gray-700 shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -695,6 +713,78 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                 className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
               />
             </div>
+
+            {/* Project Thumbnail */}
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold text-white">
+                Project Thumbnail
+              </Label>
+              <UniversalUpload
+                uploadType="project_thumbnail"
+                entityId={formData.id || 'new-project'}
+                value={formData.thumbnail_url}
+                onChange={(url) => handleInputChange('thumbnail_url', url)}
+                label="Thumbnail Image"
+                description="Upload a thumbnail image for this project (recommended: 16:9 aspect ratio)"
+                enableCrop={true}
+                cropAspect={16 / 9}
+                allowUrlInput={true}
+                placeholder="https://example.com/project-thumbnail.jpg"
+              />
+            </div>
+
+            {/* Project Images Gallery */}
+            {formData.id && (
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold text-white">
+                  Project Images Gallery
+                </Label>
+                <UniversalUpload
+                  uploadType="project_image"
+                  entityId={formData.id}
+                  onCollectionUpdate={(files) => setProjectImages(files)}
+                  label="Additional Images"
+                  description="Upload additional screenshots, mockups, or images for this project"
+                  enableCrop={true}
+                  cropAspect={16 / 9}
+                  allowUrlInput={true}
+                />
+
+                {/* Display existing project images */}
+                {projectImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                    {projectImages.map((img) => (
+                      <div key={img.id} className="relative group">
+                        <Image
+                          src={img.url}
+                          alt={img.alt || 'Project image'}
+                          width={0}
+                          height={0}
+                          sizes="100vw"
+                          className="w-full h-auto rounded-lg object-contain bg-gray-900"
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm('Delete this image?')) return;
+                            const res = await deleteFileById(img.id);
+                            if (res.success) {
+                              setProjectImages((prev) => prev.filter((p) => p.id !== img.id));
+                            } else {
+                              alert(`Failed to delete image: ${res.error}`);
+                            }
+                          }}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete image"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Tech Stack */}
             <div className="space-y-4">
@@ -805,7 +895,7 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
               <Label className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Settings
               </Label>
-              
+
               <div className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg border border-gray-600">
                 <Checkbox
                   checked={formData.featured}

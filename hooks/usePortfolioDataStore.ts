@@ -92,6 +92,7 @@ export const usePortfolioDataStore = create<PortfolioState>((set) => ({
           teamSize: p.team_size,
           duration: p.duration,
           images: projectImageData?.images || [],
+          thumbnail_url: p.thumbnail_url,
         };
       });
 

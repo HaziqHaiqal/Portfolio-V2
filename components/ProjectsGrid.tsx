@@ -297,12 +297,21 @@ function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) 
       className={`group relative rounded-2xl cursor-pointer overflow-hidden p-0.5 bg-gradient-to-br ${isDarkMode
         ? "from-gray-800 to-gray-700"
         : "from-gray-200 to-gray-100"
-        } group-hover:from-blue-500 group-hover:to-purple-600 transition-all duration-300`}
+        } group-hover:from-blue-500 group-hover:to-purple-600`}
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.6, delay: index * 0.1 },
+      }}
+      transition={{ type: "tween", duration: 0 }}
       viewport={{ once: true }}
-      whileHover={{ scale: 1.02, y: -5 }}
+      whileHover={{
+        scale: 1.02,
+        y: -5,
+        transition: { duration: 0 },
+      }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={handleClick}
@@ -318,9 +327,9 @@ function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) 
             <Image
               src={project.thumbnail_url}
               alt={project.title}
-              layout="fill"
-              objectFit="cover"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="w-full h-full object-cover group-hover:scale-105"
+              sizes="(max-width: 1024px) 100vw, 33vw"
             />
           </div>
         )}
