@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
@@ -8,40 +8,18 @@ import { motion } from 'framer-motion';
 import {
   Activity,
   FolderOpen,
-  Eye,
-  Github,
-  Globe,
   CheckCircle,
   AlertCircle,
   XCircle,
   TrendingUp,
   TrendingDown,
-  Clock,
   Zap,
   ArrowUpRight,
   Briefcase,
   GraduationCap,
-  Heart,
-  Database,
 } from 'lucide-react';
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@components/ui/breadcrumb";
-import { Separator } from "@components/ui/separator";
-import {
-  SidebarTrigger,
-} from "@components/ui/sidebar";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
-import { Button } from '@components/ui/button';
-import { Badge } from '@components/ui/badge';
-
 interface StatsData {
   projects: number;
   experience: number;
@@ -55,7 +33,7 @@ interface ActivityItem {
   target: string;
   timestamp: string;
   status: 'success' | 'warning' | 'error';
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const StatCard = ({
@@ -64,15 +42,14 @@ const StatCard = ({
   change,
   changeType,
   icon: Icon,
-  color,
   delay
 }: {
   title: string;
   value: string | number;
   change: string;
   changeType: 'increase' | 'decrease';
-  icon: any;
-  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+
   delay: number;
 }) => {
   return (
@@ -81,7 +58,7 @@ const StatCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
     >
-              <Card className="bg-gray-800 border-gray-700 hover:shadow-lg transition-all duration-300">
+      <Card className="bg-gray-800 border-gray-700 hover:shadow-lg transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {title}
@@ -110,7 +87,7 @@ const StatCard = ({
   );
 };
 
-const ActivityCard = ({ activity, index }: { activity: ActivityItem, index: number }) => {
+const ActivityCard = ({ activity }: { activity: ActivityItem, index: number }) => {
   const statusIcons = {
     success: CheckCircle,
     warning: AlertCircle,
@@ -152,7 +129,7 @@ const ActivityCard = ({ activity, index }: { activity: ActivityItem, index: numb
 const QuickActionCard = ({ title, description, icon: Icon, onClick }: {
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   onClick: () => void;
 }) => {
   return (
@@ -197,15 +174,15 @@ export default function AdminPage() {
     const checkUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           router.push('/login');
           return;
         }
-        
+
         setUser(user);
-        await loadStats();
-        await loadActivities();
+        loadStats();
+        loadActivities();
       } catch (error) {
         console.error('Error checking user:', error);
         router.push('/login');
@@ -215,9 +192,10 @@ export default function AdminPage() {
     };
 
     checkUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, supabase.auth]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const [projectsRes, experienceRes, educationRes, skillsRes] = await Promise.all([
         supabase.from('projects').select('id'),
@@ -235,9 +213,9 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  };
+  }, [supabase]);
 
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     try {
       // Get recent updates from various tables
       const [projectsRes, skillsRes, experienceRes, educationRes] = await Promise.all([
@@ -304,7 +282,7 @@ export default function AdminPage() {
       console.error('Error loading activities:', error);
       setActivities([]);
     }
-  };
+  }, [supabase]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -338,7 +316,6 @@ export default function AdminPage() {
               change={`${stats.projects} total`}
               changeType="increase"
               icon={FolderOpen}
-              color="blue"
               delay={0}
             />
             <StatCard
@@ -347,7 +324,6 @@ export default function AdminPage() {
               change={`${stats.experience} positions`}
               changeType="increase"
               icon={Briefcase}
-              color="green"
               delay={0.1}
             />
             <StatCard
@@ -356,7 +332,6 @@ export default function AdminPage() {
               change={`${stats.education} degrees`}
               changeType="increase"
               icon={GraduationCap}
-              color="purple"
               delay={0.2}
             />
             <StatCard
@@ -365,7 +340,6 @@ export default function AdminPage() {
               change={`${stats.skills} skills`}
               changeType="increase"
               icon={Zap}
-              color="orange"
               delay={0.3}
             />
           </div>

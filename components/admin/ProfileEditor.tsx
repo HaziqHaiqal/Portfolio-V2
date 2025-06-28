@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import UniversalUpload from '@components/admin/UniversalUpload';
@@ -12,17 +12,16 @@ import { Badge } from '@components/ui/badge';
 import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
 import { 
-  User, 
-  Globe, 
   Briefcase,
   Check,
   AlertCircle,
   FileText,
-  Sparkles,
   Loader2,
   Plus,
   X,
-  Save
+  Save,
+  User,
+  Globe
 } from 'lucide-react';
 
 interface ProfileData {
@@ -87,6 +86,7 @@ export default function ProfileEditor() {
 
   useEffect(() => {
     loadProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function ProfileEditor() {
     }
   }, [message]);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profile')
@@ -145,7 +145,7 @@ export default function ProfileEditor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   const handleSave = async () => {
     setSaving(true);

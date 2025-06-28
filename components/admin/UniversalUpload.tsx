@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Check, FileText, ImageIcon, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
+import { Upload, X, Check, FileText, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
 import Image from 'next/image';
 import {
   uploadFile,

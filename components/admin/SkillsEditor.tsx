@@ -7,24 +7,14 @@ import {
   Plus,
   Edit,
   Trash2,
-  Save,
   X,
   Star,
   StarOff,
-  Code2,
-  Terminal,
   Zap,
-  Database,
-  Sparkles,
   Loader2,
-  ChevronRight,
-  ArrowUpDown,
-  Award,
-  TrendingUp,
-  Eye,
-  EyeOff,
   Check,
-  AlertCircle
+  AlertCircle,
+  Save
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';

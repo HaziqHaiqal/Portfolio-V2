@@ -3,32 +3,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import UniversalUpload from './UniversalUpload';
 import { 
   Plus,
   Edit,
   Trash2,
-  Save,
   X,
   GraduationCap,
-  Calendar,
   MapPin,
-  Terminal,
-  Sparkles,
   Loader2,
-  ChevronRight,
-  Award,
-  TrendingUp,
-  Eye,
-  EyeOff,
   Check,
   AlertCircle,
-  User,
-  BookOpen,
-  Clock,
-  Target,
   Star,
-  University
+  University,
+  Calendar,
+  Award,
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
@@ -387,9 +379,11 @@ export default function EducationEditor() {
                     {/* Institution Logo */}
                     <div className="flex-shrink-0">
                       {education.institution_logo_url ? (
-                        <img
+                        <Image
                           src={education.institution_logo_url}
                           alt={`${education.institution} logo`}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 rounded-lg object-cover border-2 border-blue-200 dark:border-blue-800 shadow-md"
                         />
                       ) : (

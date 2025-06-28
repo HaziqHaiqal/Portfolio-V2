@@ -3,32 +3,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import UniversalUpload from './UniversalUpload';
 import {
   Plus,
   Edit,
   Trash2,
-  Save,
   X,
   Building,
-  Calendar,
   MapPin,
-  Terminal,
-  Sparkles,
   Loader2,
-  ChevronRight,
-  Award,
-  TrendingUp,
-  Eye,
-  EyeOff,
   Check,
   AlertCircle,
-  User,
   Briefcase,
-  Clock,
-  Target,
+  Calendar,
   Code2,
-  Cpu
+  ChevronRight,
+  Award,
+  Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
@@ -38,11 +30,6 @@ import { Switch } from '@components/ui/switch';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
 } from '@components/ui/select';
 
 interface ExperienceData {
@@ -390,9 +377,11 @@ export default function ExperienceEditor() {
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
                     {experience.company_logo_url ? (
-                      <img
+                      <Image
                         src={experience.company_logo_url}
                         alt={`${experience.company} logo`}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-lg object-cover border-2 border-gray-700 shadow-md"
                       />
                     ) : (

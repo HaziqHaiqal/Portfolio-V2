@@ -3,36 +3,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import UniversalUpload from './UniversalUpload';
+
 import { 
   Plus,
   Edit,
   Trash2,
-  Save,
   X,
   FolderOpen,
-  Terminal,
-  Sparkles,
   Loader2,
-  ChevronRight,
-  Award,
-  TrendingUp,
-  Eye,
-  EyeOff,
   Check,
   AlertCircle,
   Star,
   StarOff,
-  Code2,
-  Github,
-  Globe,
-  Calendar
+  Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
-import { Switch } from '@components/ui/switch';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
 import { Checkbox } from '@components/ui/checkbox';
@@ -91,6 +79,7 @@ const initialProjectData: ProjectData = {
 };
 
 // Helper function to normalize project data
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normalizeProjectData = (project: any): ProjectData => {
   return {
     ...initialProjectData,
@@ -594,8 +583,7 @@ interface ProjectFormProps {
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectData>(normalizeProjectData(project));
   const [newTech, setNewTech] = useState('');
-  const [newFeature, setNewFeature] = useState('');
-  const [newChallenge, setNewChallenge] = useState('');
+
 
   const handleInputChange = (field: keyof ProjectData, value: string | number | boolean | string[]) => {
     // Ensure string values are never null or undefined

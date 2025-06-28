@@ -7,23 +7,14 @@ import {
   Plus,
   Edit,
   Trash2,
-  Save,
   X,
   Star,
   StarOff,
   Heart,
-  Terminal,
-  Sparkles,
   Loader2,
-  ChevronRight,
-  Award,
-  TrendingUp,
-  Eye,
-  EyeOff,
   Check,
   AlertCircle,
-  Calendar,
-  User
+  Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
