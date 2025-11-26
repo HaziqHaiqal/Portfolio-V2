@@ -21,7 +21,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -29,7 +28,6 @@ import {
   SidebarRail,
 } from "@components/ui/sidebar"
 
-// This is sample data.
 const data = {
   navMain: [
     {
@@ -102,44 +100,43 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <LayoutDashboard className="h-4 w-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Admin Dashboard</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {user?.email || "admin"}
-                  </span>
-                </div>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="h-16 border-b p-2">
+        <div className="flex h-full w-full items-center gap-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
+            {(user?.email || "A").charAt(0).toUpperCase()}
+          </div>
+          <div className="flex flex-col overflow-hidden text-sm group-data-[collapsible=icon]:hidden">
+            <span className="truncate font-medium">Admin Dashboard</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {user?.email || "admin"}
+            </span>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <button onClick={() => router.push(item.url)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {data.navMain.map((item) => {
+                const active = isActive(item.url)
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.title}
+                    >
+                      <button
+                        onClick={() => router.push(item.url)}
+                        className="w-full"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -147,10 +144,13 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <button onClick={handleSignOut} className="w-full">
-                <LogOut />
-                <span>Sign out</span>
+            <SidebarMenuButton asChild tooltip="Sign out">
+              <button
+                onClick={handleSignOut}
+                className="w-full text-red-500 hover:text-red-600"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -159,4 +159,4 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       <SidebarRail />
     </Sidebar>
   )
-} 
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -197,17 +197,85 @@ export default function ExperienceEditor() {
     }
   };
 
-  const filteredExperiences = experiences.filter(experience => {
-    return experience.company.toLowerCase().includes(filter.toLowerCase()) ||
-      experience.position.toLowerCase().includes(filter.toLowerCase()) ||
-      experience.location.toLowerCase().includes(filter.toLowerCase());
+  const filteredExperiences = experiences.filter((experience) => {
+    const needle = filter.toLowerCase();
+    return (
+      experience.company.toLowerCase().includes(needle) ||
+      experience.position.toLowerCase().includes(needle) ||
+      experience.location.toLowerCase().includes(needle)
+    );
   });
 
-  const formatDateRange = (startDate: string, endDate: string, isCurrent: boolean) => {
-    const start = new Date(startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    const end = isCurrent ? 'Present' : new Date(endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    return `${start} - ${end}`;
+  const formatDate = (value?: string) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
+
+  const formatDateRange = (startDate: string, endDate: string, isCurrent: boolean) => {
+    const start = formatDate(startDate);
+    const end = isCurrent ? 'Present' : formatDate(endDate);
+    if (start && end) return `${start} - ${end}`;
+    if (start) return `${start} - ${isCurrent ? 'Present' : 'N/A'}`;
+    return 'Dates not set';
+  };
+
+  type ExperienceGroup = {
+    company: string;
+    logo?: string;
+    location?: string;
+    roles: ExperienceData[];
+    totalYears: number;
+  };
+
+  const groupedExperiences = useMemo<ExperienceGroup[]>(() => {
+    const grouped = filteredExperiences.reduce<Record<string, ExperienceData[]>>((acc, item) => {
+      const key = item.company?.trim() || 'Untitled Company';
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    const msInYear = 1000 * 60 * 60 * 24 * 365;
+
+    return Object.entries(grouped)
+      .map(([company, roles]) => {
+        const sortedRoles = [...roles].sort((a, b) => {
+          const aDate = new Date(a.start_date || a.end_date || '').getTime();
+          const bDate = new Date(b.start_date || b.end_date || '').getTime();
+          return bDate - aDate;
+        });
+
+        const totalYears = sortedRoles.reduce((sum, role) => {
+          if (!role.start_date) return sum;
+          const start = new Date(role.start_date);
+          const end = role.is_current || !role.end_date ? new Date() : new Date(role.end_date);
+          if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            return sum;
+          }
+          return sum + Math.max(0, (end.getTime() - start.getTime()) / msInYear);
+        }, 0);
+
+        const primary = sortedRoles[0];
+        return {
+          company,
+          logo: primary?.company_logo_url || sortedRoles.find((role) => role.company_logo_url)?.company_logo_url,
+          location: primary?.location || sortedRoles.find((role) => role.location)?.location,
+          roles: sortedRoles,
+          totalYears,
+        };
+      })
+      .sort((a, b) => {
+        const latestA = a.roles[0];
+        const latestB = b.roles[0];
+        const dateA = new Date(latestA.start_date || latestA.end_date || '').getTime();
+        const dateB = new Date(latestB.start_date || latestB.end_date || '').getTime();
+        return dateB - dateA;
+      });
+  }, [filteredExperiences]);
 
   if (loading) {
     return (
@@ -304,8 +372,8 @@ export default function ExperienceEditor() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className={`p-4 rounded-lg border ${message.type === 'success'
-                ? 'bg-green-900/50 border-green-700 text-green-300'
-                : 'bg-red-900/50 border-red-700 text-red-300'
+              ? 'bg-green-900/50 border-green-700 text-green-300'
+              : 'bg-red-900/50 border-red-700 text-red-300'
               }`}
           >
             <div className="flex items-center gap-2">
@@ -328,7 +396,6 @@ export default function ExperienceEditor() {
         className="flex items-center justify-between"
       >
         <div className="flex-1 max-w-md">
-          <Label className="text-sm font-medium text-white mb-2">Search Experience</Label>
           <Input
             placeholder="Search by company, position, or location..."
             value={filter}
@@ -336,179 +403,166 @@ export default function ExperienceEditor() {
             className="bg-gray-800 border-gray-700 focus:border-blue-500 text-white"
           />
         </div>
-                        <Badge className="bg-gray-700 text-gray-300 border-gray-600">
+        <Badge className="bg-gray-700 text-gray-300 border-gray-600">
           {filteredExperiences.length} experience{filteredExperiences.length !== 1 ? 's' : ''} found
         </Badge>
       </motion.div>
 
-      {/* Experience Timeline */}
+      {/* Experience Overview */}
       <motion.div
         className="space-y-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        {filteredExperiences.map((experience, index) => (
+        {groupedExperiences.map((group, index) => (
           <motion.div
-            key={experience.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            key={group.company + index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.02 }}
-            className="group"
           >
-            <Card className="relative overflow-hidden bg-gray-800 border-gray-700 hover:border-blue-600 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
-              {/* Current Badge */}
-              {experience.is_current && (
-                <motion.div
-                  className="absolute top-4 right-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  Current Position
-                </motion.div>
-              )}
-
-              {/* Gradient Background */}
-              
-
-              <CardContent className="relative z-10 p-6">
-                <div className="flex items-start space-x-4">
-                  {/* Company Logo */}
-                  <div className="flex-shrink-0">
-                    {experience.company_logo_url ? (
+            <Card className="relative overflow-hidden bg-gray-800 border-gray-700">
+              <CardHeader className="relative z-10 pb-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    {group.logo ? (
                       <Image
-                        src={experience.company_logo_url}
-                        alt={`${experience.company} logo`}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-700 shadow-md"
+                        src={group.logo}
+                        alt={`${group.company} logo`}
+                        width={56}
+                        height={56}
+                        className="w-14 h-14 rounded-xl object-cover border border-blue-500/40 shadow-lg shadow-blue-900/30"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center shadow-md">
-                        <Building className="w-8 h-8 text-white" />
+                      <div className="w-14 h-14 rounded-lg bg-gray-700 flex items-center justify-center">
+                        <Building className="w-6 h-6 text-white" />
                       </div>
                     )}
-                  </div>
-
-                  {/* Experience Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-100 mb-1">
-                          {experience.position}
-                        </h3>
-                        <p className="text-lg font-semibold text-blue-600 mb-2">
-                          {experience.company}
+                    <div>
+                      <CardTitle className="text-xl font-bold text-white">{group.company}</CardTitle>
+                      {group.location && (
+                        <p className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                          <MapPin className="w-4 h-4" />
+                          {group.location}
                         </p>
-
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-4">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {formatDateRange(experience.start_date, experience.end_date, experience.is_current)}
-                          </div>
-                          {experience.location && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {experience.location}
-                            </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-gray-700 text-gray-300 border-gray-600">
+                      {group.roles.length} role{group.roles.length !== 1 ? 's' : ''}
+                    </Badge>
+                    {group.totalYears > 0 && (
+                      <p className="text-xs text-gray-400 mt-2">≈ {group.totalYears.toFixed(1)} yrs total</p>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10 space-y-4">
+                {group.roles.map((role, roleIndex) => (
+                  <div
+                    key={role.id || roleIndex}
+                    className="rounded-lg border border-gray-700 bg-gray-750 p-4"
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <h4 className="text-lg font-semibold text-white">{role.position}</h4>
+                          {role.is_current && (
+                            <Badge className="bg-green-900/50 text-green-300 border-green-700 pointer-events-none">Current</Badge>
                           )}
                         </div>
-
-                        {experience.description && (
-                          <p className="text-gray-400 mb-4 leading-relaxed">
-                            {experience.description}
-                          </p>
-                        )}
-
-                        {/* Technologies */}
-                        {experience.technologies.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="text-sm font-semibold text-gray-300 mb-2">Technologies</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {experience.technologies.map((tech, techIndex) => (
-                                <Badge
-                                  key={techIndex}
-                                  className="bg-gray-700 text-gray-300 border-gray-600"
-                                >
-                                  <Code2 className="w-3 h-3 mr-1" />
-                                  {tech}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Responsibilities */}
-                        {experience.responsibilities.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="text-sm font-semibold text-gray-300 mb-2">Key Responsibilities</h4>
-                            <ul className="space-y-1">
-                              {experience.responsibilities.slice(0, 3).map((responsibility, respIndex) => (
-                                <li key={respIndex} className="text-sm text-gray-400 flex items-start gap-2">
-                                  <ChevronRight className="w-3 h-3 mt-0.5 text-blue-500 flex-shrink-0" />
-                                  {responsibility}
-                                </li>
-                              ))}
-                              {experience.responsibilities.length > 3 && (
-                                <li className="text-sm text-blue-500">
-                                  +{experience.responsibilities.length - 3} more responsibilities
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Achievements */}
-                        {experience.achievements.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="text-sm font-semibold text-gray-300 mb-2">Key Achievements</h4>
-                            <ul className="space-y-1">
-                              {experience.achievements.slice(0, 2).map((achievement, achIndex) => (
-                                <li key={achIndex} className="text-sm text-gray-400 flex items-start gap-2">
-                                  <Award className="w-3 h-3 mt-0.5 text-green-500 flex-shrink-0" />
-                                  {achievement}
-                                </li>
-                              ))}
-                              {experience.achievements.length > 2 && (
-                                <li className="text-sm text-green-500">
-                                  +{experience.achievements.length - 2} more achievements
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400 mt-2">
+                          <span className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            {formatDateRange(role.start_date, role.end_date, role.is_current)}
+                          </span>
+                          {role.location && (
+                            <span className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              {role.location}
+                            </span>
+                          )}
+                          {role.technologies.length > 0 && (
+                            <span className="flex items-center gap-2">
+                              <Code2 className="w-4 h-4" />
+                              {role.technologies.length} skill{role.technologies.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleEdit(experience)}
-                          className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
+                          onClick={() => handleEdit(role)}
+                          className="bg-gray-800 border-gray-700 hover:bg-gray-700 text-white"
                         >
-                          <Edit className="w-3 h-3" />
+                          <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(experience.id!)}
+                          onClick={() => handleDelete(role.id!)}
                           disabled={saving}
-                          className="bg-red-900/50 border-red-700 hover:bg-red-900 text-red-400 hover:text-red-300"
+                          className="bg-red-900/40 border-red-700/70 hover:bg-red-900 text-red-300 hover:text-red-200"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
+
+                    {role.description && (
+                      <p className="text-sm text-gray-300 mt-3 leading-relaxed">{role.description}</p>
+                    )}
+
+                    {role.responsibilities.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                          Key Contributions
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {role.responsibilities.slice(0, 4).map((item, respIndex) => (
+                            <Badge key={respIndex} className="bg-gray-800 text-gray-200 border-gray-700 pointer-events-none">
+                              {item}
+                            </Badge>
+                          ))}
+                          {role.responsibilities.length > 4 && (
+                            <Badge className="bg-gray-700 text-gray-300 border-gray-600 pointer-events-none">
+                              +{role.responsibilities.length - 4} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {role.technologies.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                          Tech Stack
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {role.technologies.slice(0, 5).map((tech, techIndex) => (
+                            <Badge key={techIndex} variant="secondary" className="bg-gray-800 text-gray-200 border-gray-700 pointer-events-none">
+                              {tech}
+                            </Badge>
+                          ))}
+                          {role.technologies.length > 5 && (
+                            <Badge className="bg-gray-700 text-gray-300 border-gray-600 pointer-events-none">
+                              +{role.technologies.length - 5} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
           </motion.div>
         ))}
       </motion.div>
-
       {/* Empty State */}
       {filteredExperiences.length === 0 && (
         <motion.div
