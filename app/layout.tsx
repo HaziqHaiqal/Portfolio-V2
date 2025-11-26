@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-inter antialiased bg-gray-50 text-gray-900`}>
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-inter antialiased bg-gray-50 text-gray-900`} suppressHydrationWarning>
         <ThemeProvider>
           {children}
           <SpeedInsights />
