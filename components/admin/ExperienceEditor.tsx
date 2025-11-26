@@ -811,19 +811,30 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
             </div>
 
             {/* Company Logo */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-300">
-                Company Logo
-              </Label>
-              <UniversalUpload
-                uploadType="company_logo"
-                entityId={`experience-${experience.id || 'new'}`}
-                value={formData.company_logo_url}
-                onChange={(url: string) => handleInputChange('company_logo_url', url)}
-                enableCrop={true}
-                cropAspect={1}
-              />
-            </div>
+            {experience.id ? (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-300">
+                  Company Logo
+                </Label>
+                <UniversalUpload
+                  uploadType="company_logo"
+                  entityId={experience.id}
+                  value={formData.company_logo_url}
+                  onChange={(url: string) => handleInputChange('company_logo_url', url)}
+                  enableCrop={true}
+                  cropAspect={1}
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-300">
+                  Company Logo
+                </Label>
+                <p className="text-xs text-gray-400">
+                  Save this experience first, then you can upload a company logo.
+                </p>
+              </div>
+            )}
 
             {/* Technologies */}
             <div className="space-y-4">
