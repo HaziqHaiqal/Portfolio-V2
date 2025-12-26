@@ -45,6 +45,14 @@ const NavBar = () => {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const targetId = item.href.replace('#', '');
+                  const element = document.getElementById(targetId);
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
                 className={`hover:text-${item.color}-600 transition-all duration-300 font-medium relative group ${classes.text.secondary}`}
               >
                 {item.label}
@@ -127,9 +135,19 @@ const NavBar = () => {
                     <motion.a
                       key={item.href}
                       href={item.href}
-                      onClick={closeMobileMenu}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        closeMobileMenu();
+                        setTimeout(() => {
+                          const targetId = item.href.replace('#', '');
+                          const element = document.getElementById(targetId);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 100);
+                      }}
                       className={`block py-2 px-3 rounded-lg transition-all duration-300 font-medium ${classes.text.secondary} ${classes.hover.bg}`}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: 0}}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
