@@ -14,6 +14,7 @@ import HeroSection from "@components/HeroSection";
 import ActivityOverview from "@components/ActivityOverview";
 import TechStackSection from "@components/TechStackSection";
 import ExperienceSection from "@components/ExperienceSection";
+import EducationSection from "@components/EducationSection";
 import ProjectShowcaseSection from "@components/ProjectShowcaseSection";
 import NetworkSection from "@components/NetworkSection";
 
@@ -49,6 +50,7 @@ function HomeContent() {
   const {
     profile,
     experience,
+    education,
     projects,
     loading,
     error,
@@ -115,6 +117,9 @@ function HomeContent() {
 
         {/* Experience Section */}
         <ExperienceSection experience={experience} />
+
+        {/* Education Section */}
+        <EducationSection education={education} />
 
         {/* Project Showcase Section */}
         <ProjectShowcaseSection

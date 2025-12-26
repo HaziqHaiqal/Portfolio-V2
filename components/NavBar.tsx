@@ -26,6 +26,7 @@ const NavBar = () => {
   const navItems = [
     { href: "#home", label: "Home", color: "blue" },
     { href: "#experience", label: "Experience", color: "yellow" },
+    { href: "#education", label: "Education", color: "emerald" },
     { href: "#projects", label: "Projects", color: "purple" },
     { href: "#contact", label: "Contact", color: "green" },
   ];
