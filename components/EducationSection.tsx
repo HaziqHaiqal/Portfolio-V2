@@ -51,10 +51,10 @@ const EducationSection = ({ education }: EducationSectionProps) => {
           {sortedEducation.map((edu, idx) => (
             <motion.div
               key={idx}
-              className={`relative p-8 md:p-10 rounded-lg border-2 ${
+              className={`relative p-8 md:p-10 rounded-3xl border ${
                 isDarkMode 
-                  ? 'bg-gray-800/50 border-amber-600/30' 
-                  : 'bg-amber-50/50 border-amber-200'
+                  ? 'bg-gray-800/70 border-gray-700 shadow-2xl' 
+                  : 'bg-white/70 border-gray-200 shadow-2xl'
               }`}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -63,7 +63,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
               style={{
                 backgroundImage: isDarkMode 
                   ? 'radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(251, 191, 36, 0.05) 0%, transparent 50%)' 
-                  : 'radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.1) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(251, 191, 36, 0.1) 0%, transparent 50%)'
+                  : 'none'
               }}
             >
               {/* Decorative corners */}
@@ -89,7 +89,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                 {/* Specialization */}
                 {edu.specialization && (
                   <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                    Specialization in {edu.specialization}
+                    Specialize in {edu.specialization}
                     {edu.minor_subject && ` • Minor in ${edu.minor_subject}`}
                   </p>
                 )}

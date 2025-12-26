@@ -74,9 +74,9 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
         {/* Git-style Timeline */}
         <div className="max-w-4xl mx-auto">
           <motion.div
-            className={`rounded-2xl border shadow-xl p-8 ${isDarkMode
-              ? "bg-gray-800/80 border-gray-700 backdrop-blur-lg"
-              : "bg-white/80 border-gray-200 backdrop-blur-lg"
+            className={`rounded-3xl border shadow-2xl p-8 ${isDarkMode
+              ? "bg-gray-800/70 border-gray-700"
+              : "bg-white/70 border-gray-200"
             }`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -85,13 +85,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
           >
             {/* Git Timeline */}
             <div className="relative">
-              {/* Main timeline line (gray background) - stops at pills bottom */}
-              <div 
-                className={`absolute left-6 top-0 w-0.5 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} 
-                style={{ height: 'calc(100% - 24px)' }}
-              />
-
-              <div className="space-y-0">
+              <div className="flex flex-col">
                 {sortedCompanies.map(([company, data], companyIndex) => {
                   const companyRoles = data.roles.sort((a, b) =>
                     new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
@@ -102,23 +96,31 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                   return (
                     <div
                       key={company}
-                      className="relative"
+                      className={`relative ${isLast ? '' : 'pb-8'}`}
                     >
-                      {/* Animated blue line overlay - ALL companies including last */}
+                      {/* Gray Background Line - Per Item */}
+                      <div 
+                        className={`absolute left-6 top-0 w-0.5 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}
+                        style={{ 
+                          height: isLast && !isExpanded ? '24px' : '100%' 
+                        }}
+                      />
+
+                      {/* Animated blue line overlay */}
                       <motion.div
-                        className={`absolute left-6 top-0 w-0.5 bg-blue-500 z-[1] origin-top ${isLast ? '' : 'bottom-0'}`}
+                        className="absolute left-6 top-0 w-0.5 bg-blue-500 z-[1] origin-top"
                         initial={{ scaleY: 0 }}
                         animate={{ scaleY: isExpanded ? 1 : 0 }}
                         transition={{ duration: 0.4, ease: "easeOut" }}
                         style={{ 
-                          transformOrigin: 'top',
-                          bottom: isLast ? '24px' : undefined
+                          height: isLast && !isExpanded ? '24px' : '100%',
+                          transformOrigin: 'top' 
                         }}
                       />
 
                       {/* Company Branch Point */}
                       <motion.div 
-                        className="flex items-start gap-4 pb-8"
+                        className="flex items-start gap-4"
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: companyIndex * 0.1 }}
@@ -188,7 +190,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="mt-6 relative"
+                                className="mt-10 relative"
                               >
                                 <div className="space-y-8">
                                   {companyRoles.map((role, roleIndex) => {
