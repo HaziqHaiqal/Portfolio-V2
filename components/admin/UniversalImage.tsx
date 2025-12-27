@@ -34,19 +34,35 @@ export default function UniversalImage({ src, alt, width, height, className, fal
 
   // If it's an external URL, use regular img tag (bypasses Next.js image restrictions)
   if (!isSupabaseUrl || imgError) {
-    const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
-      src: imgError ? fallback || '/placeholder-company.png' : imgSrc,
-      alt,
-      className,
-      onError: handleError,
-      loading: 'lazy' as const,
-    };
-    
-    // Only add width/height if they're not 0 (for responsive images)
-    if (width > 0) imgProps.width = width;
-    if (height > 0) imgProps.height = height;
-    
-    return <img {...imgProps} />;
+    if (imgError && !fallback) {
+      return (
+        <div
+          role="img"
+          aria-label={alt}
+          className={className}
+          style={{
+            width: width > 0 ? `${width}px` : undefined,
+            height: height > 0 ? `${height}px` : undefined,
+          }}
+        />
+      );
+    }
+
+    const finalSrc = imgError ? fallback : imgSrc;
+
+    // We intentionally use <img> for non-Supabase remote URLs to avoid Next Image domain config issues.
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={finalSrc}
+        alt={alt}
+        className={className}
+        onError={handleError}
+        loading="lazy"
+        width={width > 0 ? width : undefined}
+        height={height > 0 ? height : undefined}
+      />
+    );
   }
 
   // For Supabase URLs, use Next.js Image for optimization

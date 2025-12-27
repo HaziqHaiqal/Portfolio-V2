@@ -141,7 +141,9 @@ export default function EducationEditor() {
     setMessage(null);
 
     // Prepare data for database (exclude sort_order, sorted by date instead)
-    const { sort_order, id, ...dbData } = educationData;
+    const dbData = { ...educationData };
+    delete (dbData as Partial<EducationData>).id;
+    delete (dbData as Partial<EducationData>).sort_order;
 
     try {
       if (editingEducation?.id) {

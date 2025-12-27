@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createClient } from '@utils/supabase/client';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
@@ -27,11 +27,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
   const [formData, setFormData] = useState({ id: '', name: '', logo_url: '', website_url: '' });
   const [saving, setSaving] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
-
-  useEffect(() => {
-    loadCompanies();
-  }, []);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,7 +39,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const loadCompanies = async () => {
+  const loadCompanies = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('companies')
@@ -58,7 +54,11 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    void loadCompanies();
+  }, [loadCompanies]);
 
   const openCreateForm = () => {
     // Generate UUID upfront so logo upload works immediately

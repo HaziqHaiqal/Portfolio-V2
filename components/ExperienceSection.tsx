@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ChevronDown } from "lucide-react";
 import { Experience } from "@lib/supabase";
-import UniversalImage from "@components/admin/UniversalImage";
+import UniversalImage from "./admin/UniversalImage";
 import { useTheme } from '@components/providers/ThemeProvider';
 import { generateHash } from "@lib/utils";
 
