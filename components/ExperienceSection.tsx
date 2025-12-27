@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ChevronDown } from "lucide-react";
 import { Experience } from "@lib/supabase";
-import Image from "next/image";
+import UniversalImage from "@components/admin/UniversalImage";
 import { useTheme } from '@components/providers/ThemeProvider';
 import { generateHash } from "@lib/utils";
 
@@ -27,12 +27,16 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
   };
 
   const groupedExperience = experience.reduce((acc, exp) => {
-    const companyName = exp.company;
+    const companyName = exp.companies?.name || 'Unknown Company';
     if (!acc[companyName]) {
       acc[companyName] = {
-        logo: exp.company_logo_url,
+        logo: exp.companies?.logo_url,
         roles: [],
       };
+    }
+    // Update logo if this experience has one and previous didn't
+    if (!acc[companyName].logo && exp.companies?.logo_url) {
+      acc[companyName].logo = exp.companies.logo_url;
     }
     acc[companyName].roles.push(exp);
     return acc;
@@ -77,7 +81,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
             className={`rounded-3xl border shadow-2xl p-8 ${isDarkMode
               ? "bg-gray-800/70 border-gray-700"
               : "bg-white/70 border-gray-200"
-            }`}
+              }`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -99,10 +103,10 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                       className={`relative ${isLast ? '' : 'pb-8'}`}
                     >
                       {/* Gray Background Line - Per Item */}
-                      <div 
+                      <div
                         className={`absolute left-6 top-0 w-0.5 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}
-                        style={{ 
-                          height: isLast && !isExpanded ? '24px' : '100%' 
+                        style={{
+                          height: isLast && !isExpanded ? '24px' : '100%'
                         }}
                       />
 
@@ -112,14 +116,14 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         initial={{ scaleY: 0 }}
                         animate={{ scaleY: isExpanded ? 1 : 0 }}
                         transition={{ duration: 0.4, ease: "easeOut" }}
-                        style={{ 
+                        style={{
                           height: isLast && !isExpanded ? '24px' : '100%',
-                          transformOrigin: 'top' 
+                          transformOrigin: 'top'
                         }}
                       />
 
                       {/* Company Branch Point */}
-                      <motion.div 
+                      <motion.div
                         className="flex items-start gap-4"
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -129,35 +133,42 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         {/* Company node on main timeline */}
                         <div className="relative flex flex-col items-center z-10">
                           {/* Logo Container */}
-                          <div 
+                          <div
                             className="relative cursor-pointer"
                             onClick={() => toggleCompany(company)}
                           >
                             {/* Logo with animated border */}
-                            <motion.div 
-                              className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden shadow-lg relative ${
-                                isDarkMode ? 'bg-gray-700' : 'bg-white'
-                              }`}
+                            <motion.div
+                              className={`w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-lg relative border ${isDarkMode
+                                  ? 'bg-gray-700 border-blue-500/40 shadow-blue-900/30'
+                                  : 'bg-white border-blue-500/40 shadow-blue-900/30'
+                                }`}
                               style={{
-                                boxShadow: isExpanded 
-                                  ? '0 0 0 4px #3b82f6' 
-                                  : isDarkMode 
-                                    ? '0 0 0 4px #374151' 
+                                boxShadow: isExpanded
+                                  ? '0 0 0 4px #3b82f6'
+                                  : isDarkMode
+                                    ? '0 0 0 4px #374151'
                                     : '0 0 0 4px #d1d5db'
                               }}
                               animate={{
-                                boxShadow: isExpanded 
-                                  ? '0 0 0 4px #3b82f6' 
-                                  : isDarkMode 
-                                    ? '0 0 0 4px #374151' 
+                                boxShadow: isExpanded
+                                  ? '0 0 0 4px #3b82f6'
+                                  : isDarkMode
+                                    ? '0 0 0 4px #374151'
                                     : '0 0 0 4px #d1d5db'
                               }}
                               transition={{ duration: 0.3, delay: isExpanded ? 0.2 : 0 }}
                             >
                               {data.logo ? (
-                                <Image src={data.logo} alt={`${company} logo`} width={32} height={32} className="object-contain max-w-full max-h-full" />
+                                <UniversalImage
+                                  src={data.logo}
+                                  alt={`${company} logo`}
+                                  width={56}
+                                  height={56}
+                                  className="w-14 h-14 rounded-full object-cover"
+                                />
                               ) : (
-                                <Briefcase size={20} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
+                                <Briefcase size={24} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
                               )}
                             </motion.div>
                           </div>
@@ -196,7 +207,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                   {companyRoles.map((role, roleIndex) => {
                                     const startDate = new Date(role.start_date);
                                     const endDate = role.is_current ? new Date() : new Date(role.end_date!);
-                                    const roleHash = generateHash(role.position + role.company + role.start_date);
+                                    const roleHash = generateHash(role.position + (role.companies?.name || '') + role.start_date);
                                     // First job at company (oldest) = feat:, subsequent (newer) = update:
                                     const isFirstJob = roleIndex === companyRoles.length - 1;
 
@@ -209,10 +220,9 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                         className="relative flex items-start gap-3"
                                       >
                                         {/* Role commit dot - outline only, centered on timeline */}
-                                        <div 
-                                          className={`absolute -left-[45px] top-[6px] w-3 h-3 rounded-full border-2 border-blue-500 z-10 ${
-                                            isDarkMode ? 'bg-gray-800' : 'bg-white'
-                                          }`} 
+                                        <div
+                                          className={`absolute -left-[53px] top-[6px] w-3 h-3 rounded-full border-2 border-blue-500 z-10 ${isDarkMode ? 'bg-gray-800' : 'bg-white'
+                                            }`}
                                         />
 
                                         {/* Role content - closer to dot */}
@@ -256,7 +266,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                                   className={`text-xs px-2 py-1 rounded-full ${isDarkMode
                                                     ? 'bg-gray-700 text-gray-300 border border-gray-600'
                                                     : 'bg-gray-100 text-gray-700 border border-gray-300'
-                                                  }`}
+                                                    }`}
                                                 >
                                                   {tech}
                                                 </span>

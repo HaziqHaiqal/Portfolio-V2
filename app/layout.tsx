@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 import { ThemeProvider } from "@components/providers/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from "@components/ui/sonner"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-inter antialiased bg-gray-50 text-gray-900`} suppressHydrationWarning>
         <ThemeProvider>
           {children}
+          <Toaster />
           <SpeedInsights />
           <Analytics />
         </ThemeProvider>

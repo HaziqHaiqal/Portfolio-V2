@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Check, FileText, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
 import Image from 'next/image';
+import UniversalImage from './UniversalImage';
 import {
   uploadFile,
   deleteFile,
@@ -319,13 +320,14 @@ export default function UniversalUpload({
           >
             {isImageUrl(value) ? (
               <div className="relative">
-                <Image
+                <UniversalImage
                   src={value}
                   alt="Current file"
-                  width={0}
-                  height={0}
-                  sizes="100vw"
-                  className="w-auto h-auto max-h-[60vh] object-contain bg-gray-900"
+                  width={uploadType === 'company_logo' ? 200 : 0}
+                  height={uploadType === 'company_logo' ? 200 : 0}
+                  className={`w-auto h-auto object-contain bg-gray-900 ${
+                    uploadType === 'company_logo' ? 'max-w-[200px] max-h-[200px]' : 'max-h-[60vh]'
+                  }`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
@@ -435,14 +437,18 @@ export default function UniversalUpload({
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative rounded-xl overflow-hidden bg-gray-800 inline-block max-w-full"
+                  className={`relative rounded-xl overflow-hidden bg-gray-800 inline-block ${
+                    uploadType === 'company_logo' ? 'max-w-[200px]' : 'max-w-full'
+                  }`}
                 >
                   <Image
                     src={preview}
                     alt="Preview"
-                    width={400}
-                    height={250}
-                    className="w-full max-h-64 object-contain bg-gray-900"
+                    width={uploadType === 'company_logo' ? 200 : 400}
+                    height={uploadType === 'company_logo' ? 200 : 250}
+                    className={`object-contain bg-gray-900 ${
+                      uploadType === 'company_logo' ? 'w-[200px] h-[200px]' : 'w-full max-h-64'
+                    }`}
                   />
 
                   {/* Action Buttons */}

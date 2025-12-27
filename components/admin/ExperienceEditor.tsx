@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@utils/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import UniversalUpload from './UniversalUpload';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { isEmpty } from 'lodash';
+import CompanySelector from './CompanySelector';
+import UniversalImage from './UniversalImage';
+import { Company } from '@lib/supabase';
 import {
   Plus,
   Edit,
@@ -13,8 +16,6 @@ import {
   Building,
   MapPin,
   Loader2,
-  Check,
-  AlertCircle,
   Briefcase,
   Calendar,
   Code2,
@@ -29,14 +30,11 @@ import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
-import {
-} from '@components/ui/select';
 
 interface ExperienceData {
   id?: string;
-  company: string;
+  company_id: string;
   position: string;
-  company_logo_url: string;
   start_date: string;
   end_date: string;
   is_current: boolean;
@@ -45,13 +43,13 @@ interface ExperienceData {
   responsibilities: string[];
   technologies: string[];
   achievements: string[];
-  sort_order: number;
+  // Joined from companies table
+  companies?: Company;
 }
 
 const initialExperienceData: ExperienceData = {
-  company: '',
+  company_id: '',
   position: '',
-  company_logo_url: '',
   start_date: '',
   end_date: '',
   is_current: false,
@@ -60,7 +58,6 @@ const initialExperienceData: ExperienceData = {
   responsibilities: [],
   technologies: [],
   achievements: [],
-  sort_order: 0,
 };
 
 export default function ExperienceEditor() {
@@ -69,7 +66,6 @@ export default function ExperienceEditor() {
   const [saving, setSaving] = useState(false);
   const [editingExperience, setEditingExperience] = useState<ExperienceData | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [filter, setFilter] = useState<string>('');
   const supabase = createClient();
 
@@ -77,21 +73,21 @@ export default function ExperienceEditor() {
     try {
       const { data, error } = await supabase
         .from('experience')
-        .select('*')
-        .order('sort_order', { ascending: true });
+        .select('*, companies(*)')
+        .order('is_current', { ascending: false })
+        .order('start_date', { ascending: false });
 
       if (error) {
         console.error('Error loading experiences:', error);
-        setMessage({ type: 'error', text: 'Error loading experiences' });
+        toast.error('Failed to load experiences');
         return;
       }
 
       // Normalize the data to ensure all fields have proper types
       const normalizedExperiences = (data || []).map(experience => ({
-        ...experience,
-        company: experience.company || '',
+        id: experience.id,
+        company_id: experience.company_id || '',
         position: experience.position || '',
-        company_logo_url: experience.company_logo_url || '',
         start_date: experience.start_date || '',
         end_date: experience.end_date || '',
         location: experience.location || '',
@@ -100,13 +96,13 @@ export default function ExperienceEditor() {
         technologies: Array.isArray(experience.technologies) ? experience.technologies : [],
         achievements: Array.isArray(experience.achievements) ? experience.achievements : [],
         is_current: Boolean(experience.is_current),
-        sort_order: experience.sort_order || 0,
+        companies: experience.companies || undefined,
       }));
 
       setExperiences(normalizedExperiences);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error loading experiences' });
+      toast.error('An unexpected error occurred while loading experiences');
     } finally {
       setLoading(false);
     }
@@ -133,65 +129,73 @@ export default function ExperienceEditor() {
 
       if (error) {
         console.error('Error deleting experience:', error);
-        setMessage({ type: 'error', text: 'Error deleting experience' });
+        toast.error('Failed to delete experience');
         return;
       }
 
-      setMessage({ type: 'success', text: 'Experience deleted successfully!' });
+      toast.success('Experience deleted successfully');
       await loadExperiences();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error deleting experience' });
+      toast.error('An unexpected error occurred while deleting experience');
     } finally {
       setSaving(false);
     }
   };
 
+  const prepareDbData = (data: ExperienceData, forUpdate = false) => {
+    const clean = (val?: string | null) => (isEmpty(val?.trim()) ? null : val);
+
+    const dbData = {
+      company_id: data.company_id,
+      position: data.position,
+      start_date: data.start_date,
+      end_date: data.is_current ? null : clean(data.end_date),
+      is_current: data.is_current,
+      location: clean(data.location),
+      description: clean(data.description),
+      responsibilities: data.responsibilities,
+      technologies: data.technologies,
+      achievements: data.achievements,
+      ...(forUpdate && { updated_at: new Date().toISOString() }),
+    };
+
+    // For inserts: omit nulls so Postgres defaults/NULLs apply cleanly.
+    // For updates: keep nulls so you can clear fields (e.g. end_date when switching to "current").
+    return forUpdate
+      ? dbData
+      : Object.fromEntries(Object.entries(dbData).filter(([, v]) => v !== null));
+  };
+
   const handleSave = async (experienceData: ExperienceData) => {
     setSaving(true);
-    setMessage(null);
 
     try {
-      if (editingExperience?.id) {
-        // Update existing experience
-        const { error } = await supabase
-          .from('experience')
-          .update({
-            ...experienceData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingExperience.id);
+      const isUpdate = !!editingExperience?.id;
+      const dbData = prepareDbData(experienceData, isUpdate);
 
-        if (error) {
-          console.error('Error updating experience:', error);
-          setMessage({ type: 'error', text: 'Error updating experience' });
-          return;
-        }
+      const { error } = isUpdate
+        ? await supabase
+            .from('experience')
+            .update(dbData)
+            .eq('id', editingExperience.id)
+        : await supabase
+            .from('experience')
+            .insert([dbData]);
 
-        setMessage({ type: 'success', text: 'Experience updated successfully!' });
-      } else {
-        // Create new experience
-        const { error } = await supabase
-          .from('experience')
-          .insert([experienceData]);
-
-        if (error) {
-          console.error('Error creating experience:', error);
-          setMessage({ type: 'error', text: 'Error creating experience' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Experience created successfully!' });
+      if (error) {
+        console.error(`Error ${isUpdate ? 'updating' : 'creating'} experience:`, error);
+        toast.error(`Failed to ${isUpdate ? 'update' : 'create'} experience: ${error.message}`);
+        return;
       }
 
+      toast.success(`Experience ${isUpdate ? 'updated' : 'created'} successfully`);
       setShowForm(false);
       setEditingExperience(null);
       await loadExperiences();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error saving experience' });
+      toast.error('An unexpected error occurred while saving experience');
     } finally {
       setSaving(false);
     }
@@ -199,8 +203,9 @@ export default function ExperienceEditor() {
 
   const filteredExperiences = experiences.filter((experience) => {
     const needle = filter.toLowerCase();
+    const companyName = experience.companies?.name || '';
     return (
-      experience.company.toLowerCase().includes(needle) ||
+      companyName.toLowerCase().includes(needle) ||
       experience.position.toLowerCase().includes(needle) ||
       experience.location.toLowerCase().includes(needle)
     );
@@ -231,7 +236,7 @@ export default function ExperienceEditor() {
 
   const groupedExperiences = useMemo<ExperienceGroup[]>(() => {
     const grouped = filteredExperiences.reduce<Record<string, ExperienceData[]>>((acc, item) => {
-      const key = item.company?.trim() || 'Untitled Company';
+      const key = item.companies?.name?.trim() || 'Untitled Company';
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -262,7 +267,7 @@ export default function ExperienceEditor() {
         const primary = sortedRoles[0];
         return {
           company,
-          logo: primary?.company_logo_url || sortedRoles.find((role) => role.company_logo_url)?.company_logo_url,
+          logo: primary?.companies?.logo_url || sortedRoles.find((role) => role.companies?.logo_url)?.companies?.logo_url,
           location: primary?.location || sortedRoles.find((role) => role.location)?.location,
           roles: sortedRoles,
           totalYears,
@@ -364,30 +369,6 @@ export default function ExperienceEditor() {
         </motion.div>
       </motion.div>
 
-      {/* Success/Error Message */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${message.type === 'success'
-              ? 'bg-green-900/50 border-green-700 text-green-300'
-              : 'bg-red-900/50 border-red-700 text-red-300'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              {message.type === 'success' ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-              {message.text}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Search */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -427,7 +408,7 @@ export default function ExperienceEditor() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     {group.logo ? (
-                      <Image
+                      <UniversalImage
                         src={group.logo}
                         alt={`${group.company} logo`}
                         width={56}
@@ -614,9 +595,8 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
   const normalizeExperienceData = (data: ExperienceData): ExperienceData => {
     return {
       ...data,
-      company: data.company || '',
+      company_id: data.company_id || data.companies?.id || '',
       position: data.position || '',
-      company_logo_url: data.company_logo_url || '',
       start_date: data.start_date || '',
       end_date: data.end_date || '',
       location: data.location || '',
@@ -625,17 +605,29 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
       technologies: Array.isArray(data.technologies) ? data.technologies : [],
       achievements: Array.isArray(data.achievements) ? data.achievements : [],
       is_current: Boolean(data.is_current),
-      sort_order: data.sort_order || 0,
+      companies: data.companies,
     };
   };
 
   const [formData, setFormData] = useState<ExperienceData>(normalizeExperienceData(experience));
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(
+    experience.companies || null
+  );
   const [newResponsibility, setNewResponsibility] = useState('');
   const [newTechnology, setNewTechnology] = useState('');
   const [newAchievement, setNewAchievement] = useState('');
 
   const handleInputChange = (field: keyof ExperienceData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCompanyChange = (company: Company | null) => {
+    setSelectedCompany(company);
+    setFormData(prev => ({
+      ...prev,
+      company_id: company?.id || '',
+      companies: company || undefined,
+    }));
   };
 
   const handleAddToArray = (field: 'responsibilities' | 'technologies' | 'achievements', value: string, setValue: (value: string) => void) => {
@@ -697,21 +689,14 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Company Selection */}
+            <CompanySelector
+              value={selectedCompany}
+              onChange={handleCompanyChange}
+            />
+
             {/* Basic Information */}
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-300">
-                  Company Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
-                  placeholder="e.g., Google, Microsoft, Startup Inc."
-                  required
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-gray-300">
                   Position/Job Title <span className="text-red-500">*</span>
@@ -727,32 +712,6 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
 
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-gray-300">
-                  Start Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => handleInputChange('start_date', e.target.value)}
-                  required
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-300">
-                  End Date
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => handleInputChange('end_date', e.target.value)}
-                  disabled={formData.is_current}
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-300">
                   Location
                 </Label>
                 <Input
@@ -763,37 +722,52 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
                 />
               </div>
 
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-300">
-                  Sort Order
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.sort_order}
-                  onChange={(e) => handleInputChange('sort_order', parseInt(e.target.value) || 0)}
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
             </div>
 
-            {/* Current Position Toggle */}
-            <div className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg border border-gray-600">
-              <Switch
-                checked={formData.is_current}
-                onCheckedChange={(checked) => {
-                  handleInputChange('is_current', checked);
-                  if (checked) {
-                    handleInputChange('end_date', '');
-                  }
-                }}
-              />
-              <div>
-                <span className="text-sm font-medium text-gray-300">
-                  Current Position
+            {/* Date Range & Current Position */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-300">
+                    Start Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => handleInputChange('start_date', e.target.value)}
+                    required
+                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-300">
+                    End Date {formData.is_current && <span className="text-gray-500">(Present)</span>}
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => handleInputChange('end_date', e.target.value)}
+                    disabled={formData.is_current}
+                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Current Position Toggle */}
+              <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                <Switch
+                  checked={formData.is_current}
+                  onCheckedChange={(checked) => {
+                    handleInputChange('is_current', checked);
+                    if (checked) {
+                      handleInputChange('end_date', '');
+                    }
+                  }}
+                />
+                <span className="text-sm text-gray-300">
+                  I currently work here
                 </span>
-                <p className="text-xs text-gray-500">
-                  I currently work at this position
-                </p>
               </div>
             </div>
 
@@ -809,32 +783,6 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
                 className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white rounded-md px-3 py-2 min-h-[100px]"
               />
             </div>
-
-            {/* Company Logo */}
-            {experience.id ? (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-300">
-                  Company Logo
-                </Label>
-                <UniversalUpload
-                  uploadType="company_logo"
-                  entityId={experience.id}
-                  value={formData.company_logo_url}
-                  onChange={(url: string) => handleInputChange('company_logo_url', url)}
-                  enableCrop={true}
-                  cropAspect={1}
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-300">
-                  Company Logo
-                </Label>
-                <p className="text-xs text-gray-400">
-                  Save this experience first, then you can upload a company logo.
-                </p>
-              </div>
-            )}
 
             {/* Technologies */}
             <div className="space-y-4">
@@ -974,7 +922,7 @@ function ExperienceForm({ experience, onSave, onCancel, saving }: ExperienceForm
               </Button>
               <Button
                 type="submit"
-                disabled={saving || !formData.company || !formData.position || !formData.start_date}
+                disabled={saving || !selectedCompany || !formData.position || !formData.start_date}
                 className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg min-w-[120px]"
               >
                 {saving ? (

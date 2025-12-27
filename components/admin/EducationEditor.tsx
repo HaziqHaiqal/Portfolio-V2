@@ -82,7 +82,8 @@ export default function EducationEditor() {
       const { data, error } = await supabase
         .from('education')
         .select('*')
-        .order('sort_order', { ascending: true });
+        .order('is_current', { ascending: false })
+        .order('start_date', { ascending: false });
 
       if (error) {
         console.error('Error loading educations:', error);
@@ -139,13 +140,16 @@ export default function EducationEditor() {
     setSaving(true);
     setMessage(null);
 
+    // Prepare data for database (exclude sort_order, sorted by date instead)
+    const { sort_order, id, ...dbData } = educationData;
+
     try {
       if (editingEducation?.id) {
         // Update existing education
         const { error } = await supabase
           .from('education')
           .update({
-            ...educationData,
+            ...dbData,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingEducation.id);
@@ -161,7 +165,7 @@ export default function EducationEditor() {
         // Create new education
         const { error } = await supabase
           .from('education')
-          .insert([educationData]);
+          .insert([dbData]);
 
         if (error) {
           console.error('Error creating education:', error);
@@ -758,32 +762,6 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
 
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-white">
-                  Start Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => handleInputChange('start_date', e.target.value)}
-                  required
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  End Date
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => handleInputChange('end_date', e.target.value)}
-                  disabled={formData.is_current}
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
                   GPA
                 </Label>
                 <Input
@@ -810,37 +788,52 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
                 />
               </div>
 
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Sort Order
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.sort_order}
-                  onChange={(e) => handleInputChange('sort_order', parseInt(e.target.value) || 0)}
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                />
-              </div>
             </div>
 
-            {/* Current Studies Toggle */}
-            <div className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg border border-gray-600">
-              <Switch
-                checked={formData.is_current}
-                onCheckedChange={(checked) => {
-                  handleInputChange('is_current', checked);
-                  if (checked) {
-                    handleInputChange('end_date', '');
-                  }
-                }}
-              />
-              <div>
-                <span className="text-sm font-medium text-white">
-                  Currently Studying
+            {/* Date Range & Current Studies */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white">
+                    Start Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => handleInputChange('start_date', e.target.value)}
+                    required
+                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white">
+                    End Date {formData.is_current && <span className="text-gray-500">(Present)</span>}
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => handleInputChange('end_date', e.target.value)}
+                    disabled={formData.is_current}
+                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Current Studies Toggle */}
+              <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                <Switch
+                  checked={formData.is_current}
+                  onCheckedChange={(checked) => {
+                    handleInputChange('is_current', checked);
+                    if (checked) {
+                      handleInputChange('end_date', '');
+                    }
+                  }}
+                />
+                <span className="text-sm text-gray-300">
+                  I am currently studying here
                 </span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  I am currently enrolled in this program
-                </p>
               </div>
             </div>
 

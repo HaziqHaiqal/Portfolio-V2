@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   User as UserIcon,
   FolderOpen,
+  Building,
   Briefcase,
   GraduationCap,
   Zap,
@@ -44,6 +45,11 @@ const data = {
       title: "Projects",
       url: "/admin/projects", 
       icon: FolderOpen,
+    },
+    {
+      title: "Companies",
+      url: "/admin/companies",
+      icon: Building,
     },
     {
       title: "Experience",

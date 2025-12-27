@@ -23,11 +23,19 @@ export interface Profile {
   updated_at?: string
 }
 
+export interface Company {
+  id: string
+  name: string
+  logo_url?: string
+  website_url?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Experience {
   id: string
-  company: string
+  company_id: string
   position: string
-  company_logo_url?: string
   start_date: string
   end_date?: string
   is_current: boolean
@@ -36,9 +44,10 @@ export interface Experience {
   responsibilities?: string[]
   technologies?: string[]
   achievements?: string[]
-  sort_order: number
+  sort_order?: number // Deprecated: now sorted by date
   created_at?: string
   updated_at?: string
+  companies?: Company
 }
 
 export interface Education {
@@ -58,7 +67,7 @@ export interface Education {
   achievements?: string[]
   activities?: string[]
   institution_logo_url?: string
-  sort_order: number
+  sort_order?: number // Deprecated: now sorted by date
   created_at?: string
   updated_at?: string
 }
