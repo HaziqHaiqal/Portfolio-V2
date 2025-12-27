@@ -16,6 +16,24 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
   if (!experience || experience.length === 0) return null;
 
+  const toBulletPoints = (text?: string) => {
+    if (!text) return [];
+    const normalized = text.replace(/\r\n/g, "\n").trim();
+    if (!normalized) return [];
+
+    const parts = normalized.includes("•")
+      ? normalized.split("•")
+      : normalized.includes("\n")
+        ? normalized.split("\n")
+        : normalized.includes(";")
+          ? normalized.split(";")
+          : [normalized];
+
+    return parts
+      .map((part) => part.trim().replace(/^[-*]\s+/, ""))
+      .filter(Boolean);
+  };
+
   const toggleCompany = (company: string) => {
     const newExpanded = new Set(expandedCompanies);
     if (newExpanded.has(company)) {
@@ -252,10 +270,27 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                             {role.position}
                                           </h5>
 
-                                          {/* Description - more spacing from title */}
-                                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4 leading-relaxed`}>
-                                            {role.description}
-                                          </p>
+                                          {/* Details */}
+                                          {(() => {
+                                            const points =
+                                              role.responsibilities && role.responsibilities.length > 0
+                                                ? role.responsibilities
+                                                : toBulletPoints(role.description);
+
+                                            if (points.length === 0) return null;
+
+                                            return (
+                                              <ul
+                                                className={`text-sm mb-4 leading-relaxed list-disc pl-5 space-y-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                                              >
+                                                {points.map((point, idx) => (
+                                                  <li key={`${roleHash}-point-${idx}`} className="marker:text-blue-500">
+                                                    {point}
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            );
+                                          })()}
 
                                           {/* Technologies */}
                                           {role.technologies && role.technologies.length > 0 && (
