@@ -24,12 +24,12 @@ const NavBar = () => {
   }, []);
 
   const navItems = [
-    { href: "#home", label: "Home", color: "blue" },
-    { href: "#experience", label: "Experience", color: "yellow" },
-    { href: "#education", label: "Education", color: "emerald" },
-    { href: "#projects", label: "Projects", color: "purple" },
-    { href: "#contact", label: "Contact", color: "green" },
-  ];
+    { href: "#home", label: "Home", hoverTextClass: "hover:text-blue-600", underlineClass: "bg-blue-600" },
+    { href: "#experience", label: "Experience", hoverTextClass: "hover:text-yellow-600", underlineClass: "bg-yellow-600" },
+    { href: "#education", label: "Education", hoverTextClass: "hover:text-emerald-600", underlineClass: "bg-emerald-600" },
+    { href: "#projects", label: "Projects", hoverTextClass: "hover:text-purple-600", underlineClass: "bg-purple-600" },
+    { href: "#contact", label: "Contact", hoverTextClass: "hover:text-green-600", underlineClass: "bg-green-600" },
+  ] as const;
 
   return (
     <>
@@ -54,10 +54,10 @@ const NavBar = () => {
                     element.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className={`hover:text-${item.color}-600 transition-all duration-300 font-medium relative group ${classes.text.secondary}`}
+                className={`${item.hoverTextClass} transition-all duration-300 font-medium relative group ${classes.text.secondary}`}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-${item.color}-600 transition-all duration-300 group-hover:w-full`} />
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 ${item.underlineClass} transition-all duration-300 group-hover:w-full`} />
               </a>
             ))}
             <div className={`w-px h-6 ${classes.border.muted}`} />
