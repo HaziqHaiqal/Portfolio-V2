@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 import { ThemeProvider } from "@components/providers/ThemeProvider";
+import { MaintenanceProvider } from "@components/providers/MaintenanceProvider";
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@components/ui/sonner"
 
@@ -39,7 +40,9 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-inter antialiased bg-gray-50 text-gray-900`} suppressHydrationWarning>
         <ThemeProvider>
-          {children}
+          <MaintenanceProvider>
+            {children}
+          </MaintenanceProvider>
           <Toaster />
           <SpeedInsights />
           <Analytics />
