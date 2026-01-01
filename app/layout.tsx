@@ -18,16 +18,34 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Haziq Haiqal @ Personal Website",
-  description: "Software Developer at Maybank Berhad with expertise in React, JavaScript, Python, and SAP ABAP. Passionate about creating innovative solutions and exceptional user experiences.",
-  keywords: ["Software Developer", "React", "JavaScript", "Python", "SAP ABAP", "Full Stack", "Frontend", "Backend"],
+  title: "Portfolio @ Haziq Haiqal",
+  description: "Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions and exceptional user experiences.",
+  keywords: [
+    "Haziq Haiqal",
+    "Software Developer",
+    "React Developer",
+    "TypeScript",
+    "SAP ABAP",
+    "Full Stack Developer",
+    "Portfolio",
+    "Web Development"
+  ],
   authors: [{ name: "Muhammad Haziq Haiqal Kamaruddin" }],
+  creator: "Haziq Haiqal",
+  publisher: "Haziq Haiqal",
+  robots: "index, follow",
   openGraph: {
-    title: "Haziq Haiqal @ Personal Website",
-    description: "Software Developer at Maybank Berhad with expertise in React, JavaScript, Python, and SAP ABAP.",
+    title: "Portfolio @ Haziq Haiqal",
+    description: "Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions.",
     url: "https://haziqhaiqal.com",
-    siteName: "Haziq Portfolio",
+    siteName: "Haziq Haiqal Portfolio",
+    locale: "en_MY",
     type: "website",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Portfolio @ Haziq Haiqal",
   },
 };
 
