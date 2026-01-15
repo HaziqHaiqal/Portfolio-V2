@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Mail, Phone, MapPin, Linkedin, Github, Trash2, HelpCircle } from "lucide-react";
+import { Terminal, Mail, Phone, Linkedin, Github, Trash2, HelpCircle } from "lucide-react";
 import { useTheme } from "@components/providers/ThemeProvider";
 import EmailModal from "@components/EmailModal";
 import type { Profile } from "@components/HeroSection";
@@ -9,7 +9,8 @@ interface NetworkSectionProps {
     profile: Partial<Profile> | null;
 }
 
-const commandList = ['email', 'call', 'whatsapp', 'location', 'linkedin', 'github', 'clear', 'help'];
+const commandList = ['email', 'call', 'whatsapp', 'linkedin', 'github', 'clear', 'help'];
+const quickActionCommands = commandList.filter(cmd => cmd !== 'clear'); // Clear is shown elsewhere
 
 // WhatsApp Icon Component (since Lucide doesn't have it)
 const WhatsAppIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
@@ -23,7 +24,6 @@ const commandIcons = {
     email: Mail,
     call: Phone,
     whatsapp: WhatsAppIcon,
-    location: MapPin,
     linkedin: Linkedin,
     github: Github,
     clear: Trash2,
@@ -132,17 +132,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                 </div>
             );
         },
-        location: () => {
-            const location = profile?.location || "Damansara, Malaysia";
-            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(location)}`;
-            setTimeout(() => window.open(mapUrl), 500);
-            return (
-                <div className="flex items-center gap-3">
-                    <span className="text-red-500">📍</span>
-                    <span>Opening maps: <a href={mapUrl} target="_blank" rel="noopener noreferrer" className={`${isDarkMode ? 'text-red-400' : 'text-red-600'} underline hover:no-underline transition-all`}>{location}</a></span>
-                </div>
-            );
-        },
         linkedin: () => {
             const url = 'https://linkedin.com/in/mhaziqhaiqal';
             setTimeout(() => window.open(url, '_blank'), 500);
@@ -184,7 +173,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                             <div><span className="text-green-500 font-mono">email</span> - Open email client</div>
                             <div><span className="text-green-500 font-mono">call</span> - Make a phone call</div>
                             <div><span className="text-green-500 font-mono">whatsapp</span> - Open WhatsApp chat</div>
-                            <div><span className="text-green-500 font-mono">location</span> - View location on maps</div>
                             <div><span className="text-green-500 font-mono">linkedin</span> - Open LinkedIn profile</div>
                             <div><span className="text-green-500 font-mono">github</span> - Open GitHub profile</div>
                             <div><span className="text-green-500 font-mono">clear</span> - Clear terminal history</div>
@@ -276,7 +264,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
         { key: "name", value: "Muhammad Haziq Haiqal" },
         { key: "email", value: profile?.email || 'woodyz.dev@gmail.com' },
         { key: "phone", value: profile?.phone || '017-7492150' },
-        { key: "location", value: profile?.location || 'Damansara, Malaysia' },
     ];
 
     return (
@@ -345,8 +332,8 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                 <span className="text-yellow-500">⚡</span>
                                 <span className="font-semibold">Quick Actions</span>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {commandList.map((cmd) => {
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {quickActionCommands.map((cmd) => {
                                     const IconComponent = commandIcons[cmd as keyof typeof commandIcons];
 
                                     // Brand-specific color mapping
@@ -358,8 +345,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                                 return isDarkMode ? 'text-green-400' : 'text-green-600';
                                             case 'whatsapp':
                                                 return isDarkMode ? 'text-green-400' : 'text-green-600';
-                                            case 'location':
-                                                return isDarkMode ? 'text-red-400' : 'text-red-600';
                                             case 'linkedin':
                                                 return isDarkMode ? 'text-blue-400' : 'text-blue-600';
                                             case 'github':
@@ -377,7 +362,7 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                         <motion.button
                                             key={cmd}
                                             onClick={() => handleQuickAction(cmd)}
-                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-mono transition-all duration-200 ${isDarkMode ? "bg-gray-700/80 hover:bg-gray-600/80 border border-gray-600/50 text-gray-200 hover:text-white" : "bg-gray-100/80 hover:bg-gray-200/80 border border-gray-200 text-gray-700 hover:text-gray-900"} shadow-sm hover:shadow-md`}
                                         >
@@ -427,6 +412,16 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
                                     </span>
                                 )}
                             </div>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuickAction('clear');
+                                }}
+                                className={`p-2 rounded-lg transition-all ${isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-red-400' : 'hover:bg-gray-200 text-gray-400 hover:text-red-500'}`}
+                                title="Clear terminal"
+                            >
+                                <Trash2 size={16} />
+                            </button>
                             <input
                                 ref={inputRef}
                                 type="text"
