@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { createClient } from "@utils/supabase/client"
+import { createBrowserSupabase } from "@lib/supabase/browser"
 import { User } from "@supabase/supabase-js"
 import {
   LayoutDashboard,
@@ -81,12 +81,17 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ ...props }: AppSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
+  const supabase = createBrowserSupabase()
   const [user, setUser] = React.useState<User | null>(null)
 
   React.useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (error) {
+        await supabase.auth.signOut()
+        router.push('/login')
+        return
+      }
       setUser(user)
     }
     getUser()

@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertCompanyAction,
+  deleteCompanyAction,
+} from '@app/admin/_actions/companies';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
@@ -32,7 +36,7 @@ export default function CompanyEditor() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadCompanies = useCallback(async () => {
     try {
@@ -61,30 +65,29 @@ export default function CompanyEditor() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this company? This will remove the logo but keep existing experiences linked to it.')) return;
+    if (
+      !confirm(
+        'Are you sure you want to delete this company? This will remove the logo but keep existing experiences linked to it.',
+      )
+    )
+      return;
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('companies')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        if (error.code === '23503') {
-          toast.error('Cannot delete company. It is linked to existing experiences.');
-        } else {
-          throw error;
-        }
-        return;
-      }
-
+      await deleteCompanyAction(id);
       toast.success('Company deleted successfully');
       await loadCompanies();
     } catch (error: unknown) {
       console.error('Error deleting company:', error);
-      const message = error instanceof Error ? error.message : 'Failed to delete company';
-      toast.error(message);
+      const msg =
+        error instanceof Error ? error.message : 'Failed to delete company';
+      if (msg.includes('23503') || msg.toLowerCase().includes('foreign key')) {
+        toast.error(
+          'Cannot delete company. It is linked to existing experiences.',
+        );
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setSaving(false);
     }
@@ -94,71 +97,51 @@ export default function CompanyEditor() {
     setSaving(true);
 
     try {
+      const name = companyData.name?.trim();
+      if (!name) {
+        toast.error('Company name is required');
+        return;
+      }
+
       if (editingCompany?.id) {
-        // Check for duplicate name
-        const duplicate = companies.find(c => 
-          c.name.toLowerCase() === companyData.name?.toLowerCase().trim() && 
-          c.id !== editingCompany.id
+        const duplicate = companies.find(
+          (c) =>
+            c.name.toLowerCase() === name.toLowerCase() &&
+            c.id !== editingCompany.id,
         );
-        
         if (duplicate) {
-          toast.error(`Company "${companyData.name?.trim()}" already exists. Please use a different name.`);
-          setSaving(false);
+          toast.error(
+            `Company "${name}" already exists. Please use a different name.`,
+          );
           return;
         }
-
-        const { error } = await supabase
-          .from('companies')
-          .update({
-            name: companyData.name?.trim(),
-            logo_url: companyData.logo_url || null,
-            website_url: companyData.website_url || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingCompany.id);
-
-        if (error) {
-          if (error.code === '23505') {
-            toast.error(`Company "${companyData.name?.trim()}" already exists. Please use a different name.`);
-          } else {
-            throw error;
-          }
-          return;
-        }
-
+        await upsertCompanyAction({
+          id: editingCompany.id,
+          name,
+          logo_url: companyData.logo_url || undefined,
+          website_url: companyData.website_url || undefined,
+        });
         toast.success('Company updated successfully');
       } else {
-        // Check for duplicate name
-        const duplicate = companies.find(c => 
-          c.name.toLowerCase() === companyData.name?.toLowerCase().trim()
+        const duplicate = companies.find(
+          (c) => c.name.toLowerCase() === name.toLowerCase(),
         );
-        
         if (duplicate) {
-          toast.error(`Company "${companyData.name?.trim()}" already exists. Please select it from the list instead.`);
-          setSaving(false);
+          toast.error(
+            `Company "${name}" already exists. Please select it from the list instead.`,
+          );
           return;
         }
 
-        // Generate UUID upfront so logo upload works immediately
+        // Pre-generate the UUID so any logo-upload child component can reference
+        // the row immediately after save.
         const newId = crypto.randomUUID();
-        const { error } = await supabase
-          .from('companies')
-          .insert([{
-            id: newId,
-            name: companyData.name?.trim(),
-            logo_url: companyData.logo_url || null,
-            website_url: companyData.website_url || null,
-          }]);
-
-        if (error) {
-          if (error.code === '23505') {
-            toast.error(`Company "${companyData.name?.trim()}" already exists. Please select it from the list instead.`);
-          } else {
-            throw error;
-          }
-          return;
-        }
-
+        await upsertCompanyAction({
+          id: newId,
+          name,
+          logo_url: companyData.logo_url || undefined,
+          website_url: companyData.website_url || undefined,
+        });
         toast.success('Company created successfully');
       }
 
@@ -167,8 +150,15 @@ export default function CompanyEditor() {
       await loadCompanies();
     } catch (error: unknown) {
       console.error('Error saving company:', error);
-      const message = error instanceof Error ? error.message : 'Failed to save company';
-      toast.error(message);
+      const msg =
+        error instanceof Error ? error.message : 'Failed to save company';
+      if (msg.includes('23505') || msg.toLowerCase().includes('duplicate')) {
+        toast.error(
+          `Company "${companyData.name?.trim()}" already exists. Please use a different name.`,
+        );
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setSaving(false);
     }

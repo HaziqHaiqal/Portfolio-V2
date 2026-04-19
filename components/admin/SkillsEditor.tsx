@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertSkillAction,
+  deleteSkillAction,
+} from '@app/admin/_actions/skills';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus,
@@ -87,7 +91,7 @@ export default function SkillsEditor() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [filter, setFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadSkills = useCallback(async () => {
     try {
@@ -125,17 +129,7 @@ export default function SkillsEditor() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('skills')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting skill:', error);
-        setMessage({ type: 'error', text: 'Error deleting skill' });
-        return;
-      }
-
+      await deleteSkillAction(id);
       setMessage({ type: 'success', text: 'Skill deleted successfully!' });
       await loadSkills();
       setTimeout(() => setMessage(null), 3000);
@@ -152,38 +146,18 @@ export default function SkillsEditor() {
     setMessage(null);
 
     try {
-      if (editingSkill?.id) {
-        // Update existing skill
-        const { error } = await supabase
-          .from('skills')
-          .update({
-            ...skillData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingSkill.id);
-
-        if (error) {
-          console.error('Error updating skill:', error);
-          setMessage({ type: 'error', text: 'Error updating skill' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Skill updated successfully!' });
-      } else {
-        // Create new skill
-        const { error } = await supabase
-          .from('skills')
-          .insert([skillData]);
-
-        if (error) {
-          console.error('Error creating skill:', error);
-          setMessage({ type: 'error', text: 'Error creating skill' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Skill created successfully!' });
-      }
-
+      const payload = editingSkill?.id
+        ? { ...skillData, id: editingSkill.id }
+        : (() => {
+            const { id: _omit, ...rest } = skillData;
+            void _omit;
+            return rest;
+          })();
+      await upsertSkillAction(payload);
+      setMessage({
+        type: 'success',
+        text: `Skill ${editingSkill?.id ? 'updated' : 'created'} successfully!`,
+      });
       setShowForm(false);
       setEditingSkill(null);
       await loadSkills();
@@ -198,16 +172,7 @@ export default function SkillsEditor() {
 
   const toggleFeatured = async (skill: SkillData) => {
     try {
-      const { error } = await supabase
-        .from('skills')
-        .update({ is_featured: !skill.is_featured })
-        .eq('id', skill.id);
-
-      if (error) {
-        console.error('Error toggling featured:', error);
-        return;
-      }
-
+      await upsertSkillAction({ id: skill.id, is_featured: !skill.is_featured });
       await loadSkills();
     } catch (error) {
       console.error('Error:', error);

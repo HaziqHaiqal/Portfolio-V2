@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import { upsertProfileAction } from '@app/admin/_actions/profile';
 import { motion, AnimatePresence } from 'framer-motion';
 import UniversalUpload from '@components/admin/UniversalUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
@@ -82,7 +83,7 @@ export default function ProfileEditor() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [languageInput, setLanguageInput] = useState('');
 
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   useEffect(() => {
     loadProfile();
@@ -150,19 +151,8 @@ export default function ProfileEditor() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from('profile')
-        .upsert([profileData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error saving profile:', error);
-        setMessage({ type: 'error', text: 'Error saving profile. Please try again.' });
-        return;
-      }
-
-      setProfileData(data);
+      const data = await upsertProfileAction(profileData);
+      setProfileData({ ...profileData, ...data });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       console.error('Error saving profile:', error);

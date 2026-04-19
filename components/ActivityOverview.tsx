@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Github, Calendar } from "lucide-react";
 import {
@@ -27,58 +27,50 @@ const ActivityOverview = () => {
     ? Array.from({ length: currentYear - accountCreationYear + 1 }, (_, i) => accountCreationYear + i).reverse()
     : [currentYear]; // Only show current year while loading account creation date
 
-  const fetchGitHubData = useCallback((year: string) => {
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    fetch(`/api/github?year=${year}`)
-      .then(r => r.json())
+    fetch(`/api/github?year=${selectedYear}`)
+      .then((r) => r.json())
       .then((data: GitHubData) => {
+        if (cancelled) return;
         if (data.calendar && data.stats) {
           setWeeksData(data.calendar.weeks);
           setGithubStats(data.stats);
 
-          // Set account creation year if not already set
-          if (data.stats.accountCreationYear && !accountCreationYear) {
-            setAccountCreationYear(data.stats.accountCreationYear);
+          // Use functional updater so we don't need accountCreationYear
+          // as a dep — avoids re-creating the effect and double-fetching.
+          if (data.stats.accountCreationYear) {
+            setAccountCreationYear((prev) => prev ?? data.stats.accountCreationYear ?? null);
           }
 
-          // find maximum contribution count to scale intensity
           const max = Math.max(
-            ...data.calendar.weeks.flatMap((w) => w.contributionDays.map((d) => d.contributionCount))
+            ...data.calendar.weeks.flatMap((w) => w.contributionDays.map((d) => d.contributionCount)),
           );
           setMaxCount(max || 1);
         }
         setLoading(false);
       })
       .catch(() => {
+        if (cancelled) return;
         setWeeksData([]);
         setLoading(false);
       });
-  }, [accountCreationYear]);
 
-  useEffect(() => {
-    fetchGitHubData(selectedYear);
-  }, [selectedYear, fetchGitHubData]);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedYear]);
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
   };
 
-  const intensityClass = (count: number) => {
-    // map raw count into 0-3 bucket relative to maxCount
+  const intensityColor = (count: number) => {
     const frac = count / maxCount;
     const lvl = frac === 0 ? 0 : frac < 0.25 ? 1 : frac < 0.5 ? 2 : 3;
-    const light = [
-      "bg-gray-200",
-      "bg-green-300",
-      "bg-green-500",
-      "bg-green-700",
-    ];
-    const dark = [
-      "bg-gray-700",
-      "bg-green-600",
-      "bg-green-500",
-      "bg-green-400",
-    ];
+    const light = ["#e5e7eb", "#86efac", "#22c55e", "#15803d"]; // gray-200, green-300/500/700
+    const dark = ["#374151", "#16a34a", "#22c55e", "#4ade80"]; // gray-700, green-600/500/400
     return (isDarkMode ? dark : light)[lvl];
   };
 
@@ -182,16 +174,26 @@ const ActivityOverview = () => {
                         <div key={wIdx} className="flex flex-col gap-0.5 md:gap-1">
                           {week.contributionDays.map((day, dIdx: number) => {
                             const count = day.contributionCount;
+                            const baseColor = intensityColor(count);
+                            const pulse = count > maxCount * 0.8;
                             return (
                               <motion.div
                                 key={dIdx}
-                                className={`w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer transition-all duration-200 ${intensityClass(count)}`}
-                                initial={{ scale: 0, opacity: 0 }}
-                                whileInView={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.3, delay: (wIdx * 7 + dIdx) * 0.02, type: "spring", stiffness: 100 }}
+                                className="w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer"
+                                style={{ backgroundColor: baseColor }}
+                                initial={{ scale: 0, opacity: 0, backgroundColor: baseColor }}
+                                whileInView={
+                                  pulse
+                                    ? { scale: [1, 1.2, 1], opacity: [1, 0.8, 1], backgroundColor: baseColor }
+                                    : { scale: 1, opacity: 1, backgroundColor: baseColor }
+                                }
+                                transition={
+                                  pulse
+                                    ? { duration: 2, repeat: Infinity, delay: ((wIdx * 7 + dIdx) % 10) * 0.2 }
+                                    : { duration: 0.3, delay: (wIdx * 7 + dIdx) * 0.02, type: "spring", stiffness: 100 }
+                                }
                                 viewport={{ once: true }}
                                 whileHover={{ scale: 1.8, rotate: 45, backgroundColor: isDarkMode ? "#10b981" : "#059669" }}
-                                animate={count > (maxCount * 0.8) ? { scale: [1, 1.2, 1], opacity: [1, 0.8, 1], transition: { duration: 2, repeat: Infinity, delay: (wIdx * 7 + dIdx) % 10 * 0.2 } } : {}}
                               />
                             );
                           })}

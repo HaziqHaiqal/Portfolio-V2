@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertProjectAction,
+  deleteProjectAction,
+} from '@app/admin/_actions/projects';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
@@ -144,7 +148,7 @@ export default function ProjectsEditor() {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [filter, setFilter] = useState<string>('');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadProjects = useCallback(async () => {
     try {
@@ -184,17 +188,7 @@ export default function ProjectsEditor() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting project:', error);
-        setMessage({ type: 'error', text: 'Error deleting project' });
-        return;
-      }
-
+      await deleteProjectAction(id);
       setMessage({ type: 'success', text: 'Project deleted successfully!' });
       await loadProjects();
       setTimeout(() => setMessage(null), 3000);
@@ -211,38 +205,18 @@ export default function ProjectsEditor() {
     setMessage(null);
 
     try {
-      if (editingProject?.id) {
-        // Update existing project
-        const { error } = await supabase
-          .from('projects')
-          .update({
-            ...projectData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingProject.id);
-
-        if (error) {
-          console.error('Error updating project:', error);
-          setMessage({ type: 'error', text: 'Error updating project' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Project updated successfully!' });
-      } else {
-        // Create new project
-        const { error } = await supabase
-          .from('projects')
-          .insert([projectData]);
-
-        if (error) {
-          console.error('Error creating project:', error);
-          setMessage({ type: 'error', text: 'Error creating project' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Project created successfully!' });
-      }
-
+      const payload = editingProject?.id
+        ? { ...projectData, id: editingProject.id }
+        : (() => {
+            const { id: _omit, ...rest } = projectData;
+            void _omit;
+            return rest;
+          })();
+      await upsertProjectAction(payload);
+      setMessage({
+        type: 'success',
+        text: `Project ${editingProject?.id ? 'updated' : 'created'} successfully!`,
+      });
       setShowForm(false);
       setEditingProject(null);
       await loadProjects();
@@ -257,16 +231,7 @@ export default function ProjectsEditor() {
 
   const toggleFeatured = async (project: ProjectData) => {
     try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ featured: !project.featured })
-        .eq('id', project.id);
-
-      if (error) {
-        console.error('Error toggling featured:', error);
-        return;
-      }
-
+      await upsertProjectAction({ id: project.id, featured: !project.featured });
       await loadProjects();
     } catch (error) {
       console.error('Error:', error);

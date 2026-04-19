@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
@@ -168,7 +168,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<StatsData>({ projects: 0, experience: 0, education: 0, skills: 0 });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   useEffect(() => {
     const checkUser = async () => {

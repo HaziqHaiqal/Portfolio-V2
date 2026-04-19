@@ -98,6 +98,7 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
               src={images[currentIndex].url}
               alt={images[currentIndex].alt}
               fill
+              sizes="(max-width: 768px) 100vw, 768px"
               className="object-contain"
               onClick={() => setIsFullscreen(true)}
               priority={true}
@@ -168,6 +169,7 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
                     src={image.url}
                     alt={image.alt}
                     fill
+                    sizes="80px"
                     className="object-cover"
                   />
                 </button>
@@ -233,6 +235,7 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
                 src={images[currentIndex].url}
                 alt={images[currentIndex].alt}
                 fill
+                sizes="100vw"
                 className="object-contain"
               />
             </motion.div>

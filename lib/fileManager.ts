@@ -1,4 +1,4 @@
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
 
 // ============= TYPES =============
 
@@ -138,7 +138,7 @@ export async function uploadFile(
   caption?: string
 ): Promise<UploadResult> {
   try {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
 
     // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
@@ -234,7 +234,7 @@ export async function deleteFile(
   entityId: string
 ): Promise<DeleteResult> {
   try {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
 
     // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
@@ -299,7 +299,7 @@ export async function deleteFile(
  */
 export async function deleteFileById(fileId: string): Promise<DeleteResult> {
   try {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
 
     // Get file details
     const { data: fileData, error: fetchError } = await supabase
@@ -345,7 +345,7 @@ export async function getFiles(
   entityId: string,
   fieldName?: string
 ): Promise<UploadedFile[]> {
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   let query = supabase
     .from('uploads')
@@ -387,7 +387,7 @@ async function updateEntityTable(
   fieldName: string,
   fileUrl: string
 ): Promise<void> {
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const tableMap: Record<string, string> = {
     profile: 'profile',
@@ -427,7 +427,7 @@ async function clearEntityField(
   entityId: string,
   fieldName: string
 ): Promise<void> {
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const tableMap: Record<string, string> = {
     profile: 'profile',

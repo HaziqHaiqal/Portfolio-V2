@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertInterestAction,
+  deleteInterestAction,
+} from '@app/admin/_actions/interests';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus,
@@ -87,7 +91,7 @@ export default function InterestsEditor() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [filter, setFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadInterests = useCallback(async () => {
     try {
@@ -125,17 +129,7 @@ export default function InterestsEditor() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('interests')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting interest:', error);
-        setMessage({ type: 'error', text: 'Error deleting interest' });
-        return;
-      }
-
+      await deleteInterestAction(id);
       setMessage({ type: 'success', text: 'Interest deleted successfully!' });
       await loadInterests();
       setTimeout(() => setMessage(null), 3000);
@@ -152,38 +146,18 @@ export default function InterestsEditor() {
     setMessage(null);
 
     try {
-      if (editingInterest?.id) {
-        // Update existing interest
-        const { error } = await supabase
-          .from('interests')
-          .update({
-            ...interestData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingInterest.id);
-
-        if (error) {
-          console.error('Error updating interest:', error);
-          setMessage({ type: 'error', text: 'Error updating interest' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Interest updated successfully!' });
-      } else {
-        // Create new interest
-        const { error } = await supabase
-          .from('interests')
-          .insert([interestData]);
-
-        if (error) {
-          console.error('Error creating interest:', error);
-          setMessage({ type: 'error', text: 'Error creating interest' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Interest created successfully!' });
-      }
-
+      const payload = editingInterest?.id
+        ? { ...interestData, id: editingInterest.id }
+        : (() => {
+            const { id: _omit, ...rest } = interestData;
+            void _omit;
+            return rest;
+          })();
+      await upsertInterestAction(payload);
+      setMessage({
+        type: 'success',
+        text: `Interest ${editingInterest?.id ? 'updated' : 'created'} successfully!`,
+      });
       setShowForm(false);
       setEditingInterest(null);
       await loadInterests();
@@ -199,17 +173,10 @@ export default function InterestsEditor() {
   const toggleFeatured = async (interest: InterestData) => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('interests')
-        .update({ is_featured: !interest.is_featured })
-        .eq('id', interest.id);
-
-      if (error) {
-        console.error('Error updating interest:', error);
-        setMessage({ type: 'error', text: 'Error updating interest' });
-        return;
-      }
-
+      await upsertInterestAction({
+        id: interest.id,
+        is_featured: !interest.is_featured,
+      });
       await loadInterests();
     } catch (error) {
       console.error('Error:', error);

@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertEducationAction,
+  deleteEducationAction,
+} from '@app/admin/_actions/education';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import UniversalUpload from './UniversalUpload';
@@ -75,7 +79,7 @@ export default function EducationEditor() {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [filter, setFilter] = useState<string>('');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadEducations = useCallback(async () => {
     try {
@@ -114,17 +118,7 @@ export default function EducationEditor() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('education')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting education:', error);
-        setMessage({ type: 'error', text: 'Error deleting education' });
-        return;
-      }
-
+      await deleteEducationAction(id);
       setMessage({ type: 'success', text: 'Education deleted successfully!' });
       await loadEducations();
       setTimeout(() => setMessage(null), 3000);
@@ -140,44 +134,22 @@ export default function EducationEditor() {
     setSaving(true);
     setMessage(null);
 
-    // Prepare data for database (exclude sort_order, sorted by date instead)
     const dbData = { ...educationData };
-    delete (dbData as Partial<EducationData>).id;
     delete (dbData as Partial<EducationData>).sort_order;
+    const payload = editingEducation?.id
+      ? { ...dbData, id: editingEducation.id }
+      : (() => {
+          const { id: _omit, ...rest } = dbData;
+          void _omit;
+          return rest;
+        })();
 
     try {
-      if (editingEducation?.id) {
-        // Update existing education
-        const { error } = await supabase
-          .from('education')
-          .update({
-            ...dbData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingEducation.id);
-
-        if (error) {
-          console.error('Error updating education:', error);
-          setMessage({ type: 'error', text: 'Error updating education' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Education updated successfully!' });
-      } else {
-        // Create new education
-        const { error } = await supabase
-          .from('education')
-          .insert([dbData]);
-
-        if (error) {
-          console.error('Error creating education:', error);
-          setMessage({ type: 'error', text: 'Error creating education' });
-          return;
-        }
-
-        setMessage({ type: 'success', text: 'Education created successfully!' });
-      }
-
+      await upsertEducationAction(payload);
+      setMessage({
+        type: 'success',
+        text: `Education ${editingEducation?.id ? 'updated' : 'created'} successfully!`,
+      });
       setShowForm(false);
       setEditingEducation(null);
       await loadEducations();

@@ -1,3 +1,14 @@
+// Domain types shared across server and client code.
+//
+// Reads model the UI-facing shape (optional missing fields come back as
+// `undefined`). For writes, use `NullableWritable<T>` to explicitly allow
+// `null` values — these translate to SQL NULLs, which is how you clear a
+// column in an UPDATE.
+
+export type NullableWritable<T> = {
+  [K in keyof T]?: T[K] | null
+}
+
 export interface Profile {
   id: string
   full_name: string
@@ -44,10 +55,11 @@ export interface Experience {
   responsibilities?: string[]
   technologies?: string[]
   achievements?: string[]
-  sort_order?: number // Deprecated: now sorted by date
   created_at?: string
   updated_at?: string
   companies?: Company
+  // Legacy, kept for backward compatibility with old rows. New code sorts by date.
+  sort_order?: number
 }
 
 export interface Education {
@@ -67,9 +79,9 @@ export interface Education {
   achievements?: string[]
   activities?: string[]
   institution_logo_url?: string
-  sort_order?: number // Deprecated: now sorted by date
   created_at?: string
   updated_at?: string
+  sort_order?: number
 }
 
 export interface Skill {
@@ -115,18 +127,13 @@ export interface Project {
   sort_order: number
   created_at?: string
   updated_at?: string
-  images?: ProjectImage[]
 }
 
 export interface ProjectImage {
   id: string
-  project_id: string
-  image_url: string
-  alt_text?: string
+  url: string
+  alt: string
   caption?: string
-  is_primary: boolean
-  sort_order: number
-  created_at?: string
 }
 
 export interface Interest {
@@ -141,4 +148,15 @@ export interface Interest {
   sort_order: number
   created_at?: string
   updated_at?: string
-} 
+}
+
+export interface Upload {
+  id: string
+  file_url: string
+  alt_text?: string
+  caption?: string
+  entity_id: string
+  entity_type: string
+  field_name: string
+  sort_order: number
+}

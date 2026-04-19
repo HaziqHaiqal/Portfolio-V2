@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import {
+  upsertExperienceAction,
+  deleteExperienceAction,
+} from '@app/admin/_actions/experience';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
@@ -67,7 +71,7 @@ export default function ExperienceEditor() {
   const [editingExperience, setEditingExperience] = useState<ExperienceData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<string>('');
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const loadExperiences = useCallback(async () => {
     try {
@@ -122,22 +126,12 @@ export default function ExperienceEditor() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('experience')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting experience:', error);
-        toast.error('Failed to delete experience');
-        return;
-      }
-
+      await deleteExperienceAction(id);
       toast.success('Experience deleted successfully');
       await loadExperiences();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('An unexpected error occurred while deleting experience');
+      toast.error('Failed to delete experience');
     } finally {
       setSaving(false);
     }
@@ -173,21 +167,11 @@ export default function ExperienceEditor() {
     try {
       const isUpdate = !!editingExperience?.id;
       const dbData = prepareDbData(experienceData, isUpdate);
+      const payload = isUpdate
+        ? { ...dbData, id: editingExperience!.id }
+        : dbData;
 
-      const { error } = isUpdate
-        ? await supabase
-            .from('experience')
-            .update(dbData)
-            .eq('id', editingExperience.id)
-        : await supabase
-            .from('experience')
-            .insert([dbData]);
-
-      if (error) {
-        console.error(`Error ${isUpdate ? 'updating' : 'creating'} experience:`, error);
-        toast.error(`Failed to ${isUpdate ? 'update' : 'create'} experience: ${error.message}`);
-        return;
-      }
+      await upsertExperienceAction(payload);
 
       toast.success(`Experience ${isUpdate ? 'updated' : 'created'} successfully`);
       setShowForm(false);
@@ -195,7 +179,9 @@ export default function ExperienceEditor() {
       await loadExperiences();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('An unexpected error occurred while saving experience');
+      toast.error(
+        `Failed to ${editingExperience?.id ? 'update' : 'create'} experience`,
+      );
     } finally {
       setSaving(false);
     }

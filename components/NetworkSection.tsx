@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Mail, Phone, Linkedin, Github, Trash2, HelpCircle } from "lucide-react";
 import { useTheme } from "@components/providers/ThemeProvider";
@@ -67,16 +67,21 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const historyRef = useRef<HTMLDivElement>(null);
 
-    // Memoize floating elements to prevent re-calculation on every render
-    const floatingElements = useMemo(() => {
-        return [...Array(5)].map((_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: 100 + Math.random() * 100,
-            duration: 15 + Math.random() * 10,
-            delay: i * 2
-        }));
+    const [floatingElements, setFloatingElements] = useState<
+        { id: number; x: number; y: number; size: number; duration: number; delay: number }[]
+    >([]);
+
+    useEffect(() => {
+        setFloatingElements(
+            Array.from({ length: 5 }, (_, i) => ({
+                id: i,
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+                size: 100 + Math.random() * 100,
+                duration: 15 + Math.random() * 10,
+                delay: i * 2,
+            })),
+        );
     }, []);
 
     useEffect(() => {

@@ -13,17 +13,20 @@ interface UniversalImageProps {
 }
 
 /**
- * UniversalImage component that handles both Supabase-hosted images (via Next.js Image)
- * and external URLs (via regular img tag) to avoid Next.js image domain configuration issues
+ * UniversalImage handles both Supabase-hosted images (optimized via Next Image)
+ * and external URLs (raw <img>) so we don't need to whitelist every remote host.
+ *
+ * For Supabase URLs we render Next Image in `fill` mode inside a sized,
+ * relative, overflow-hidden wrapper. This avoids the Next 16 warning
+ * "has either width or height modified, but not the other" that fires when
+ * callers apply CSS sizing that distorts the natural aspect ratio.
  */
 export default function UniversalImage({ src, alt, width, height, className, fallback }: UniversalImageProps) {
   const [imgError, setImgError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
 
-  // Check if URL is from Supabase storage (use Next.js Image optimization)
   const isSupabaseUrl = imgSrc?.includes('supabase.co') || imgSrc?.includes('supabase');
 
-  // If error occurs, try fallback
   const handleError = () => {
     if (fallback && imgSrc !== fallback) {
       setImgSrc(fallback);
@@ -32,7 +35,6 @@ export default function UniversalImage({ src, alt, width, height, className, fal
     }
   };
 
-  // If it's an external URL, use regular img tag (bypasses Next.js image restrictions)
   if (!isSupabaseUrl || imgError) {
     if (imgError && !fallback) {
       return (
@@ -50,7 +52,8 @@ export default function UniversalImage({ src, alt, width, height, className, fal
 
     const finalSrc = imgError ? fallback : imgSrc;
 
-    // We intentionally use <img> for non-Supabase remote URLs to avoid Next Image domain config issues.
+    // We intentionally use <img> for non-Supabase remote URLs to avoid
+    // Next Image remote-host allowlist configuration.
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img
@@ -65,8 +68,8 @@ export default function UniversalImage({ src, alt, width, height, className, fal
     );
   }
 
-  // For Supabase URLs, use Next.js Image for optimization
-  // If width/height are 0, use unoptimized with auto sizing
+  // Unsized mode: caller sizes via CSS (used for preview thumbnails that
+  // should display at natural aspect ratio).
   if (width === 0 || height === 0) {
     return (
       <NextImage
@@ -77,21 +80,29 @@ export default function UniversalImage({ src, alt, width, height, className, fal
         sizes="100vw"
         className={className}
         onError={handleError}
-        unoptimized={false}
       />
     );
   }
 
   return (
-    <NextImage
-      src={imgSrc}
-      alt={alt}
-      width={width}
-      height={height}
+    <div
       className={className}
-      onError={handleError}
-      unoptimized={false}
-    />
+      style={{
+        position: 'relative',
+        width: `${width}px`,
+        height: `${height}px`,
+        overflow: 'hidden',
+        flexShrink: 0,
+      }}
+    >
+      <NextImage
+        src={imgSrc}
+        alt={alt}
+        fill
+        sizes={`${Math.max(width, height)}px`}
+        className={className}
+        onError={handleError}
+      />
+    </div>
   );
 }
-

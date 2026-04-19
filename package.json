@@ -6,8 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
@@ -30,7 +31,7 @@
     "framer-motion": "^12.19.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.522.0",
-    "next": "^16.0.4",
+    "next": "^16.2.4",
     "next-themes": "^0.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

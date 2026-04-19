@@ -7,17 +7,15 @@ import { useTheme } from "@components/providers/ThemeProvider";
 
 interface ProjectShowcaseSectionProps {
   projects: ProjectProps[];
-  loading: boolean;
-  error: string | null;
-  mounted: boolean;
+  loading?: boolean;
+  error?: string | null;
   handleProjectClick: (project: ProjectProps) => void;
 }
 
 const ProjectShowcaseSection = ({
   projects,
-  loading,
-  error,
-  mounted,
+  loading = false,
+  error = null,
   handleProjectClick,
 }: ProjectShowcaseSectionProps) => {
   const { isDarkMode } = useTheme();
@@ -61,7 +59,7 @@ const ProjectShowcaseSection = ({
           </motion.div>
 
           {/* Content */}
-          {!mounted || loading ? (
+          {loading ? (
             <div className="flex justify-center items-center py-20">
               <motion.div
                 className="relative"

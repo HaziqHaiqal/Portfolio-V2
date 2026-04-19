@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { createClient } from '@utils/supabase/client';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import { upsertCompanyAction } from '@app/admin/_actions/companies';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
 import { Building, Plus, Search, X, Check, Loader2, Edit } from 'lucide-react';
@@ -27,7 +28,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
   const [formData, setFormData] = useState({ id: '', name: '', logo_url: '', website_url: '' });
   const [saving, setSaving] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,93 +96,65 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
     setSaving(true);
     try {
       if (isEditing) {
-        // Check if name is being changed and if new name already exists
-        const existingCompany = companies.find(c => c.id === formData.id);
+        const existingCompany = companies.find((c) => c.id === formData.id);
         if (existingCompany?.name !== trimmedName) {
-          const duplicate = companies.find(c => 
-            c.name.toLowerCase() === trimmedName.toLowerCase() && c.id !== formData.id
+          const duplicate = companies.find(
+            (c) =>
+              c.name.toLowerCase() === trimmedName.toLowerCase() &&
+              c.id !== formData.id,
           );
           if (duplicate) {
-            toast.error(`Company "${trimmedName}" already exists. Please use a different name.`);
-            setSaving(false);
+            toast.error(
+              `Company "${trimmedName}" already exists. Please use a different name.`,
+            );
             return;
           }
         }
 
-        // Update existing company
-        const { error } = await supabase
-          .from('companies')
-          .update({
-            name: trimmedName,
-            logo_url: formData.logo_url || null,
-            website_url: formData.website_url || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', formData.id);
-
-        if (error) {
-          if (error.code === '23505') {
-            toast.error(`Company "${trimmedName}" already exists. Please use a different name.`);
-          } else {
-            throw error;
-          }
-          return;
-        }
-
+        const updated = await upsertCompanyAction({
+          id: formData.id,
+          name: trimmedName,
+          logo_url: formData.logo_url || undefined,
+          website_url: formData.website_url || undefined,
+        });
         toast.success('Company updated successfully');
-        
-        // Reload companies to get fresh data
         await loadCompanies();
-        
-        // Update selected value if it's the edited company
-        const updatedCompany = companies.find(c => c.id === formData.id);
-        if (updatedCompany && value?.id === formData.id) {
-          onChange(updatedCompany);
-        }
+        if (value?.id === formData.id) onChange(updated);
       } else {
-        // Check if company with same name already exists
-        const duplicate = companies.find(c => 
-          c.name.toLowerCase() === trimmedName.toLowerCase()
+        const duplicate = companies.find(
+          (c) => c.name.toLowerCase() === trimmedName.toLowerCase(),
         );
-        
         if (duplicate) {
-          toast.error(`Company "${trimmedName}" already exists. Please select it from the list instead.`);
-          setSaving(false);
+          toast.error(
+            `Company "${trimmedName}" already exists. Please select it from the list instead.`,
+          );
           return;
         }
 
-        // Create new company with pre-generated ID
-        const { data, error } = await supabase
-          .from('companies')
-          .insert([{
-            id: formData.id,
-            name: trimmedName,
-            logo_url: formData.logo_url || null,
-            website_url: formData.website_url || null,
-          }])
-          .select()
-          .single();
-
-        if (error) {
-          if (error.code === '23505') {
-            toast.error(`Company "${trimmedName}" already exists. Please select it from the list instead.`);
-          } else {
-            throw error;
-          }
-          return;
-        }
-
+        const created = await upsertCompanyAction({
+          id: formData.id,
+          name: trimmedName,
+          logo_url: formData.logo_url || undefined,
+          website_url: formData.website_url || undefined,
+        });
         toast.success('Company created successfully');
         await loadCompanies();
-        onChange(data);
+        onChange(created);
       }
 
       setShowForm(false);
       setFormData({ id: '', name: '', logo_url: '', website_url: '' });
     } catch (error: unknown) {
       console.error('Error saving company:', error);
-      const message = error instanceof Error ? error.message : 'Failed to save company';
-      toast.error(message);
+      const msg =
+        error instanceof Error ? error.message : 'Failed to save company';
+      if (msg.includes('23505') || msg.toLowerCase().includes('duplicate')) {
+        toast.error(
+          `Company "${trimmedName}" already exists. Please use a different name.`,
+        );
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setSaving(false);
     }

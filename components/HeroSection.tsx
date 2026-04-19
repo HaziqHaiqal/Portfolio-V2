@@ -252,9 +252,10 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                   <Image
                     src={profile.profile_image_url}
                     alt={profile.display_name || 'Profile Picture'}
-                    layout="fill"
-                    objectFit="cover"
-                    className="w-full h-full"
+                    fill
+                    priority
+                    sizes="(max-width: 640px) 192px, 256px"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
