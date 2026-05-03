@@ -53,8 +53,7 @@ const ProjectShowcaseSection = ({
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <span className="text-orange-500">{'// '}</span>
-              Building digital solutions that make a difference
+              <span className="text-orange-500">$</span> ls ./projects
             </motion.p>
           </motion.div>
 

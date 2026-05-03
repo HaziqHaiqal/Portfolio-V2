@@ -1,9 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Globe, Github, Terminal, Zap, Star, Monitor, Heart, Share, MoreHorizontal, Code, Layers, Image as ImageIcon } from "lucide-react";
-import ProjectImageGallery from '@components/ProjectImageGallery';
+import {
+  X,
+  Globe,
+  Github,
+  Clock,
+  Calendar,
+  Users,
+  GitCommit,
+} from "lucide-react";
+import ProjectImageGallery from "@components/ProjectImageGallery";
 import { getCategoryInfo } from "@lib/constants";
 
 interface ProjectModalProps {
@@ -21,267 +30,245 @@ interface ProjectModalProps {
     commits: string;
     languages: string[];
     category: string;
-
     projectUrl?: string;
     githubUrl?: string;
     features?: string[];
     teamSize?: string;
     duration?: string;
-  } | null,
+    thumbnail_url?: string;
+  } | null;
   isDarkMode: boolean;
 }
 
-export default function ProjectModal({ isOpen, onClose, project, isDarkMode }: ProjectModalProps) {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isLiked, setIsLiked] = useState(false);
+interface ThemeTokens {
+  panelBg: string;
+  panelText: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  textFaint: string;
+  divider: string;
+  cardBg: string;
+  cardBorder: string;
+  chipBg: string;
+  chipBorder: string;
+  chipText: string;
+  chipHoverBg: string;
+  glassBg: string;
+  glassBorder: string;
+  glassText: string;
+  primaryBtnBg: string;
+  primaryBtnText: string;
+  primaryBtnDisabled: string;
+  secondaryBtnBg: string;
+  secondaryBtnHoverBg: string;
+  secondaryBtnBorder: string;
+  secondaryBtnText: string;
+  secondaryBtnDisabled: string;
+  backdropClass: string;
+  // Header gradient stops
+  headerStop1: string;
+  headerStop2: string;
+  headerStop3: string;
+  shadowOnImage: string;
+}
 
-  // Prevent body scroll when modal is open
+export default function ProjectModal({
+  isOpen,
+  onClose,
+  project,
+  isDarkMode,
+}: ProjectModalProps) {
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
-
-    // Cleanup on unmount
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose]);
 
   if (!project) return null;
 
   const categoryInfo = getCategoryInfo(project.category);
+  const CategoryIcon = categoryInfo.icon;
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: <Star size={20} />, color: 'blue' },
-    { id: 'gallery', label: 'Gallery', icon: <ImageIcon size={20} />, color: 'purple' },
-    { id: 'tech', label: 'Tech', icon: <Code size={20} />, color: 'green' },
-    { id: 'details', label: 'Details', icon: <Layers size={20} />, color: 'orange' }
+  // Category-tinted header gradient stop
+  const tintDarkMap: Record<string, string> = {
+    web: "#1e3a8a",
+    mobile: "#065f46",
+    art: "#6b21a8",
+    game: "#9f1239",
+    api: "#9a3412",
+    ai: "#9d174d",
+    tool: "#854d0e",
+    other: "#374151",
+  };
+  const tintLightMap: Record<string, string> = {
+    web: "#dbeafe",
+    mobile: "#d1fae5",
+    art: "#f3e8ff",
+    game: "#ffe4e6",
+    api: "#ffedd5",
+    ai: "#fce7f3",
+    tool: "#fef3c7",
+    other: "#e5e7eb",
+  };
+  const tint = isDarkMode
+    ? tintDarkMap[categoryInfo.value] || tintDarkMap.other
+    : tintLightMap[categoryInfo.value] || tintLightMap.other;
+
+  const gray900 = "#111827";
+
+  const T: ThemeTokens = isDarkMode
+    ? {
+        panelBg: "bg-gray-900",
+        panelText: "text-white",
+        textPrimary: "text-white",
+        textSecondary: "text-white/75",
+        textMuted: "text-white/55",
+        textFaint: "text-white/35",
+        divider: "border-white/[0.06]",
+        cardBg: "bg-white/[0.04]",
+        cardBorder: "border-white/10",
+        chipBg: "bg-white/[0.08]",
+        chipBorder: "border-white/10",
+        chipText: "text-white/90",
+        chipHoverBg: "hover:bg-white/[0.12]",
+        glassBg: "bg-white/10",
+        glassBorder: "border-white/10",
+        glassText: "text-white",
+        primaryBtnBg: "bg-white text-black hover:bg-white/90 shadow-lg",
+        primaryBtnText: "text-black",
+        primaryBtnDisabled:
+          "bg-white/30 text-black/40 shadow-none cursor-not-allowed",
+        secondaryBtnBg: "bg-white/[0.08]",
+        secondaryBtnHoverBg: "hover:bg-white/[0.15]",
+        secondaryBtnBorder: "border-white/10",
+        secondaryBtnText: "text-white",
+        secondaryBtnDisabled:
+          "bg-white/[0.04] border-white/5 text-white/30 cursor-not-allowed",
+        backdropClass: "bg-black/80 backdrop-blur-md",
+        headerStop1: tint,
+        headerStop2: `rgba(17, 24, 39, 0.65)`,
+        headerStop3: gray900,
+        shadowOnImage: "shadow-[0_20px_60px_rgba(0,0,0,0.55)]",
+      }
+    : {
+        panelBg: "bg-white",
+        panelText: "text-gray-900",
+        textPrimary: "text-gray-900",
+        textSecondary: "text-gray-700",
+        textMuted: "text-gray-500",
+        textFaint: "text-gray-400",
+        divider: "border-gray-200",
+        cardBg: "bg-gray-50",
+        cardBorder: "border-gray-200",
+        chipBg: "bg-gray-100",
+        chipBorder: "border-gray-200",
+        chipText: "text-gray-700",
+        chipHoverBg: "hover:bg-gray-200",
+        glassBg: "bg-white/80",
+        glassBorder: "border-gray-200",
+        glassText: "text-gray-900",
+        primaryBtnBg:
+          "bg-gray-900 text-white hover:bg-gray-800 shadow-md",
+        primaryBtnText: "text-white",
+        primaryBtnDisabled:
+          "bg-gray-200 text-gray-400 shadow-none cursor-not-allowed",
+        secondaryBtnBg: "bg-white",
+        secondaryBtnHoverBg: "hover:bg-gray-50",
+        secondaryBtnBorder: "border-gray-200",
+        secondaryBtnText: "text-gray-900",
+        secondaryBtnDisabled:
+          "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed",
+        backdropClass: "bg-black/40 backdrop-blur-md",
+        headerStop1: tint,
+        headerStop2: "rgba(255,255,255,0.5)",
+        headerStop3: "#ffffff",
+        shadowOnImage: "shadow-[0_20px_60px_rgba(0,0,0,0.15)]",
+      };
+
+  const meta = [
+    { icon: Calendar, label: project.year },
+    { icon: Users, label: project.teamSize || "Solo" },
+    { icon: Clock, label: project.duration || "Ongoing" },
+    ...(project.commits && project.commits !== "0"
+      ? [{ icon: GitCommit, label: project.commits }]
+      : []),
   ];
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center pb-4 md:pb-0"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{ overflow: 'hidden' }}
         >
-          {/* Mobile Backdrop */}
+          {/* Backdrop */}
           <motion.div
-            className={`absolute inset-0 ${isDarkMode ? "bg-black/60" : "bg-black/40"} backdrop-blur-sm`}
+            className={`absolute inset-0 ${T.backdropClass}`}
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           />
 
-          {/* Mobile App Modal */}
+          {/* Panel */}
           <motion.div
-            className={`relative w-full max-w-md md:max-w-4xl h-[95vh] md:h-[90vh] mx-4 md:mx-0 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${isDarkMode
-              ? "bg-gray-900 border-t border-gray-700"
-              : "bg-white border-t border-gray-200"
-              }`}
-            initial={{ y: "100%", scale: 0.9 }}
-            animate={{ y: 0, scale: 1 }}
-            exit={{ y: "100%", scale: 0.9 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              duration: 0.6
-            }}
+            className={`relative w-full md:max-w-4xl h-[94vh] md:h-[88vh] md:mx-4 flex flex-col rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl ${T.panelBg}`}
+            initial={{ y: "8%", opacity: 0, scale: 0.96 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: "8%", opacity: 0, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Mobile Status Bar */}
-            <div className={`md:hidden px-6 py-3 flex items-center justify-between text-sm flex-shrink-0 ${isDarkMode ? "bg-gray-800 text-gray-300" : "bg-gray-50 text-gray-700"}`}>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="w-1 h-1 rounded-full bg-current opacity-80" />
-                  <div className="w-1 h-1 rounded-full bg-current opacity-60" />
-                  <div className="w-1 h-1 rounded-full bg-current opacity-40" />
-                </div>
-                <span className="text-xs font-medium">Portfolio</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs">100%</span>
-                <div className={`w-6 h-3 rounded-sm border ${isDarkMode ? "border-gray-600" : "border-gray-400"}`}>
-                  <div className="w-full h-full bg-green-500 rounded-sm" />
-                </div>
-              </div>
-            </div>
-
-            {/* Pull Handle */}
-            <div className="md:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
-              <div className={`w-10 h-1 rounded-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"}`} />
-            </div>
-
-            {/* Header */}
-            <div className={`relative px-6 py-4 flex-shrink-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-50"}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <motion.button
-                    onClick={onClose}
-                    className={`p-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-white hover:bg-gray-100"} shadow-md`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <X size={18} className={isDarkMode ? "text-gray-300" : "text-gray-700"} />
-                  </motion.button>
-
-                  <div>
-                    <motion.div
-                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${isDarkMode
-                        ? "bg-gray-700 text-gray-300 border border-gray-600"
-                        : "bg-white text-gray-700 border border-gray-200"
-                        }`}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <categoryInfo.icon size={12} className={`text-${categoryInfo.color}-500`} />
-                      {categoryInfo.label}
-                    </motion.div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className={`p-2 rounded-full ${isDarkMode ? "bg-gray-700" : "bg-white"} shadow-md`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Heart
-                      size={18}
-                      className={isLiked ? "text-red-500 fill-red-500" : isDarkMode ? "text-gray-400" : "text-gray-500"}
-                    />
-                  </motion.button>
-                  <motion.button
-                    className={`p-2 rounded-full ${isDarkMode ? "bg-gray-700" : "bg-white"} shadow-md`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Share size={18} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
-                  </motion.button>
-                  <motion.button
-                    className={`p-2 rounded-full ${isDarkMode ? "bg-gray-700" : "bg-white"} shadow-md`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <MoreHorizontal size={18} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-
-            {/* Title and Action Buttons */}
-            <div className="px-6 pt-6 pb-4 flex-shrink-0 flex justify-between items-center">
-              <motion.h1
-                className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {project.title}
-              </motion.h1>
-
-              {/* Action Buttons */}
-              <motion.div
-                className={`inline-flex items-center gap-1 p-1 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                {/* Globe Button */}
-                <motion.button
-                  className={`flex items-center justify-center w-16 h-10 rounded-full transition-colors ${
-                    project.projectUrl
-                      ? isDarkMode
-                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                          : 'bg-white text-gray-800 hover:bg-gray-200'
-                      : isDarkMode
-                          ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                  whileHover={project.projectUrl ? { scale: 1.05 } : {}}
-                  whileTap={project.projectUrl ? { scale: 0.95 } : {}}
-                  onClick={() => {
-                    if (project.projectUrl) {
-                      window.open(project.projectUrl, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                  disabled={!project.projectUrl}
-                  aria-label="Visit project website"
-                >
-                  <Globe size={20} />
-                </motion.button>
-
-                {/* GitHub Button */}
-                <motion.button
-                  className={`flex items-center justify-center w-16 h-10 rounded-full transition-colors ${
-                    project.githubUrl
-                      ? isDarkMode
-                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                          : 'bg-white text-gray-800 hover:bg-gray-200'
-                      : isDarkMode
-                          ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                  whileHover={project.githubUrl ? { scale: 1.05 } : {}}
-                  whileTap={project.githubUrl ? { scale: 0.95 } : {}}
-                  onClick={() => {
-                    if (project.githubUrl) {
-                      window.open(project.githubUrl, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                  disabled={!project.githubUrl}
-                  aria-label="View on GitHub"
-                >
-                  <Github size={20} />
-                </motion.button>
-              </motion.div>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className={`px-6 mb-4 flex-shrink-0 ${isDarkMode ? "bg-gray-900" : "bg-white"}`}>
-              <div className={`flex rounded-2xl p-1 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}>
-                {tabs.map((tab) => (
-                  <motion.button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${activeTab === tab.id
-                      ? isDarkMode
-                        ? "bg-white text-gray-900 shadow-md"
-                        : "bg-white text-gray-900 shadow-md"
-                      : isDarkMode
-                        ? "text-gray-400 hover:text-gray-200"
-                        : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    whileHover={{ scale: activeTab === tab.id ? 1 : 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 + tabs.indexOf(tab) * 0.1 }}
-                  >
-                    {tab.icon}
-                    <span className="hidden md:inline">{tab.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Content Area */}
+            {/* Gradient that bleeds from category color into the body */}
             <div
-              className="flex-1 overflow-y-auto px-6 pb-20 md:pb-6"
-              onWheel={(e) => {
-                const element = e.currentTarget;
-                const { scrollTop, scrollHeight, clientHeight } = element;
+              className="absolute inset-x-0 top-0 h-[55%] pointer-events-none"
+              style={{
+                background: `linear-gradient(180deg, ${T.headerStop1} 0%, ${T.headerStop2} 55%, ${T.headerStop3} 100%)`,
+              }}
+            />
 
-                // Prevent scroll propagation when at boundaries
+            {/* Top bar */}
+            <div className="relative z-10 flex items-center justify-between px-5 py-3 flex-shrink-0">
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-md border ${T.glassBg} ${T.glassBorder} ${T.glassText}`}
+              >
+                <CategoryIcon size={12} />
+                {categoryInfo.label}
+              </div>
+              <motion.button
+                onClick={onClose}
+                className={`p-2 rounded-full backdrop-blur-md border transition-colors ${T.glassBg} hover:${T.chipHoverBg} ${T.glassBorder} ${T.glassText}`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Close"
+              >
+                <X size={16} />
+              </motion.button>
+            </div>
+
+            {/* Scrollable */}
+            <div
+              className="relative z-10 flex-1 overflow-y-auto"
+              onWheel={(e) => {
+                const el = e.currentTarget;
+                const { scrollTop, scrollHeight, clientHeight } = el;
                 if (
                   (e.deltaY < 0 && scrollTop === 0) ||
                   (e.deltaY > 0 && scrollTop + clientHeight >= scrollHeight)
@@ -290,227 +277,275 @@ export default function ProjectModal({ isOpen, onClose, project, isDarkMode }: P
                 }
               }}
             >
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                {activeTab === 'overview' && (
-                  <div className="space-y-6">
-                    <motion.p
-                      className={`text-lg leading-relaxed ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                    >
-                      {project.longDescription || project.description}
-                    </motion.p>
-                    {/* Tech Stack */}
-                    <div>
-                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                        Technologies Used
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {project.languages.map((tech, index) => (
-                          <motion.span
-                            key={index}
-                            className={`px-3 py-2 rounded-xl text-sm font-medium ${isDarkMode
-                              ? "bg-gray-800 text-gray-200 border border-gray-700"
-                              : "bg-gray-100 text-gray-700 border border-gray-200"
-                              }`}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 + index * 0.05 }}
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            {tech}
-                          </motion.span>
-                        ))}
-                      </div>
-                    </div>
+              {/* Header: cover + title */}
+              <div className="px-6 md:px-8 py-7 flex flex-col md:flex-row items-end gap-6 md:gap-8">
+                <motion.div
+                  className={`relative w-full sm:w-80 md:w-80 aspect-[16/10] rounded-xl overflow-hidden flex-shrink-0 ${T.shadowOnImage} ${
+                    isDarkMode ? "bg-gray-950/50" : "bg-gray-100"
+                  }`}
+                  initial={{ y: 20, opacity: 0, scale: 0.96 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  {project.thumbnail_url && (
+                    <Image
+                      src={project.thumbnail_url}
+                      alt=""
+                      fill
+                      sizes="320px"
+                      className={`object-cover blur-2xl scale-110 ${
+                        isDarkMode ? "opacity-60" : "opacity-40"
+                      }`}
+                      aria-hidden
+                    />
+                  )}
+                  {project.thumbnail_url ? (
+                    <Image
+                      src={project.thumbnail_url}
+                      alt={project.title}
+                      fill
+                      sizes="320px"
+                      className="object-contain"
+                      priority
+                    />
+                  ) : (
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`}
+                    />
+                  )}
+                </motion.div>
 
-                    {/* Features */}
-                    {project.features && project.features.length > 0 && (
-                      <div>
-                        <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                          Key Features
-                        </h3>
-                        <div className="space-y-3">
-                          {project.features.map((feature, index) => (
-                            <motion.div
-                              key={index}
-                              className={`flex items-start gap-3 p-4 rounded-2xl ${isDarkMode
-                                ? "bg-gray-800 border border-gray-700"
-                                : "bg-gray-50 border border-gray-200"
-                                }`}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.4 + index * 0.1 }}
-                              whileHover={{ x: 4 }}
+                {/* Info */}
+                <motion.div
+                  className={`flex-1 min-w-0 ${T.textPrimary}`}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.15 }}
+                >
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[0.95] mb-3 md:mb-4 break-words">
+                    {project.title}
+                  </h1>
+                  <p
+                    className={`text-sm md:text-base mb-4 max-w-2xl leading-relaxed ${T.textSecondary}`}
+                  >
+                    {project.description}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+                    {meta.map((m, i) => {
+                      const MIcon = m.icon;
+                      return (
+                        <React.Fragment key={i}>
+                          {i > 0 && (
+                            <span
+                              className={`select-none ${T.textFaint}`}
                             >
-                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
-                                <Zap size={12} className="text-blue-600" />
-                              </div>
-                              <p className={`flex-1 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
-                                {feature}
-                              </p>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'gallery' && (
-                  <div className="space-y-6">
-                    <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                      Project Gallery
-                    </h2>
-
-                    {project.id ? (
-                      <ProjectImageGallery projectId={project.id} />
-                    ) : (
-                      <div className={`text-center py-16 rounded-3xl border-2 border-dashed ${isDarkMode ? "border-gray-700 text-gray-500" : "border-gray-300 text-gray-400"}`}>
-                        <Monitor size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-lg font-medium">No project ID available</p>
-                        <p className="text-sm mt-1">Cannot load images without project ID</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'tech' && (
-                  <div className="space-y-6">
-                    <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                      Technical Details
-                    </h2>
-
-                    {/* Primary Tech */}
-                    <motion.div
-                      className={`p-6 rounded-3xl ${isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-gray-50 border border-gray-200"}`}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                          <Terminal size={24} className="text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                            {project.tech}
-                          </h3>
-                          <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            Primary Framework
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* All Technologies */}
-                    <div>
-                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                        Full Tech Stack
-                      </h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {project.languages.map((tech, index) => (
-                          <motion.div
-                            key={index}
-                            className={`p-4 rounded-2xl text-center border ${isDarkMode
-                              ? "bg-gray-800 border-gray-700"
-                              : "bg-gray-50 border-gray-200"
-                              }`}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            whileHover={{ y: -2, scale: 1.02 }}
+                              ·
+                            </span>
+                          )}
+                          <span
+                            className={`inline-flex items-center gap-1.5 ${T.textMuted}`}
                           >
-                            <p className={`font-semibold ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
-                              {tech}
-                            </p>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
+                            <MIcon size={12} className={T.textFaint} />
+                            {m.label}
+                          </span>
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
-                )}
+                </motion.div>
+              </div>
 
-                {activeTab === 'details' && (
-                  <div className="space-y-6">
-                    <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                      Project Information
-                    </h2>
-
-                    {/* Project Meta */}
-                    <motion.div
-                      className={`p-6 rounded-3xl ${isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-gray-50 border border-gray-200"}`}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                        Project Overview
-                      </h3>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className={`font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            Year
-                          </span>
-                          <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                            {project.year}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className={`font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            Team Size
-                          </span>
-                          <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                            {project.teamSize || "Solo Project"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className={`font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            Duration
-                          </span>
-                          <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                            {project.duration || "Ongoing"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className={`font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            Commits
-                          </span>
-                          <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                            {project.commits}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Description */}
-                    <motion.div
-                      className={`p-6 rounded-3xl ${isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-gray-50 border border-gray-200"}`}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                        About This Project
-                      </h3>
-                      <p className={`leading-relaxed ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
-                        {project.longDescription || project.description}
-                      </p>
-                    </motion.div>
-                  </div>
-                )}
+              {/* Action bar */}
+              <motion.div
+                className="px-6 md:px-8 pb-6 flex flex-wrap items-center gap-3"
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <ActionButton
+                  href={project.projectUrl}
+                  icon={<Globe size={15} />}
+                  label="Live Site"
+                  variant="primary"
+                  T={T}
+                />
+                <ActionButton
+                  href={project.githubUrl}
+                  icon={<Github size={15} />}
+                  label="Source"
+                  variant="secondary"
+                  T={T}
+                />
               </motion.div>
+
+              {/* Gallery */}
+              {project.id && (
+                <Section T={T} first>
+                  <SectionTitle T={T}>Gallery</SectionTitle>
+                  <div
+                    className={`rounded-xl border p-3 ${T.cardBg} ${T.cardBorder}`}
+                  >
+                    <ProjectImageGallery projectId={project.id} compact />
+                  </div>
+                </Section>
+              )}
+
+              {/* About */}
+              {project.longDescription && (
+                <Section T={T}>
+                  <SectionTitle T={T}>About</SectionTitle>
+                  <p
+                    className={`text-[15px] leading-relaxed max-w-3xl ${T.textSecondary}`}
+                  >
+                    {project.longDescription}
+                  </p>
+                </Section>
+              )}
+
+              {/* Highlights — simple prose list */}
+              {project.features && project.features.length > 0 && (
+                <Section T={T}>
+                  <SectionTitle T={T}>Highlights</SectionTitle>
+                  <div>
+                    {project.features.map((feature, i) => (
+                      <motion.div
+                        key={i}
+                        className={`py-5 border-b last:border-b-0 ${T.divider}`}
+                        initial={{ opacity: 0, y: 6 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.04 * i }}
+                      >
+                        <p
+                          className={`text-[15px] leading-relaxed ${T.textPrimary}`}
+                        >
+                          {feature}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
+              {/* Built with */}
+              {project.languages.length > 0 && (
+                <Section T={T}>
+                  <SectionTitle T={T}>Built with</SectionTitle>
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.languages.map((tech, i) => (
+                      <span
+                        key={i}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${T.chipBg} ${T.chipBorder} ${T.chipText} ${T.chipHoverBg}`}
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
+              {/* Footer meta */}
+              <div
+                className={`px-6 md:px-8 mt-10 pt-6 pb-10 border-t text-xs ${T.divider} ${T.textFaint}`}
+              >
+                {project.year} · {categoryInfo.label} ·{" "}
+                {project.duration || "Ongoing"}
+                {project.teamSize ? ` · ${project.teamSize}` : ""}
+              </div>
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-} 
+}
+
+function Section({
+  children,
+  T,
+  first,
+}: {
+  children: React.ReactNode;
+  T: ThemeTokens;
+  first?: boolean;
+}) {
+  return (
+    <section
+      className={`px-6 md:px-8 ${
+        first
+          ? "mt-2"
+          : `mt-8 pt-8 border-t ${T.divider}`
+      }`}
+    >
+      {children}
+    </section>
+  );
+}
+
+function SectionTitle({
+  children,
+  T,
+}: {
+  children: React.ReactNode;
+  T: ThemeTokens;
+}) {
+  return (
+    <h2
+      className={`text-base font-semibold mb-4 tracking-tight ${T.textPrimary}`}
+    >
+      {children}
+    </h2>
+  );
+}
+
+function ActionButton({
+  href,
+  icon,
+  label,
+  variant,
+  T,
+}: {
+  href?: string;
+  icon: React.ReactNode;
+  label: string;
+  variant: "primary" | "secondary";
+  T: ThemeTokens;
+}) {
+  const enabled = Boolean(href);
+  const baseClass =
+    "flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-colors";
+  const enabledClass =
+    variant === "primary"
+      ? T.primaryBtnBg
+      : `${T.secondaryBtnBg} ${T.secondaryBtnHoverBg} backdrop-blur-md border ${T.secondaryBtnBorder} ${T.secondaryBtnText}`;
+  const disabledClass =
+    variant === "primary" ? T.primaryBtnDisabled : T.secondaryBtnDisabled;
+
+  if (!enabled) {
+    return (
+      <button
+        disabled
+        className={`${baseClass} ${disabledClass}`}
+        aria-label={`${label} (unavailable)`}
+        title="Not available"
+      >
+        {icon}
+        {label}
+      </button>
+    );
+  }
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${baseClass} ${enabledClass}`}
+      whileHover={{ scale: 1.02, y: -1 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {icon}
+      {label}
+    </motion.a>
+  );
+}

@@ -103,6 +103,14 @@
     @apply bg-white/80 backdrop-blur-lg border border-white/30 rounded-full px-8 py-4 shadow-xl;
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Creative developer animations */
   .code-rain {
     position: fixed;

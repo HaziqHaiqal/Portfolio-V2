@@ -9,9 +9,11 @@ import { getProjectImages, type UploadedFile } from '../lib/fileManager';
 
 interface ProjectImageGalleryProps {
   projectId: string;
+  /** Shorter hero when embedded in project modal */
+  compact?: boolean;
 }
 
-export default function ProjectImageGallery({ projectId }: ProjectImageGalleryProps) {
+export default function ProjectImageGallery({ projectId, compact = false }: ProjectImageGalleryProps) {
   const [images, setImages] = useState<UploadedFile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -93,7 +95,7 @@ export default function ProjectImageGallery({ projectId }: ProjectImageGalleryPr
       <div className="space-y-4">
         {/* Main Image */}
         <div className="relative bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden">
-          <div className="relative h-96">
+          <div className={`relative ${compact ? "h-52 sm:h-60" : "h-96"}`}>
             <Image
               src={images[currentIndex].url}
               alt={images[currentIndex].alt}
