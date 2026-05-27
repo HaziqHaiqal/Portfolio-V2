@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Check, FileText, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
+import { Upload, X, FileText, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
 import Image from 'next/image';
 import UniversalImage from './UniversalImage';
 import {
@@ -16,6 +16,15 @@ import {
   type UploadedFile
 } from '@lib/fileManager';
 import ImageCropModal from './ImageCropModal';
+
+export type UniversalUploadCommitResult =
+  | { ok: true; url?: string; files?: UploadedFile[] }
+  | { ok: false; error: string };
+
+export interface UniversalUploadHandle {
+  hasPending: () => boolean;
+  commitPending: () => Promise<UniversalUploadCommitResult>;
+}
 
 // ============= TYPES =============
 
@@ -47,7 +56,7 @@ interface UniversalUploadProps {
 
 // ============= COMPONENT =============
 
-export default function UniversalUpload({
+const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(function UniversalUpload({
   uploadType,
   entityId,
   value,
@@ -60,7 +69,7 @@ export default function UniversalUpload({
   enableCrop = false,
   cropAspect = 1,
   allowUrlInput = false
-}: UniversalUploadProps) {
+}, ref) {
 
   // ============= STATE =============
 
@@ -68,7 +77,7 @@ export default function UniversalUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [altText, setAltText] = useState('');
   const [caption, setCaption] = useState('');
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [inputMode, setInputMode] = useState<'upload' | 'url'>('upload');
   const [urlInput, setUrlInput] = useState('');
@@ -141,19 +150,19 @@ export default function UniversalUpload({
     setCroppedImageFile(null);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<UniversalUploadCommitResult> => {
     const file = croppedImageFile || selectedFile;
     if (!file) {
       setErrorMessage('Please select a file');
       setUploadStatus('error');
-      return;
+      return { ok: false, error: 'Please select a file' };
     }
 
     // Validate alt text for images
     if (isImageFile(file) && !altText.trim()) {
       setErrorMessage('Alt text is required for images');
       setUploadStatus('error');
-      return;
+      return { ok: false, error: 'Alt text is required for images' };
     }
 
     setUploading(true);
@@ -169,41 +178,44 @@ export default function UniversalUpload({
       );
 
       if (result.success && result.data) {
-        setUploadStatus('success');
         clearPreview();
 
         if (isCollectionMode && onCollectionUpdate) {
           // Refresh collection for project images
           const updatedFiles = await getFiles('project', entityId, 'project_collection');
           onCollectionUpdate(updatedFiles);
+          return { ok: true, files: updatedFiles };
         } else if (onChange) {
           // Update single file reference
           onChange(result.data.url);
         }
+        return { ok: true, url: result.data.url };
       } else {
         setErrorMessage(result.error || 'Upload failed');
         setUploadStatus('error');
+        return { ok: false, error: result.error || 'Upload failed' };
       }
     } catch {
       setErrorMessage('Unexpected error occurred');
       setUploadStatus('error');
+      return { ok: false, error: 'Unexpected error occurred' };
     } finally {
       setUploading(false);
     }
   };
 
-  const handleUrlSubmit = () => {
-    if (!urlInput.trim()) {
+  const commitPendingUrl = (): UniversalUploadCommitResult => {
+    const nextUrl = urlInput.trim();
+    if (!nextUrl) {
       setErrorMessage('Please enter a URL');
       setUploadStatus('error');
-      return;
+      return { ok: false, error: 'Please enter a URL' };
     }
 
-    if (onChange) {
-      onChange(urlInput.trim());
-      setUrlInput('');
-      setUploadStatus('success');
-    }
+    onChange?.(nextUrl);
+    setUrlInput('');
+    setUploadStatus('idle');
+    return { ok: true, url: nextUrl };
   };
 
   const clearPreview = () => {
@@ -219,6 +231,24 @@ export default function UniversalUpload({
     setUploadStatus('idle');
     setErrorMessage('');
   };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      hasPending: () =>
+        Boolean(croppedImageFile || selectedFile) ||
+        (allowUrlInput && inputMode === 'url' && Boolean(urlInput.trim())),
+      commitPending: async () => {
+        if (croppedImageFile || selectedFile) {
+          return handleUpload();
+        }
+        if (allowUrlInput && inputMode === 'url' && urlInput.trim()) {
+          return commitPendingUrl();
+        }
+        return { ok: true };
+      },
+    }),
+  );
 
   const deleteCurrentFile = async () => {
     if (!value) return;
@@ -325,9 +355,8 @@ export default function UniversalUpload({
                   alt="Current file"
                   width={uploadType === 'company_logo' ? 200 : 0}
                   height={uploadType === 'company_logo' ? 200 : 0}
-                  className={`w-auto h-auto object-contain bg-gray-900 ${
-                    uploadType === 'company_logo' ? 'max-w-[200px] max-h-[200px]' : 'max-h-[60vh]'
-                  }`}
+                  className={`w-auto h-auto object-contain bg-gray-900 ${uploadType === 'company_logo' ? 'max-w-[200px] max-h-[200px]' : 'max-h-[60vh]'
+                    }`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
@@ -366,23 +395,19 @@ export default function UniversalUpload({
         {/* URL Input Mode */}
         {allowUrlInput && inputMode === 'url' && !isCollectionMode ? (
           <div className="space-y-3">
-            <div className="flex gap-3">
+            <div className="space-y-2">
               <input
                 type="url"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 placeholder={placeholder || "https://example.com/image.jpg"}
-                className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-green-400/50 focus:outline-none focus:ring-1 focus:ring-green-400/20 transition-all"
               />
-              <motion.button
-                type="button"
-                onClick={handleUrlSubmit}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
-              >
-                Add
-              </motion.button>
+              {urlInput.trim() && (
+                <p className="text-xs text-gray-400">
+                  This URL will be saved when you submit the form.
+                </p>
+              )}
             </div>
 
             {value && (
@@ -437,18 +462,16 @@ export default function UniversalUpload({
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`relative rounded-xl overflow-hidden bg-gray-800 inline-block ${
-                    uploadType === 'company_logo' ? 'max-w-[200px]' : 'max-w-full'
-                  }`}
+                  className={`relative rounded-xl overflow-hidden bg-gray-800 inline-block ${uploadType === 'company_logo' ? 'max-w-[200px]' : 'max-w-full'
+                    }`}
                 >
                   <Image
                     src={preview}
                     alt="Preview"
                     width={uploadType === 'company_logo' ? 200 : 400}
                     height={uploadType === 'company_logo' ? 200 : 250}
-                    className={`object-contain bg-gray-900 ${
-                      uploadType === 'company_logo' ? 'w-[200px] h-[200px]' : 'w-full max-h-64'
-                    }`}
+                    className={`object-contain bg-gray-900 ${uploadType === 'company_logo' ? 'w-[200px] h-[200px]' : 'w-full max-h-64'
+                      }`}
                   />
 
                   {/* Action Buttons */}
@@ -522,55 +545,17 @@ export default function UniversalUpload({
               )}
             </AnimatePresence>
 
-            {/* Upload Button */}
-            <AnimatePresence>
-              {preview && (
-                <motion.button
-                  type="button"
-                  onClick={handleUpload}
-                  disabled={uploading || (showMetaFields && !altText.trim())}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  whileHover={uploading ? {} : { scale: 1.02 }}
-                  whileTap={uploading ? {} : { scale: 0.98 }}
-                  className={`w-full py-4 px-6 rounded-xl font-medium transition-all ${uploading || (showMetaFields && !altText.trim())
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
-                    }`}
-                  style={uploading ? { pointerEvents: 'none' } : {}}
-                >
-                  {uploading ? (
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                      Uploading...
-                    </div>
-                  ) : (
-                    'Upload File'
-                  )}
-                </motion.button>
-              )}
-            </AnimatePresence>
+            {preview && (
+              <p className="text-sm text-gray-400">
+                This file will be uploaded when you submit the form.
+              </p>
+            )}
           </div>
         )}
       </div>
 
       {/* Status Messages */}
       <AnimatePresence>
-        {uploadStatus === 'success' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex items-center gap-3 p-4 bg-green-500/10 text-green-400 rounded-xl border border-green-400/20"
-          >
-            <div className="p-1 bg-green-400 rounded-full">
-              <Check className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-medium">File uploaded successfully!</span>
-          </motion.div>
-        )}
-
         {uploadStatus === 'error' && errorMessage && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -596,4 +581,6 @@ export default function UniversalUpload({
       )}
     </div>
   );
-} 
+});
+
+export default UniversalUpload;

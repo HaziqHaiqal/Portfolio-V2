@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertCompanyAction,
@@ -26,7 +26,9 @@ import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Badge } from '@components/ui/badge';
 import { Company } from '@lib/supabase';
-import UniversalUpload from './UniversalUpload';
+import UniversalUpload, {
+  type UniversalUploadHandle,
+} from './UniversalUpload';
 import UniversalImage from './UniversalImage';
 
 export default function CompanyEditor() {
@@ -133,11 +135,12 @@ export default function CompanyEditor() {
           return;
         }
 
-        // Pre-generate the UUID so any logo-upload child component can reference
-        // the row immediately after save.
-        const newId = crypto.randomUUID();
+        if (!companyData.id) {
+          toast.error('Missing company id. Please reload and try again.');
+          return;
+        }
         await upsertCompanyAction({
-          id: newId,
+          id: companyData.id,
           name,
           logo_url: companyData.logo_url || undefined,
           website_url: companyData.website_url || undefined,
@@ -328,24 +331,40 @@ export default function CompanyEditor() {
 
 interface CompanyFormProps {
   company: Company | null;
-  onSave: (company: Partial<Company>) => void;
+  onSave: (company: Partial<Company>) => void | Promise<void>;
   onCancel: () => void;
   saving: boolean;
 }
 
 function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
+  const [companyId] = useState(() => company?.id || crypto.randomUUID());
   const [formData, setFormData] = useState({
     name: company?.name || '',
     logo_url: company?.logo_url || '',
     website_url: company?.website_url || '',
   });
+  const [committingUpload, setCommittingUpload] = useState(false);
+  const uploadRef = useRef<UniversalUploadHandle>(null);
 
-  // Generate ID upfront for new companies so logo upload works immediately
-  const companyId = company?.id || crypto.randomUUID();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+
+    let logoUrl = formData.logo_url;
+    if (uploadRef.current?.hasPending()) {
+      setCommittingUpload(true);
+      try {
+        const result = await uploadRef.current.commitPending();
+        if (!result.ok) {
+          toast.error(`Logo upload failed: ${result.error}`);
+          return;
+        }
+        if (result.url) logoUrl = result.url;
+      } finally {
+        setCommittingUpload(false);
+      }
+    }
+
+    await onSave({ ...formData, id: companyId, logo_url: logoUrl });
   };
 
   return (
@@ -362,8 +381,8 @@ function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
                 {company?.id ? 'Edit Company' : 'Add New Company'}
               </CardTitle>
               <p className="text-gray-400 mt-1 text-sm">
-                {company?.id 
-                  ? 'Update company details and logo' 
+                {company?.id
+                  ? 'Update company details and logo'
                   : 'Create company and upload logo'}
               </p>
             </div>
@@ -406,6 +425,7 @@ function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
               <Label className="text-sm text-gray-300">Company Logo</Label>
               <p className="text-xs text-gray-500 mb-2">Upload an image or paste a URL</p>
               <UniversalUpload
+                ref={uploadRef}
                 uploadType="company_logo"
                 entityId={companyId}
                 value={formData.logo_url}
@@ -427,10 +447,15 @@ function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={saving || isEmpty(formData.name.trim())}
+                disabled={saving || committingUpload || isEmpty(formData.name.trim())}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {saving ? (
+                {committingUpload ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...

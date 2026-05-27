@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertEducationAction,
@@ -8,7 +8,9 @@ import {
 } from '@app/admin/_actions/education';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import UniversalUpload from './UniversalUpload';
+import UniversalUpload, {
+  type UniversalUploadHandle,
+} from './UniversalUpload';
 import {
   Plus,
   Edit,
@@ -48,7 +50,7 @@ interface EducationData {
   description: string;
   achievements: string[];
   activities: string[];
-  institution_logo_url: string;
+  logo_url: string;
   sort_order: number;
 }
 
@@ -67,9 +69,30 @@ const initialEducationData: EducationData = {
   description: '',
   achievements: [],
   activities: [],
-  institution_logo_url: '',
+  logo_url: '',
   sort_order: 0,
 };
+
+const normalizeEducationData = (education: Partial<EducationData> | null | undefined): EducationData => ({
+  ...initialEducationData,
+  ...education,
+  institution: education?.institution ?? '',
+  degree: education?.degree ?? '',
+  field_of_study: education?.field_of_study ?? '',
+  specialization: education?.specialization ?? '',
+  minor_subject: education?.minor_subject ?? '',
+  start_date: education?.start_date ?? '',
+  end_date: education?.end_date ?? '',
+  is_current: education?.is_current ?? false,
+  gpa: Number(education?.gpa ?? 0) || 0,
+  grade: education?.grade ?? '',
+  location: education?.location ?? '',
+  description: education?.description ?? '',
+  achievements: Array.isArray(education?.achievements) ? education.achievements : [],
+  activities: Array.isArray(education?.activities) ? education.activities : [],
+  logo_url: education?.logo_url ?? '',
+  sort_order: education?.sort_order ?? 0,
+});
 
 export default function EducationEditor() {
   const [educations, setEducations] = useState<EducationData[]>([]);
@@ -95,7 +118,7 @@ export default function EducationEditor() {
         return;
       }
 
-      setEducations(data || []);
+      setEducations((data || []).map(normalizeEducationData));
     } catch (error) {
       console.error('Error:', error);
       setMessage({ type: 'error', text: 'Error loading educations' });
@@ -109,7 +132,7 @@ export default function EducationEditor() {
   }, [loadEducations]);
 
   const handleEdit = (education: EducationData) => {
-    setEditingEducation(education);
+    setEditingEducation(normalizeEducationData(education));
     setShowForm(true);
   };
 
@@ -138,11 +161,7 @@ export default function EducationEditor() {
     delete (dbData as Partial<EducationData>).sort_order;
     const payload = editingEducation?.id
       ? { ...dbData, id: editingEducation.id }
-      : (() => {
-          const { id: _omit, ...rest } = dbData;
-          void _omit;
-          return rest;
-        })();
+      : dbData;
 
     try {
       await upsertEducationAction(payload);
@@ -237,7 +256,7 @@ export default function EducationEditor() {
         const primary = sortedPrograms[0];
         return {
           institution,
-          logo: primary?.institution_logo_url || sortedPrograms.find((program) => program.institution_logo_url)?.institution_logo_url,
+          logo: primary?.logo_url || sortedPrograms.find((program) => program.logo_url)?.logo_url,
           location: primary?.location || sortedPrograms.find((program) => program.location)?.location,
           programs: sortedPrograms,
           totalYears,
@@ -347,8 +366,8 @@ export default function EducationEditor() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className={`p-4 rounded-lg border ${message.type === 'success'
-                ? 'bg-green-500/10 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
-                : 'bg-red-500/10 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
+              ? 'bg-green-500/10 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
+              : 'bg-red-500/10 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
               }`}
           >
             <div className="flex items-center gap-3">
@@ -585,15 +604,20 @@ export default function EducationEditor() {
 
 interface EducationFormProps {
   education: EducationData;
-  onSave: (education: EducationData) => void;
+  onSave: (education: EducationData) => void | Promise<void>;
   onCancel: () => void;
   saving: boolean;
 }
 
 function EducationForm({ education, onSave, onCancel, saving }: EducationFormProps) {
-  const [formData, setFormData] = useState<EducationData>(education);
+  const [formData, setFormData] = useState<EducationData>(() => ({
+    ...normalizeEducationData(education),
+    id: education.id || crypto.randomUUID(),
+  }));
   const [newAchievement, setNewAchievement] = useState('');
   const [newActivity, setNewActivity] = useState('');
+  const [committingUpload, setCommittingUpload] = useState(false);
+  const logoUploadRef = useRef<UniversalUploadHandle>(null);
 
   const handleInputChange = (field: keyof EducationData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -616,9 +640,24 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+
+    let nextFormData = formData;
+    if (logoUploadRef.current?.hasPending()) {
+      setCommittingUpload(true);
+      try {
+        const result = await logoUploadRef.current.commitPending();
+        if (!result.ok) return;
+        if (result.url) {
+          nextFormData = { ...nextFormData, logo_url: result.url };
+        }
+      } finally {
+        setCommittingUpload(false);
+      }
+    }
+
+    await onSave(nextFormData);
   };
 
   return (
@@ -830,12 +869,11 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
                 Institution Logo
               </Label>
               <UniversalUpload
+                ref={logoUploadRef}
                 uploadType="institution_logo"
-                // Use the raw education ID; for new records we pass an empty string
-                // so the file can upload without attempting a DB row update.
-                entityId={education.id || ''}
-                value={formData.institution_logo_url}
-                onChange={(url: string) => handleInputChange('institution_logo_url', url)}
+                entityId={formData.id || ''}
+                value={formData.logo_url}
+                onChange={(url: string) => handleInputChange('logo_url', url)}
                 enableCrop={true}
                 cropAspect={1}
               />
@@ -943,10 +981,15 @@ function EducationForm({ education, onSave, onCancel, saving }: EducationFormPro
               </Button>
               <Button
                 type="submit"
-                disabled={saving || !formData.institution || !formData.degree || !formData.start_date}
+                disabled={saving || committingUpload || !formData.institution || !formData.degree || !formData.start_date}
                 className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg min-w-[120px]"
               >
-                {saving ? (
+                {committingUpload ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...

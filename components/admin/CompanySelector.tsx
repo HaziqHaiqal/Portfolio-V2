@@ -10,7 +10,9 @@ import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
 import { Company } from '@lib/supabase';
-import UniversalUpload from './UniversalUpload';
+import UniversalUpload, {
+  type UniversalUploadHandle,
+} from './UniversalUpload';
 import UniversalImage from './UniversalImage';
 
 interface CompanySelectorProps {
@@ -27,7 +29,9 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ id: '', name: '', logo_url: '', website_url: '' });
   const [saving, setSaving] = useState(false);
+  const [committingUpload, setCommittingUpload] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const uploadRef = useRef<UniversalUploadHandle>(null);
   const supabase = useMemo(() => createBrowserSupabase(), []);
 
   useEffect(() => {
@@ -92,6 +96,21 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
     }
 
     const trimmedName = formData.name.trim();
+    let logoUrl = formData.logo_url;
+
+    if (uploadRef.current?.hasPending()) {
+      setCommittingUpload(true);
+      try {
+        const result = await uploadRef.current.commitPending();
+        if (!result.ok) {
+          toast.error(`Logo upload failed: ${result.error}`);
+          return;
+        }
+        if (result.url) logoUrl = result.url;
+      } finally {
+        setCommittingUpload(false);
+      }
+    }
 
     setSaving(true);
     try {
@@ -114,7 +133,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
         const updated = await upsertCompanyAction({
           id: formData.id,
           name: trimmedName,
-          logo_url: formData.logo_url || undefined,
+          logo_url: logoUrl || undefined,
           website_url: formData.website_url || undefined,
         });
         toast.success('Company updated successfully');
@@ -134,7 +153,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
         const created = await upsertCompanyAction({
           id: formData.id,
           name: trimmedName,
-          logo_url: formData.logo_url || undefined,
+          logo_url: logoUrl || undefined,
           website_url: formData.website_url || undefined,
         });
         toast.success('Company created successfully');
@@ -345,6 +364,7 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
                 <Label className="text-sm text-gray-300">Company Logo</Label>
                 <p className="text-xs text-gray-500 mb-2">Upload an image or paste a URL</p>
                 <UniversalUpload
+                  ref={uploadRef}
                   uploadType="company_logo"
                   entityId={formData.id}
                   value={formData.logo_url}
@@ -371,10 +391,15 @@ export default function CompanySelector({ value, onChange }: CompanySelectorProp
               <Button
                 type="button"
                 onClick={handleSave}
-                disabled={saving || isEmpty(formData.name.trim())}
+                disabled={saving || committingUpload || isEmpty(formData.name.trim())}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {saving ? (
+                {committingUpload ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...

@@ -14,7 +14,7 @@ export interface UploadedFile {
 }
 
 export interface UploadConfig {
-  entityType: 'profile' | 'project' | 'experience' | 'education';
+  entityType: 'profile' | 'project' | 'experience' | 'education' | 'company';
   entityId: string;
   fieldName: string;
   bucket: string;
@@ -79,9 +79,9 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
   },
 
-  // Experience uploads
+  // Company logos are stored on the standalone `companies` table.
   company_logo: {
-    entityType: 'experience',
+    entityType: 'company',
     entityId: '', // Set dynamically
     fieldName: 'company_logo',
     bucket: 'profile-images',
@@ -393,15 +393,16 @@ async function updateEntityTable(
     profile: 'profile',
     project: 'projects',
     experience: 'experience',
-    education: 'education'
+    education: 'education',
+    company: 'companies'
   };
 
   const fieldMap: Record<string, string> = {
     profile_image: 'profile_image_url',
     resume: 'resume_url',
     project_thumbnail: 'thumbnail_url',
-    company_logo: 'company_logo_url',
-    institution_logo: 'institution_logo_url'
+    company_logo: 'logo_url',
+    institution_logo: 'logo_url'
   };
 
   const table = tableMap[entityType];
@@ -433,15 +434,16 @@ async function clearEntityField(
     profile: 'profile',
     project: 'projects',
     experience: 'experience',
-    education: 'education'
+    education: 'education',
+    company: 'companies'
   };
 
   const fieldMap: Record<string, string> = {
     profile_image: 'profile_image_url',
     resume: 'resume_url',
     project_thumbnail: 'thumbnail_url',
-    company_logo: 'company_logo_url',
-    institution_logo: 'institution_logo_url'
+    company_logo: 'logo_url',
+    institution_logo: 'logo_url'
   };
 
   const table = tableMap[entityType];

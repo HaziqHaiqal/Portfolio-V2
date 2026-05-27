@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertProjectAction,
@@ -29,7 +29,9 @@ import { Label } from '@components/ui/label';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
 import { Checkbox } from '@components/ui/checkbox';
-import UniversalUpload from './UniversalUpload';
+import UniversalUpload, {
+  type UniversalUploadHandle,
+} from './UniversalUpload';
 import { getFiles, deleteFileById, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectData {
@@ -86,7 +88,6 @@ const initialProjectData: ProjectData = {
 };
 
 // Helper function to normalize project data
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normalizeProjectData = (project: any): ProjectData => {
   return {
     ...initialProjectData,
@@ -207,11 +208,7 @@ export default function ProjectsEditor() {
     try {
       const payload = editingProject?.id
         ? { ...projectData, id: editingProject.id }
-        : (() => {
-            const { id: _omit, ...rest } = projectData;
-            void _omit;
-            return rest;
-          })();
+        : projectData;
       await upsertProjectAction(payload);
       setMessage({
         type: 'success',
@@ -337,8 +334,8 @@ export default function ProjectsEditor() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className={`p-4 rounded-lg border ${message.type === 'success'
-                ? 'bg-green-900/50 border-green-700 text-green-300'
-                : 'bg-red-900/50 border-red-700 text-red-300'
+              ? 'bg-green-900/50 border-green-700 text-green-300'
+              : 'bg-red-900/50 border-red-700 text-red-300'
               }`}
           >
             <div className="flex items-center gap-3">
@@ -542,15 +539,21 @@ export default function ProjectsEditor() {
 
 interface ProjectFormProps {
   project: ProjectData;
-  onSave: (project: ProjectData) => void;
+  onSave: (project: ProjectData) => void | Promise<void>;
   onCancel: () => void;
   saving: boolean;
 }
 
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
-  const [formData, setFormData] = useState<ProjectData>(normalizeProjectData(project));
+  const [formData, setFormData] = useState<ProjectData>(() => ({
+    ...normalizeProjectData(project),
+    id: project.id || crypto.randomUUID(),
+  }));
   const [newTech, setNewTech] = useState('');
   const [projectImages, setProjectImages] = useState<UploadedFile[]>([]);
+  const [committingUpload, setCommittingUpload] = useState(false);
+  const thumbnailUploadRef = useRef<UniversalUploadHandle>(null);
+  const galleryUploadRef = useRef<UniversalUploadHandle>(null);
 
   // Load existing images when editing an existing project
   useEffect(() => {
@@ -591,9 +594,41 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+
+    let nextFormData = formData;
+    const pendingUploads = [
+      {
+        ref: thumbnailUploadRef,
+        field: 'thumbnail_url' as const,
+      },
+      {
+        ref: galleryUploadRef,
+        field: null,
+      },
+    ];
+
+    if (pendingUploads.some(({ ref }) => ref.current?.hasPending())) {
+      setCommittingUpload(true);
+      try {
+        for (const { ref, field } of pendingUploads) {
+          if (!ref.current?.hasPending()) continue;
+          const result = await ref.current.commitPending();
+          if (!result.ok) return;
+          if (field && result.url) {
+            nextFormData = { ...nextFormData, [field]: result.url };
+          }
+          if (result.files) {
+            setProjectImages(result.files);
+          }
+        }
+      } finally {
+        setCommittingUpload(false);
+      }
+    }
+
+    await onSave(nextFormData);
   };
 
   return (
@@ -685,8 +720,9 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                 Project Thumbnail
               </Label>
               <UniversalUpload
+                ref={thumbnailUploadRef}
                 uploadType="project_thumbnail"
-                entityId={formData.id || 'new-project'}
+                entityId={formData.id || ''}
                 value={formData.thumbnail_url}
                 onChange={(url) => handleInputChange('thumbnail_url', url)}
                 label="Thumbnail Image"
@@ -705,6 +741,7 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                   Project Images Gallery
                 </Label>
                 <UniversalUpload
+                  ref={galleryUploadRef}
                   uploadType="project_image"
                   entityId={formData.id}
                   onCollectionUpdate={(files) => setProjectImages(files)}
@@ -889,10 +926,15 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={saving || !formData.title || !formData.category || !formData.description}
+                disabled={saving || committingUpload || !formData.title || !formData.category || !formData.description}
                 className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg min-w-[120px]"
               >
-                {saving ? (
+                {committingUpload ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...

@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import { upsertProfileAction } from '@app/admin/_actions/profile';
 import { motion, AnimatePresence } from 'framer-motion';
-import UniversalUpload from '@components/admin/UniversalUpload';
+import UniversalUpload, {
+  type UniversalUploadHandle,
+} from '@components/admin/UniversalUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
@@ -12,7 +14,7 @@ import { Textarea } from '@components/ui/textarea';
 import { Badge } from '@components/ui/badge';
 import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
-import { 
+import {
   Briefcase,
   Check,
   AlertCircle,
@@ -80,14 +82,17 @@ export default function ProfileEditor() {
   const [profileData, setProfileData] = useState<ProfileData>(initialProfileData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [committingUpload, setCommittingUpload] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [languageInput, setLanguageInput] = useState('');
+  const profileImageUploadRef = useRef<UniversalUploadHandle>(null);
+  const resumeUploadRef = useRef<UniversalUploadHandle>(null);
 
   const supabase = createBrowserSupabase();
 
   useEffect(() => {
     loadProfile();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -149,15 +154,46 @@ export default function ProfileEditor() {
   }, [supabase]);
 
   const handleSave = async () => {
-    setSaving(true);
+    let nextProfileData = { ...profileData };
+
+    const pendingUploads = [
+      {
+        ref: profileImageUploadRef,
+        field: 'profile_image_url' as const,
+        label: 'Profile image',
+      },
+      {
+        ref: resumeUploadRef,
+        field: 'resume_url' as const,
+        label: 'Resume',
+      },
+    ];
+
     try {
-      const data = await upsertProfileAction(profileData);
-      setProfileData({ ...profileData, ...data });
+      if (pendingUploads.some(({ ref }) => ref.current?.hasPending())) {
+        setCommittingUpload(true);
+        for (const { ref, field, label } of pendingUploads) {
+          if (!ref.current?.hasPending()) continue;
+          const result = await ref.current.commitPending();
+          if (!result.ok) {
+            setMessage({ type: 'error', text: `${label} upload failed: ${result.error}` });
+            return;
+          }
+          if (result.url) {
+            nextProfileData = { ...nextProfileData, [field]: result.url };
+          }
+        }
+      }
+
+      setSaving(true);
+      const data = await upsertProfileAction(nextProfileData);
+      setProfileData({ ...nextProfileData, ...data });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       console.error('Error saving profile:', error);
       setMessage({ type: 'error', text: 'Error saving profile. Please try again.' });
     } finally {
+      setCommittingUpload(false);
       setSaving(false);
     }
   };
@@ -206,7 +242,7 @@ export default function ProfileEditor() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -237,12 +273,17 @@ export default function ProfileEditor() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Button 
+          <Button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || committingUpload}
             className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
           >
-            {saving ? (
+            {committingUpload ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Saving...
@@ -264,11 +305,10 @@ export default function ProfileEditor() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${
-              message.type === 'success' 
-                ? 'bg-green-500/10 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400' 
+            className={`p-4 rounded-lg border ${message.type === 'success'
+                ? 'bg-green-500/10 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
                 : 'bg-red-500/10 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               {message.type === 'success' ? (
@@ -570,7 +610,7 @@ export default function ProfileEditor() {
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 {profileData.languages.map((language, index) => (
                   <Badge
@@ -617,6 +657,7 @@ export default function ProfileEditor() {
                 <div className="space-y-3">
                   <Label className="text-white">Profile Image</Label>
                   <UniversalUpload
+                    ref={profileImageUploadRef}
                     uploadType="profile_image"
                     entityId="profile"
                     value={profileData.profile_image_url}
@@ -628,6 +669,7 @@ export default function ProfileEditor() {
                 <div className="space-y-3">
                   <Label className="text-white">Resume/CV</Label>
                   <UniversalUpload
+                    ref={resumeUploadRef}
                     uploadType="resume"
                     entityId="profile"
                     value={profileData.resume_url}

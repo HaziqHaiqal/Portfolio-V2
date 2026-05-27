@@ -26,7 +26,7 @@ export async function getProjectImages(
     .from('uploads')
     .select('id, file_url, alt_text, caption, entity_id, sort_order')
     .eq('entity_type', 'project')
-    .eq('field_name', 'image')
+    .eq('field_name', 'project_collection')
     .in('entity_id', projectIds)
     .order('sort_order', { ascending: true })
   if (error) throw error

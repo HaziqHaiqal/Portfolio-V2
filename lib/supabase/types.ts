@@ -78,7 +78,7 @@ export interface Education {
   description?: string
   achievements?: string[]
   activities?: string[]
-  institution_logo_url?: string
+  logo_url?: string
   created_at?: string
   updated_at?: string
   sort_order?: number
