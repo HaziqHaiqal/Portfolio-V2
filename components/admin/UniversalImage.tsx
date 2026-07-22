@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import NextImage from 'next/image';
-import { useState } from 'react';
+import NextImage from "next/image";
+import { useState } from "react";
 
 interface UniversalImageProps {
   src: string;
@@ -14,18 +14,27 @@ interface UniversalImageProps {
 
 /**
  * UniversalImage handles both Supabase-hosted images (optimized via Next Image)
- * and external URLs (raw <img>) so we don't need to whitelist every remote host.
+ * and external URLs (Next Image with `unoptimized`) so we don't need to
+ * whitelist every remote host in images.remotePatterns.
  *
  * For Supabase URLs we render Next Image in `fill` mode inside a sized,
  * relative, overflow-hidden wrapper. This avoids the Next 16 warning
  * "has either width or height modified, but not the other" that fires when
  * callers apply CSS sizing that distorts the natural aspect ratio.
  */
-export default function UniversalImage({ src, alt, width, height, className, fallback }: UniversalImageProps) {
+export default function UniversalImage({
+  src,
+  alt,
+  width,
+  height,
+  className,
+  fallback,
+}: UniversalImageProps) {
   const [imgError, setImgError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
 
-  const isSupabaseUrl = imgSrc?.includes('supabase.co') || imgSrc?.includes('supabase');
+  const isSupabaseUrl =
+    imgSrc?.includes("supabase.co") || imgSrc?.includes("supabase");
 
   const handleError = () => {
     if (fallback && imgSrc !== fallback) {
@@ -50,26 +59,36 @@ export default function UniversalImage({ src, alt, width, height, className, fal
       );
     }
 
-    const finalSrc = imgError ? fallback : imgSrc;
+    const finalSrc = (imgError ? fallback : imgSrc) as string;
 
-    // We intentionally use <img> for non-Supabase remote URLs to avoid
-    // Next Image remote-host allowlist configuration.
-    // eslint-disable-next-line @next/next/no-img-element
+    if (width > 0 && height > 0) {
+      return (
+        <NextImage
+          src={finalSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          className={className}
+          onError={handleError}
+          unoptimized
+        />
+      );
+    }
+
     return (
-      <img
+      <NextImage
         src={finalSrc}
         alt={alt}
+        width={0}
+        height={0}
+        sizes="100vw"
         className={className}
         onError={handleError}
-        loading="lazy"
-        width={width > 0 ? width : undefined}
-        height={height > 0 ? height : undefined}
+        unoptimized
       />
     );
   }
 
-  // Unsized mode: caller sizes via CSS (used for preview thumbnails that
-  // should display at natural aspect ratio).
   if (width === 0 || height === 0) {
     return (
       <NextImage
@@ -88,10 +107,10 @@ export default function UniversalImage({ src, alt, width, height, className, fal
     <div
       className={className}
       style={{
-        position: 'relative',
+        position: "relative",
         width: `${width}px`,
         height: `${height}px`,
-        overflow: 'hidden',
+        overflow: "hidden",
         flexShrink: 0,
       }}
     >

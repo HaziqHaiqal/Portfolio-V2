@@ -1,9 +1,8 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { createBrowserSupabase } from "@lib/supabase/browser"
-import { User } from "@supabase/supabase-js"
+import { useRouter, usePathname } from "next/navigation";
+import { createBrowserSupabase } from "@lib/supabase/browser";
+import { User } from "@supabase/supabase-js";
 import {
   LayoutDashboard,
   User as UserIcon,
@@ -14,7 +13,7 @@ import {
   Zap,
   Heart,
   LogOut,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -27,7 +26,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@components/ui/sidebar"
+} from "@components/ui/sidebar";
+import { useEffect, useState } from "react";
 
 const data = {
   navMain: [
@@ -37,13 +37,13 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: "Profile", 
+      title: "Profile",
       url: "/admin/profile",
       icon: UserIcon,
     },
     {
       title: "Projects",
-      url: "/admin/projects", 
+      url: "/admin/projects",
       icon: FolderOpen,
     },
     {
@@ -72,42 +72,45 @@ const data = {
       icon: Heart,
     },
   ],
-}
+};
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user?: User
+  user?: User;
 }
 
 export function AppSidebar({ ...props }: AppSidebarProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const supabase = createBrowserSupabase()
-  const [user, setUser] = React.useState<User | null>(null)
+  const router = useRouter();
+  const pathname = usePathname();
+  const supabase = createBrowserSupabase();
+  const [user, setUser] = useState<User | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
       if (error) {
-        await supabase.auth.signOut()
-        router.push('/login')
-        return
+        await supabase.auth.signOut();
+        router.push("/login");
+        return;
       }
-      setUser(user)
-    }
-    getUser()
-  }, [supabase.auth])
+      setUser(user);
+    };
+    getUser();
+  }, [supabase.auth, router]);
 
   const isActive = (url: string) => {
     if (url === "/admin") {
-      return pathname === "/admin"
+      return pathname === "/admin";
     }
-    return pathname.startsWith(url)
-  }
+    return pathname.startsWith(url);
+  };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/login")
-  }
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -129,7 +132,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => {
-                const active = isActive(item.url)
+                const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -142,11 +145,13 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
                         className="w-full"
                       >
                         <item.icon className="h-4 w-4" />
-                        <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.title}
+                        </span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -161,7 +166,9 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
                 className="w-full text-red-500 hover:text-red-600"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+                <span className="group-data-[collapsible=icon]:hidden">
+                  Sign out
+                </span>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -169,5 +176,5 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import { useTheme, useThemeClasses } from "@components/providers/ThemeProvider";
 import { useUIStore } from "@lib/stores";
+import { useHydrated } from "@hooks/useCommon";
 
 /**
  * Responsive navigation bar with mobile hamburger menu.
@@ -11,12 +12,11 @@ const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const classes = useThemeClasses();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
-  
+
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
 
   useEffect(() => {
-    setMounted(true);
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -24,11 +24,36 @@ const NavBar = () => {
   }, []);
 
   const navItems = [
-    { href: "#home", label: "Home", hoverTextClass: "hover:text-blue-600", underlineClass: "bg-blue-600" },
-    { href: "#experience", label: "Experience", hoverTextClass: "hover:text-yellow-600", underlineClass: "bg-yellow-600" },
-    { href: "#education", label: "Education", hoverTextClass: "hover:text-emerald-600", underlineClass: "bg-emerald-600" },
-    { href: "#projects", label: "Projects", hoverTextClass: "hover:text-purple-600", underlineClass: "bg-purple-600" },
-    { href: "#contact", label: "Contact", hoverTextClass: "hover:text-green-600", underlineClass: "bg-green-600" },
+    {
+      href: "#home",
+      label: "Home",
+      hoverTextClass: "hover:text-blue-600",
+      underlineClass: "bg-blue-600",
+    },
+    {
+      href: "#experience",
+      label: "Experience",
+      hoverTextClass: "hover:text-yellow-600",
+      underlineClass: "bg-yellow-600",
+    },
+    {
+      href: "#education",
+      label: "Education",
+      hoverTextClass: "hover:text-emerald-600",
+      underlineClass: "bg-emerald-600",
+    },
+    {
+      href: "#projects",
+      label: "Projects",
+      hoverTextClass: "hover:text-purple-600",
+      underlineClass: "bg-purple-600",
+    },
+    {
+      href: "#contact",
+      label: "Contact",
+      hoverTextClass: "hover:text-green-600",
+      underlineClass: "bg-green-600",
+    },
   ] as const;
 
   return (
@@ -48,32 +73,39 @@ const NavBar = () => {
                 href={item.href}
                 onClick={(e) => {
                   e.preventDefault();
-                  const targetId = item.href.replace('#', '');
+                  const targetId = item.href.replace("#", "");
                   const element = document.getElementById(targetId);
                   if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                    element.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
                 className={`${item.hoverTextClass} transition-all duration-300 font-medium relative group ${classes.text.secondary}`}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 ${item.underlineClass} transition-all duration-300 group-hover:w-full`} />
+                <span
+                  className={`absolute -bottom-1 left-0 w-0 h-0.5 ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
+                />
               </a>
             ))}
             <div className={`w-px h-6 ${classes.border.muted}`} />
-            <div className={`text-xs font-mono ${classes.text.muted}`} suppressHydrationWarning>
+            <div
+              className={`text-xs font-mono ${classes.text.muted}`}
+              suppressHydrationWarning
+            >
               {mounted ? currentTime.toLocaleTimeString() : "--:--:--"}
             </div>
             <motion.button
               onClick={toggleDarkMode}
               className={`transition-all duration-300 p-2 rounded-full ${
-                isDarkMode 
-                  ? "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10" 
+                isDarkMode
+                  ? "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10"
                   : "text-gray-700 hover:text-orange-500 hover:bg-orange-500/10"
               }`}
               whileHover={{ rotate: 180, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              title={
+                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+              }
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </motion.button>
@@ -91,7 +123,10 @@ const NavBar = () => {
         >
           <div className="flex items-center justify-between">
             {/* Time */}
-            <div className={`text-xs font-mono ${classes.text.muted}`} suppressHydrationWarning>
+            <div
+              className={`text-xs font-mono ${classes.text.muted}`}
+              suppressHydrationWarning
+            >
               {mounted ? currentTime.toLocaleTimeString() : "--:--:--"}
             </div>
 
@@ -100,13 +135,15 @@ const NavBar = () => {
               <motion.button
                 onClick={toggleDarkMode}
                 className={`transition-all duration-300 p-2 rounded-full ${
-                  isDarkMode 
-                    ? "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10" 
+                  isDarkMode
+                    ? "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10"
                     : "text-gray-700 hover:text-orange-500 hover:bg-orange-500/10"
                 }`}
                 whileHover={{ rotate: 180, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                title={
+                  isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+                }
               >
                 {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
               </motion.button>
@@ -140,15 +177,15 @@ const NavBar = () => {
                         e.preventDefault();
                         closeMobileMenu();
                         setTimeout(() => {
-                          const targetId = item.href.replace('#', '');
+                          const targetId = item.href.replace("#", "");
                           const element = document.getElementById(targetId);
                           if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
+                            element.scrollIntoView({ behavior: "smooth" });
                           }
                         }, 100);
                       }}
                       className={`block py-2 px-3 rounded-lg transition-all duration-300 font-medium ${classes.text.secondary} ${classes.hover.bg}`}
-                      initial={{ opacity: 0, x: 0}}
+                      initial={{ opacity: 0, x: 0 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
@@ -165,4 +202,4 @@ const NavBar = () => {
   );
 };
 
-export default NavBar; 
+export default NavBar;
