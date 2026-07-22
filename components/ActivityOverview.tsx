@@ -230,7 +230,6 @@ const ActivityOverview = () => {
                               <motion.div
                                 key={dIdx}
                                 className="w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer"
-                                style={{ backgroundColor: baseColor }}
                                 initial={{
                                   scale: 0,
                                   opacity: 0,

@@ -330,6 +330,7 @@ function ProjectCard({ project, onClick, isDarkMode, index }: ProjectCardProps) 
               fill
               className="w-full h-full object-cover group-hover:scale-105"
               sizes="(max-width: 1024px) 100vw, 33vw"
+              priority={index === 0}
             />
           </div>
         )}

@@ -51,6 +51,13 @@ const seededRandom = (seed: number) => {
   return x - Math.floor(x);
 };
 
+// Framer Motion re-formats numeric style/animation values to 3 decimals on
+// the client. Rounding here to the same precision — after all arithmetic,
+// not on the intermediate fraction — keeps the raw SSR HTML byte-for-byte
+// identical to Framer Motion's client output (rounding an intermediate value
+// and then multiplying can reintroduce float noise, e.g. 0.1 * 3 !== 0.3).
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
 const BlinkingCursor = () => {
   const { isDarkMode } = useTheme();
   return (
@@ -85,10 +92,10 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
   >(() =>
     Array.from({ length: 5 }, (_, i) => ({
       id: i,
-      x: seededRandom(i * 2 + 1) * 100,
-      y: seededRandom(i * 3 + 7) * 100,
-      size: 100 + seededRandom(i * 5 + 13) * 100,
-      duration: 15 + seededRandom(i * 7 + 17) * 10,
+      x: round3(seededRandom(i * 2 + 1) * 100),
+      y: round3(seededRandom(i * 3 + 7) * 100),
+      size: round3(100 + seededRandom(i * 5 + 13) * 100),
+      duration: round3(15 + seededRandom(i * 7 + 17) * 10),
       delay: i * 2,
     })),
   );
