@@ -30,6 +30,7 @@ const GITHUB_QUERY = /* GraphQL */ `
             contributionDays {
               date
               contributionCount
+              contributionLevel
               weekday
             }
           }
@@ -62,6 +63,7 @@ interface GitHubAPIResponse {
           contributionDays: {
             date: string
             contributionCount: number
+            contributionLevel: string
             weekday: number
           }[]
         }[]

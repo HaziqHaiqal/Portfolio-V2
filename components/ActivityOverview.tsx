@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, MouseEvent } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Github, Calendar } from "lucide-react";
 import {
@@ -9,7 +10,39 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { useTheme } from "@components/providers/ThemeProvider";
-import { Week, GitHubData, GitHubStats } from "types/github";
+import { COLORS } from "@constants/colors";
+import { Week, GitHubData, GitHubStats, ContributionDay } from "types/github";
+
+const MONTHS = [
+  { short: "Jan", full: "January" },
+  { short: "Feb", full: "February" },
+  { short: "Mar", full: "March" },
+  { short: "Apr", full: "April" },
+  { short: "May", full: "May" },
+  { short: "Jun", full: "June" },
+  { short: "Jul", full: "July" },
+  { short: "Aug", full: "August" },
+  { short: "Sep", full: "September" },
+  { short: "Oct", full: "October" },
+  { short: "Nov", full: "November" },
+  { short: "Dec", full: "December" },
+] as const;
+
+const ordinal = (n: number) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
+};
+
+const formatTooltip = (day: ContributionDay) => {
+  const [, month, dayOfMonth] = day.date.split("-").map(Number);
+  const count = day.contributionCount;
+  const label =
+    count === 0
+      ? "No contributions"
+      : `${count} contribution${count === 1 ? "" : "s"}`;
+  return `${label} on ${MONTHS[month - 1].full} ${ordinal(dayOfMonth)}`;
+};
 
 const ActivityOverview = () => {
   const { isDarkMode } = useTheme();
@@ -27,14 +60,19 @@ const ActivityOverview = () => {
     null,
   );
 
-  // Generate available years (from account creation to current year)
+  const [tooltip, setTooltip] = useState<{
+    content: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const currentYear = new Date().getFullYear();
   const availableYears = accountCreationYear
     ? Array.from(
         { length: currentYear - accountCreationYear + 1 },
         (_, i) => accountCreationYear + i,
       ).reverse()
-    : [currentYear]; // Only show current year while loading account creation date
+    : [currentYear];
 
   useEffect(() => {
     let cancelled = false;
@@ -46,8 +84,6 @@ const ActivityOverview = () => {
           setWeeksData(data.calendar.weeks);
           setGithubStats(data.stats);
 
-          // Use functional updater so we don't need accountCreationYear
-          // as a dep — avoids re-creating the effect and double-fetching.
           if (data.stats.accountCreationYear) {
             setAccountCreationYear(
               (prev) => prev ?? data.stats.accountCreationYear ?? null,
@@ -61,7 +97,6 @@ const ActivityOverview = () => {
           );
           setMaxCount(max || 1);
         }
-        // Mark this year's data as loaded (clears the derived loading flag).
         setLoadedYear(selectedYear);
       })
       .catch(() => {
@@ -79,15 +114,44 @@ const ActivityOverview = () => {
     setSelectedYear(year);
   };
 
+  const palette = isDarkMode
+    ? COLORS.contribution.dark
+    : COLORS.contribution.light;
+
   const intensityColor = (count: number) => {
     const frac = count / maxCount;
     const lvl = frac === 0 ? 0 : frac < 0.25 ? 1 : frac < 0.5 ? 2 : 3;
-    const light = ["#e5e7eb", "#86efac", "#22c55e", "#15803d"]; // gray-200, green-300/500/700
-    const dark = ["#374151", "#16a34a", "#22c55e", "#4ade80"]; // gray-700, green-600/500/400
-    return (isDarkMode ? dark : light)[lvl];
+    return palette[lvl];
   };
 
-  // Calculate longest streak
+  const monthLabelAt: Record<number, string> = {};
+  const labeledWeeks: number[] = [];
+  let lastMonth = -1;
+  weeksData.forEach((week, i) => {
+    const firstDay = week.contributionDays[0];
+    if (!firstDay) return;
+    const month = Number(firstDay.date.slice(5, 7)) - 1;
+    if (month !== lastMonth) {
+      monthLabelAt[i] = MONTHS[month].short;
+      labeledWeeks.push(i);
+      lastMonth = month;
+    }
+  });
+  if (labeledWeeks.length > 1 && labeledWeeks[1] - labeledWeeks[0] < 3) {
+    delete monthLabelAt[labeledWeeks[0]];
+  }
+
+  const showTooltip = (e: MouseEvent<HTMLDivElement>, day: ContributionDay) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      content: formatTooltip(day),
+      x: r.left + r.width / 2,
+      y: r.top,
+    });
+  };
+
+  const hideTooltip = () => setTooltip(null);
+
   let currentStreak = 0;
   let longestStreak = 0;
   weeksData
@@ -116,13 +180,13 @@ const ActivityOverview = () => {
             whileHover={{ scale: 1.05 }}
           >
             <Github size={20} className="md:w-6 md:h-6" />
-            Developer.exe
+            github.exe
           </motion.div>
         </motion.div>
 
         <div className="flex justify-center">
           <motion.div
-            className="relative w-full max-w-4xl"
+            className="relative w-full max-w-[920px]"
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -151,26 +215,25 @@ const ActivityOverview = () => {
               </div>
             ) : (
               <>
-                {/* Card */}
                 <div
-                  className={`backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border w-full overflow-x-auto ${isDarkMode ? "bg-gray-800/90 border-gray-700/50" : "bg-white/90 border-white/50"}`}
+                  className={`backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border w-full ${isDarkMode ? "bg-gray-800/90 border-gray-700/50" : "bg-white/90 border-white/50"}`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 gap-4">
+                  <div className="flex items-center justify-between mb-4 md:mb-6 gap-2 sm:gap-4">
                     <h3
-                      className={`font-bold flex items-center gap-2 text-sm md:text-base ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                      className={`font-bold flex items-center gap-2 text-sm md:text-base min-w-0 ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
                     >
-                      <Github size={16} className="md:w-5 md:h-5" />
-                      Activity Overview
+                      <Github size={16} className="md:w-5 md:h-5 shrink-0" />
+                      <span className="truncate">
+                        {githubStats?.totalContributions ?? 0} contributions in{" "}
+                        {selectedYear}
+                      </span>
                     </h3>
 
-                    {/* Year Selector */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <div className="flex items-center gap-2">
                         <Calendar
                           size={14}
-                          className={
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }
+                          className={`hidden sm:block ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
                         />
                         <Select
                           value={selectedYear}
@@ -200,98 +263,85 @@ const ActivityOverview = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span
-                          className={`text-xs md:text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-                        >
-                          {selectedYear === currentYear.toString()
-                            ? "Currently Active"
-                            : `Year ${selectedYear}`}
-                        </span>
+                  <div className="mb-4 md:mb-6 flex justify-center">
+                    <div className="max-w-full">
+                      <div className="overflow-x-auto overflow-y-hidden">
+                        <div className="inline-flex flex-col min-w-max">
+                          <div className="flex gap-0.5 md:gap-1 mb-1 h-4">
+                            {weeksData.map((_, wIdx) => (
+                              <div key={wIdx} className="w-2 md:w-3 relative">
+                                {monthLabelAt[wIdx] && (
+                                  <span
+                                    className={`absolute left-0 top-0 text-[9px] md:text-[10px] leading-none whitespace-nowrap ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                                  >
+                                    {monthLabelAt[wIdx]}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="flex gap-0.5 md:gap-1">
+                            {weeksData.map((week, wIdx) => (
+                              <div
+                                key={wIdx}
+                                className="flex flex-col gap-0.5 md:gap-1"
+                              >
+                                {week.contributionDays.map(
+                                  (day, dIdx: number) => {
+                                    const count = day.contributionCount;
+                                    return (
+                                      <motion.div
+                                        key={dIdx}
+                                        className="w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer"
+                                        style={{
+                                          backgroundColor:
+                                            intensityColor(count),
+                                        }}
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        whileInView={{ scale: 1, opacity: 1 }}
+                                        transition={{
+                                          duration: 0.3,
+                                          delay: (wIdx * 7 + dIdx) * 0.02,
+                                          type: "spring",
+                                          stiffness: 100,
+                                        }}
+                                        viewport={{ once: true }}
+                                        whileHover={{ scale: 1.8, rotate: 45 }}
+                                        onMouseEnter={(e) =>
+                                          showTooltip(e, day)
+                                        }
+                                        onMouseLeave={hideTooltip}
+                                      />
+                                    );
+                                  },
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`flex items-center justify-end gap-1 mt-2 text-[10px] md:text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                      >
+                        <span className="mr-1">Less</span>
+                        {palette.map((color, i) => (
+                          <span
+                            key={i}
+                            className="w-2 h-2 md:w-3 md:h-3 rounded-sm"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                        <span className="ml-1">More</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Grid */}
-                  <div className="mb-4 md:mb-6 overflow-x-auto md:overflow-x-visible">
-                    <div className="flex gap-0.5 md:gap-1 min-w-max md:min-w-0">
-                      {weeksData.map((week, wIdx) => (
-                        <div
-                          key={wIdx}
-                          className="flex flex-col gap-0.5 md:gap-1"
-                        >
-                          {week.contributionDays.map((day, dIdx: number) => {
-                            const count = day.contributionCount;
-                            const baseColor = intensityColor(count);
-                            const pulse = count > maxCount * 0.8;
-                            return (
-                              <motion.div
-                                key={dIdx}
-                                className="w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer"
-                                initial={{
-                                  scale: 0,
-                                  opacity: 0,
-                                  backgroundColor: baseColor,
-                                }}
-                                whileInView={
-                                  pulse
-                                    ? {
-                                        scale: [1, 1.2, 1],
-                                        opacity: [1, 0.8, 1],
-                                        backgroundColor: baseColor,
-                                      }
-                                    : {
-                                        scale: 1,
-                                        opacity: 1,
-                                        backgroundColor: baseColor,
-                                      }
-                                }
-                                transition={
-                                  pulse
-                                    ? {
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        delay: ((wIdx * 7 + dIdx) % 10) * 0.2,
-                                      }
-                                    : {
-                                        duration: 0.3,
-                                        delay: (wIdx * 7 + dIdx) * 0.02,
-                                        type: "spring",
-                                        stiffness: 100,
-                                      }
-                                }
-                                viewport={{ once: true }}
-                                whileHover={{
-                                  scale: 1.8,
-                                  rotate: 45,
-                                  backgroundColor: isDarkMode
-                                    ? "#10b981"
-                                    : "#059669",
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Enhanced Stats */}
                   <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
-                        }
-                      >
-                        Contributions this year
-                      </span>
-                      <span className="font-bold text-green-600">
-                        {githubStats?.totalContributions || 0}
-                      </span>
-                    </div>
                     <div className="flex items-center justify-between">
                       <span
                         className={
@@ -318,28 +368,28 @@ const ActivityOverview = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Floating badges - hidden on mobile */}
-                <motion.div
-                  className="hidden md:block absolute -top-8 -right-8 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full text-sm font-bold shadow-lg"
-                  animate={{ rotate: [0, 5, -5, 0], y: [0, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  🏆 Problem Solver
-                </motion.div>
-
-                <motion.div
-                  className="hidden md:block absolute -bottom-4 -left-8 bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg"
-                  animate={{ rotate: [0, -5, 5, 0], y: [0, 5, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                >
-                  💡 Innovator
-                </motion.div>
               </>
             )}
           </motion.div>
         </div>
       </div>
+
+      {tooltip &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-50 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg"
+            style={{
+              left: tooltip.x,
+              top: tooltip.y,
+              transform: "translate(-50%, calc(-100% - 6px))",
+            }}
+          >
+            {tooltip.content}
+            <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+          </div>,
+          document.body,
+        )}
     </section>
   );
 };
