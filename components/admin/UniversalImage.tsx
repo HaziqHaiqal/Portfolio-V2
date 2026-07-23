@@ -12,16 +12,6 @@ interface UniversalImageProps {
   fallback?: string;
 }
 
-/**
- * UniversalImage handles both Supabase-hosted images (optimized via Next Image)
- * and external URLs (Next Image with `unoptimized`) so we don't need to
- * whitelist every remote host in images.remotePatterns.
- *
- * For Supabase URLs we render Next Image in `fill` mode inside a sized,
- * relative, overflow-hidden wrapper. This avoids the Next 16 warning
- * "has either width or height modified, but not the other" that fires when
- * callers apply CSS sizing that distorts the natural aspect ratio.
- */
 export default function UniversalImage({
   src,
   alt,
@@ -63,15 +53,26 @@ export default function UniversalImage({
 
     if (width > 0 && height > 0) {
       return (
-        <NextImage
-          src={finalSrc}
-          alt={alt}
-          width={width}
-          height={height}
+        <div
           className={className}
-          onError={handleError}
-          unoptimized
-        />
+          style={{
+            position: "relative",
+            width: `${width}px`,
+            height: `${height}px`,
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          <NextImage
+            src={finalSrc}
+            alt={alt}
+            fill
+            sizes={`${Math.max(width, height)}px`}
+            className={className}
+            onError={handleError}
+            unoptimized
+          />
+        </div>
       );
     }
 

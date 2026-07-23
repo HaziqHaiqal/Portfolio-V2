@@ -43,31 +43,12 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-// Deterministic pseudo-random in [0, 1), seeded by index. Unlike
-// Math.random(), this produces the same value on the server and on the
-// client, so it's safe to use during render without a hydration mismatch.
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 };
 
-// Framer Motion re-formats numeric style/animation values to 3 decimals on
-// the client. Rounding here to the same precision — after all arithmetic,
-// not on the intermediate fraction — keeps the raw SSR HTML byte-for-byte
-// identical to Framer Motion's client output (rounding an intermediate value
-// and then multiplying can reintroduce float noise, e.g. 0.1 * 3 !== 0.3).
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
-
-const BlinkingCursor = () => {
-  const { isDarkMode } = useTheme();
-  return (
-    <motion.div
-      className={`w-0.5 h-5 ${isDarkMode ? "bg-green-400" : "bg-green-600"}`}
-      animate={{ opacity: [0, 1, 0] }}
-      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-};
 
 const NetworkSection = ({ profile }: NetworkSectionProps) => {
   const { isDarkMode } = useTheme();
@@ -76,7 +57,6 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
     { id: number; content: React.ReactNode }[]
   >([]);
   const [historyIdCounter, setHistoryIdCounter] = useState(0);
-  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
 
@@ -459,86 +439,71 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
             </div>
 
             <div
-              ref={historyRef}
-              className={`h-56 overflow-y-auto space-y-1 text-sm font-mono mb-4 pr-2 rounded-lg p-3 ${isDarkMode ? "bg-black/20 border border-gray-700/30" : "bg-gray-50/30 border border-gray-200/30"}`}
-            >
-              <AnimatePresence mode="popLayout">
-                {history.map((item) => (
-                  <div key={item.id}>{item.content}</div>
-                ))}
-              </AnimatePresence>
-              {history.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={`text-sm space-y-2 py-2 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-blue-500">💡</span>
-                    <span>
-                      Type a command or use a quick action to start
-                      connecting...
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-yellow-500">⌨️</span>
-                    <span>
-                      Try typing &quot;
-                      <span className="font-mono text-yellow-500">help</span>
-                      &quot; to see all available commands
-                    </span>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            <div
-              className={`flex items-center gap-3 pt-3 border-t ${isDarkMode ? "border-gray-700/50" : "border-gray-200/50"}`}
+              className={`mb-4 rounded-lg border overflow-hidden ${isDarkMode ? "bg-black/20 border-gray-700/30" : "bg-gray-50/30 border-gray-200/30"}`}
               onClick={() => inputRef.current?.focus()}
             >
-              <span
-                className={`font-bold text-xl ${isDarkMode ? "text-green-400" : "text-green-600"}`}
+              <div
+                ref={historyRef}
+                className="h-56 overflow-y-auto space-y-1 text-sm font-mono p-3"
               >
-                ❯
-              </span>
-              <div className="flex-1 relative flex items-center">
-                <span
-                  className={`font-mono whitespace-pre ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
-                >
-                  {input}
-                </span>
-                {isFocused && <BlinkingCursor />}
-                {!input && !isFocused && (
-                  <span
-                    className={`absolute left-0 pointer-events-none font-mono ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
+                <AnimatePresence mode="popLayout">
+                  {history.map((item) => (
+                    <div key={item.id}>{item.content}</div>
+                  ))}
+                </AnimatePresence>
+                {history.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`space-y-1 ${isDarkMode ? "text-gray-600" : "text-gray-400"}`}
                   >
-                    Type a command or &quot;help&quot; to see all commands...
-                  </span>
+                    <div>
+                      # Type a command or use a quick action to start
+                      connecting...
+                    </div>
+                    <div>
+                      # Try typing &quot;
+                      <span className="text-yellow-500">help</span>
+                      &quot; to see all available commands
+                    </div>
+                  </motion.div>
                 )}
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleQuickAction("clear");
-                }}
-                className={`p-2 rounded-lg transition-all ${isDarkMode ? "hover:bg-gray-700 text-gray-500 hover:text-red-400" : "hover:bg-gray-200 text-gray-400 hover:text-red-500"}`}
-                title="Clear terminal"
+
+              <div
+                className={`flex items-center gap-3 px-3 py-2 border-t ${isDarkMode ? "border-gray-700/30" : "border-gray-200/30"}`}
               >
-                <Trash2 size={16} />
-              </button>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCommand(input);
-                }}
-                className="absolute -left-[9999px]"
-                autoComplete="off"
-              />
+                <span
+                  className={`font-bold text-xl ${isDarkMode ? "text-green-400" : "text-green-600"}`}
+                >
+                  ❯
+                </span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCommand(input);
+                  }}
+                  placeholder='Type a command or "help" to see all commands...'
+                  className={`flex-1 min-w-0 bg-transparent outline-none border-none font-mono caret-green-500 ${isDarkMode ? "text-gray-200 placeholder:text-gray-500" : "text-gray-800 placeholder:text-gray-400"}`}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickAction("clear");
+                  }}
+                  className={`p-2 rounded-lg transition-all ${isDarkMode ? "hover:bg-gray-700 text-gray-500 hover:text-red-400" : "hover:bg-gray-200 text-gray-400 hover:text-red-500"}`}
+                  title="Clear terminal"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
