@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { useTheme } from "@components/providers/ThemeProvider";
+import SectionHeader from "@components/SectionHeader";
 import { COLORS } from "@constants/colors";
 import { Week, GitHubData, GitHubStats, ContributionDay } from "types/github";
 
@@ -168,21 +169,13 @@ const ActivityOverview = () => {
   return (
     <section className={`py-16 md:py-32 px-4 md:px-6 relative`}>
       <div className="max-w-6xl mx-auto">
-        <motion.div
-          className="text-center mb-12 md:mb-20"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <motion.div
-            className="inline-flex items-center gap-2 md:gap-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-4 md:px-8 py-2 md:py-3 rounded-full font-bold text-sm md:text-xl mb-6 md:mb-8 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Github size={20} className="md:w-6 md:h-6" />
-            github.exe
-          </motion.div>
-        </motion.div>
+        <SectionHeader
+          icon={Github}
+          label="github.activity()"
+          title="GitHub Activity"
+          accentClass="text-cyan-500"
+          gradientClass="from-cyan-600 to-cyan-400"
+        />
 
         <div className="flex justify-center">
           <motion.div

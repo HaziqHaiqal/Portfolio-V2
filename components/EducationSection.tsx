@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GraduationCap, Calendar } from "lucide-react";
 import { Education } from "@lib/supabase";
+import SectionHeader from "@components/SectionHeader";
 import { useTheme } from '@components/providers/ThemeProvider';
 
 interface EducationSectionProps {
@@ -24,27 +25,13 @@ const EducationSection = ({ education }: EducationSectionProps) => {
       className="py-32 px-6 relative overflow-hidden"
     >
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Header - same style as Experience */}
-        <motion.div
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3 rounded-full font-bold text-xl mb-8 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <GraduationCap size={24} />
-            education.certificates()
-          </motion.div>
-          <p
-            className={`text-xl leading-relaxed max-w-3xl mx-auto font-mono ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-          >
-            <span className="text-amber-500">$</span> cat ~/academic/achievements.txt
-          </p>
-        </motion.div>
+        <SectionHeader
+          icon={GraduationCap}
+          label="education.certificates()"
+          title="Education"
+          accentClass="text-emerald-500"
+          gradientClass="from-emerald-600 to-emerald-400"
+        />
 
         {/* Certificate Cards */}
         <div className="max-w-4xl mx-auto space-y-8">

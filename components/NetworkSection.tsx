@@ -9,6 +9,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useTheme } from "@components/providers/ThemeProvider";
+import SectionHeader from "@components/SectionHeader";
 import type { Profile } from "@components/HeroSection";
 
 interface NetworkSectionProps {
@@ -307,24 +308,13 @@ const NetworkSection = ({ profile }: NetworkSectionProps) => {
         ))}
       </div>
       <div className="max-w-3xl mx-auto relative">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full font-bold text-lg mb-4 shadow-lg">
-            <Terminal size={20} />
-            network.connect()
-          </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-3">
-            Let&apos;s{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-              Connect
-            </span>
-          </h2>
-        </motion.div>
+        <SectionHeader
+          icon={Terminal}
+          label="network.connect()"
+          title="Let's Connect"
+          accentClass="text-green-500"
+          gradientClass="from-green-600 to-green-400"
+        />
 
         <motion.div
           className={`rounded-xl border shadow-2xl overflow-hidden backdrop-blur-sm ${isDarkMode ? "bg-gray-800/80 border-gray-700/60" : "bg-white/80 border-gray-200/60"}`}

@@ -108,7 +108,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
   } as const;
 
   return (
-    <section id="home" className={`min-h-screen flex items-center justify-center px-6 pt-48 relative overflow-hidden`}>
+    <section id="home" className={`min-h-screen flex items-center justify-center px-6 pt-28 sm:pt-32 md:pt-48 relative overflow-hidden`}>
       <div className="max-w-4xl mx-auto text-center relative z-10">
         {/* Terminal Window */}
         <motion.div
@@ -169,12 +169,12 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
 
         {/* Avatar & Social */}
         <motion.div
-          className="mb-12 relative"
+          className="mb-8 md:mb-12 relative"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="relative w-72 h-72 mx-auto mb-8">
+          <div className="relative w-60 h-60 sm:w-64 sm:h-64 md:w-72 md:h-72 mx-auto mb-6 md:mb-8">
             {/* Animated Rings around Avatar */}
             {[1, 2, 3].map((ring) => (
               <motion.div

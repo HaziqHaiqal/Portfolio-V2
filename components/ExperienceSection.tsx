@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ChevronDown } from "lucide-react";
 import { Experience } from "@lib/supabase";
 import UniversalImage from "./admin/UniversalImage";
+import SectionHeader from "@components/SectionHeader";
 import { useTheme } from '@components/providers/ThemeProvider';
 import { generateHash } from "@lib/utils";
 
@@ -72,26 +73,13 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
       className="py-32 px-6 relative overflow-hidden"
     >
       <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-bold text-xl mb-8 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Briefcase size={24} />
-            experience.timeline()
-          </motion.div>
-          <p
-            className={`text-xl leading-relaxed max-w-3xl mx-auto font-mono ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-          >
-            <span className="text-blue-600">$</span> git log --oneline --graph
-          </p>
-        </motion.div>
+        <SectionHeader
+          icon={Briefcase}
+          label="experience.timeline()"
+          title="Experience"
+          accentClass="text-yellow-500"
+          gradientClass="from-yellow-600 to-yellow-400"
+        />
 
         {/* Git-style Timeline */}
         <div className="max-w-4xl mx-auto">
