@@ -29,8 +29,8 @@ const EducationSection = ({ education }: EducationSectionProps) => {
           icon={GraduationCap}
           label="education.certificates()"
           title="Education"
-          accentClass="text-emerald-500"
-          gradientClass="from-emerald-600 to-emerald-400"
+          accentClass="text-yellow-500"
+          gradientClass="from-yellow-600 to-yellow-400"
         />
 
         {/* Certificate Cards */}

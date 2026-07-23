@@ -77,8 +77,8 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
           icon={Briefcase}
           label="experience.timeline()"
           title="Experience"
-          accentClass="text-yellow-500"
-          gradientClass="from-yellow-600 to-yellow-400"
+          accentClass="text-rose-500"
+          gradientClass="from-rose-600 to-rose-400"
         />
 
         {/* Git-style Timeline */}

@@ -33,14 +33,14 @@ const NavBar = () => {
     {
       href: "#experience",
       label: "Experience",
-      hoverTextClass: "hover:text-yellow-600",
-      underlineClass: "bg-yellow-600",
+      hoverTextClass: "hover:text-rose-600",
+      underlineClass: "bg-rose-600",
     },
     {
       href: "#education",
       label: "Education",
-      hoverTextClass: "hover:text-emerald-600",
-      underlineClass: "bg-emerald-600",
+      hoverTextClass: "hover:text-yellow-600",
+      underlineClass: "bg-yellow-600",
     },
     {
       href: "#projects",
