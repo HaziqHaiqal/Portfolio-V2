@@ -89,7 +89,7 @@ const NavBar = () => {
             ))}
             <div className={`w-px h-6 ${classes.border.muted}`} />
             <div
-              className={`text-xs font-mono ${classes.text.muted}`}
+              className={`text-xs font-mono whitespace-nowrap ${classes.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : "--:--:--"}
@@ -124,7 +124,7 @@ const NavBar = () => {
           <div className="flex items-center justify-between">
             {/* Time */}
             <div
-              className={`text-xs font-mono ${classes.text.muted}`}
+              className={`text-xs font-mono whitespace-nowrap ${classes.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : "--:--:--"}
