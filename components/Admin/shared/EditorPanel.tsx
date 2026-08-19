@@ -38,33 +38,37 @@ export function EditorPanel({
 }: EditorPanelProps) {
   return (
     <motion.div {...rise} className={cn('space-y-6', className)}>
-      <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="-ml-2 h-8 gap-1.5 px-2 text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {backLabel}
-        </Button>
-      </div>
+      {/*
+        Back control and title sit in one block so the bloom sits behind both
+        and the spacing between them stays tight.
+      */}
+      <div className="admin-bloom relative isolate space-y-5">
+        <div className="relative z-10 space-y-5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onBack}
+            className="admin-raised h-8 gap-1.5 border-border bg-card px-2.5 text-xs font-normal text-muted-foreground hover:border-input hover:bg-accent hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {backLabel}
+          </Button>
 
-      <div className="admin-bloom relative isolate space-y-2">
-        <div className="relative z-10 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="h-px w-6 bg-copper" />
-            <p className="admin-eyebrow">{eyebrow}</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="h-px w-6 bg-copper" />
+              <p className="admin-eyebrow">{eyebrow}</p>
+            </div>
+            <h1 className="admin-display text-2xl font-semibold text-foreground">
+              {title}
+            </h1>
+            {description && (
+              <p className="max-w-xl text-sm text-muted-foreground">
+                {description}
+              </p>
+            )}
           </div>
-          <h1 className="admin-display text-2xl font-semibold text-foreground">
-            {title}
-          </h1>
-          {description && (
-            <p className="max-w-xl text-sm text-muted-foreground">
-              {description}
-            </p>
-          )}
         </div>
       </div>
 

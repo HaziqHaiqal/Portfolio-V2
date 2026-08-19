@@ -604,13 +604,21 @@
   }
 
   /* Soft accent bloom used behind page titles and the active nav item. */
+  /*
+    Left-weighted glow behind page titles.
+
+    The gradient reaches `transparent` at 70% of its radius, so the box must
+    extend past that point on every side or the still-coloured remainder gets
+    clipped into a hard seam. Each centre-to-edge distance below is >= 70% of
+    the matching radius: 34/45 and 45/55. Keep that ratio if you retune it.
+  */
   .admin-bloom::before {
     content: '';
     position: absolute;
-    inset: -40% -10% auto -10%;
-    height: 220px;
+    inset: -140px -30% auto -30%;
+    height: 420px;
     background: radial-gradient(
-      60% 100% at 20% 0%,
+      45% 55% at 34% 45%,
       hsl(var(--primary) / 0.16),
       transparent 70%
     );
