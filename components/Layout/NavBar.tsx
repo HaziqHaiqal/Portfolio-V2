@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, X } from "lucide-react";
-import { useTheme, useThemeClasses } from "@components/providers/ThemeProvider";
+import { useTheme, useThemeClasses } from "@components/Provider/ThemeProvider";
 import { useUIStore } from "@lib/stores";
-import { useHydrated } from "@hooks/useCommon";
+import { useCurrentTime } from "@hooks/useCommon";
 
 /**
  * Responsive navigation bar with mobile hamburger menu.
@@ -14,15 +13,7 @@ const NavBar = () => {
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, openContact } =
     useUIStore();
 
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const mounted = useHydrated();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const { currentTime, mounted } = useCurrentTime();
 
   const navItems = [
     {

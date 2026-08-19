@@ -3,10 +3,16 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Linkedin, Github, Eraser, Trash2 } from "lucide-react";
-import { useTheme } from "@components/providers/ThemeProvider";
-import type { Profile } from "@components/HeroSection";
+import { useTheme } from "@components/Provider/ThemeProvider";
+import type { Profile } from "@lib/supabase";
 
-interface ContactTerminalProps {
+/**
+ * The terminal panel itself: window chrome, greeting, output screen and
+ * prompt. It holds no dialog behaviour — no open/close state, backdrop or
+ * Escape handling — so it is a plain panel that happens to be rendered inside
+ * Modal/ContactModal, which owns all of that.
+ */
+interface ContactSectionProps {
   profile: Partial<Profile> | null;
 }
 
@@ -28,7 +34,7 @@ const COMMANDS = [
   { name: "clear", hint: "clear the screen", icon: Eraser },
 ];
 
-const ContactTerminal = ({ profile }: ContactTerminalProps) => {
+const ContactSection = ({ profile }: ContactSectionProps) => {
   const { isDarkMode } = useTheme();
   const [input, setInput] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -391,4 +397,4 @@ const ContactTerminal = ({ profile }: ContactTerminalProps) => {
   );
 };
 
-export default ContactTerminal;
+export default ContactSection;

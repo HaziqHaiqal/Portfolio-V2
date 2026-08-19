@@ -76,16 +76,3 @@ export const getCategoryInfo = (categoryValue: string) => {
 };
 
 // Project status constants with colors
-export const PROJECT_STATUSES = [
-  { value: 'Completed', label: 'Completed', color: 'green', bgClass: 'bg-green-500/20 text-green-400' },
-  { value: 'In Progress', label: 'In Progress', color: 'blue', bgClass: 'bg-blue-500/20 text-blue-400' },
-  { value: 'Planned', label: 'Planned', color: 'yellow', bgClass: 'bg-yellow-500/20 text-yellow-400' },
-  { value: 'On Hold', label: 'On Hold', color: 'gray', bgClass: 'bg-gray-500/20 text-gray-400' },
-] as const;
-
-export type ProjectStatus = typeof PROJECT_STATUSES[number]['value'];
-
-// Helper function to get status info
-export const getStatusInfo = (statusValue: string) => {
-  return PROJECT_STATUSES.find(s => s.value === statusValue) || PROJECT_STATUSES[PROJECT_STATUSES.length - 1];
-}; 

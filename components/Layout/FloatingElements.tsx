@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@components/providers/ThemeProvider';
+import { useTheme } from '@components/Provider/ThemeProvider';
 
 const FloatingElements = () => {
   const { isDarkMode } = useTheme();

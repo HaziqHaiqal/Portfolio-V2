@@ -1,24 +1,24 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
-import ProjectsGrid from "@components/ProjectsGrid";
-import SectionHeader from "@components/SectionHeader";
+import ProjectsGrid from "@components/List/ProjectsGrid";
+import SectionHeader from "@components/Common/SectionHeader";
 import { ProjectProps } from 'types/portfolio';
-import { useTheme } from "@components/providers/ThemeProvider";
+import { useTheme } from "@components/Provider/ThemeProvider";
 
-interface ProjectShowcaseSectionProps {
+interface ProjectSectionProps {
   projects: ProjectProps[];
   loading?: boolean;
   error?: string | null;
   handleProjectClick: (project: ProjectProps) => void;
 }
 
-const ProjectShowcaseSection = ({
+const ProjectSection = ({
   projects,
   loading = false,
   error = null,
   handleProjectClick,
-}: ProjectShowcaseSectionProps) => {
+}: ProjectSectionProps) => {
   const { isDarkMode } = useTheme();
 
   return (
@@ -105,4 +105,4 @@ const ProjectShowcaseSection = ({
   );
 };
 
-export default ProjectShowcaseSection; 
+export default ProjectSection; 

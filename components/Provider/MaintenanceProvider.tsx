@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  useContext,
   useState,
   useCallback,
   useEffect,
@@ -108,8 +107,4 @@ export function MaintenanceProvider({ children }: { children: ReactNode }) {
       {children}
     </MaintenanceContext.Provider>
   );
-}
-
-export function useMaintenance() {
-  return useContext(MaintenanceContext);
 }

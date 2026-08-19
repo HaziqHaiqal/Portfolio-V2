@@ -31,7 +31,7 @@ import { Textarea } from '@components/ui/textarea';
 import { Checkbox } from '@components/ui/checkbox';
 import UniversalUpload, {
   type UniversalUploadHandle,
-} from './UniversalUpload';
+} from '@components/Media/UniversalUpload';
 import { getFiles, deleteFileById, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectData {

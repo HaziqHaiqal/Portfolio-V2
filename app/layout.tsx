@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
-import { ThemeProvider } from "@components/providers/ThemeProvider";
-import { MaintenanceProvider } from "@components/providers/MaintenanceProvider";
+import { ThemeProvider } from "@components/Provider/ThemeProvider";
+import { MaintenanceProvider } from "@components/Provider/MaintenanceProvider";
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@components/ui/sonner"
 
@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio @ Haziq Haiqal",
+  title: "Haziq Haiqal | Software Developer",
   description: "Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions and exceptional user experiences.",
   keywords: [
     "Haziq Haiqal",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   publisher: "Haziq Haiqal",
   robots: "index, follow",
   openGraph: {
-    title: "Portfolio @ Haziq Haiqal",
+    title: "Haziq Haiqal | Software Developer",
     description: "Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions.",
     url: "https://haziqhaiqal.com",
     siteName: "Haziq Haiqal Portfolio",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Portfolio @ Haziq Haiqal",
+    title: "Haziq Haiqal | Software Developer",
   },
 };
 

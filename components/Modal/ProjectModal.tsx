@@ -12,7 +12,7 @@ import {
   Users,
   GitCommit,
 } from "lucide-react";
-import ProjectImageGallery from "@components/ProjectImageGallery";
+import ProjectImageGallery from "@components/Media/ProjectImageGallery";
 import { getCategoryInfo } from "@lib/constants";
 
 interface ProjectModalProps {

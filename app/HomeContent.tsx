@@ -5,19 +5,19 @@ import { Github, Linkedin, Mail } from 'lucide-react'
 import {
   useTheme,
   useThemeClasses,
-} from '@components/providers/ThemeProvider'
+} from '@components/Provider/ThemeProvider'
 import { useUIStore } from '@lib/stores'
 import { useKeyboardShortcuts } from '@hooks/useCommon'
-import ProjectModal from '@components/ProjectModal'
-import FloatingElements from '@components/FloatingElements'
-import NavBar from '@components/NavBar'
+import ProjectModal from '@components/Modal/ProjectModal'
+import FloatingElements from '@components/Layout/FloatingElements'
+import NavBar from '@components/Layout/NavBar'
 import HeroSection from '@components/HeroSection'
 import ActivityOverview from '@components/ActivityOverview'
 import TechStackSection from '@components/TechStackSection'
 import ExperienceSection from '@components/ExperienceSection'
 import EducationSection from '@components/EducationSection'
-import ProjectShowcaseSection from '@components/ProjectShowcaseSection'
-import ContactTerminalModal from '@components/ContactTerminalModal'
+import ProjectSection from '@components/ProjectSection'
+import ContactModal from '@components/Modal/ContactModal'
 
 import type { ProjectProps } from 'types/portfolio'
 import type { PortfolioData } from '@lib/data'
@@ -69,7 +69,7 @@ export default function HomeContent({
         <TechStackSection />
         <ExperienceSection experience={experience} />
         <EducationSection education={education} />
-        <ProjectShowcaseSection
+        <ProjectSection
           projects={projects}
           handleProjectClick={handleProjectClick}
         />
@@ -109,7 +109,7 @@ export default function HomeContent({
         </div>
       </footer>
 
-      <ContactTerminalModal profile={profile} />
+      <ContactModal profile={profile} />
 
       {selectedProject && (
         <ProjectModal

@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { useTheme } from "@components/providers/ThemeProvider";
-import SectionHeader from "@components/SectionHeader";
+import { useTheme } from "@components/Provider/ThemeProvider";
+import SectionHeader from "@components/Common/SectionHeader";
 import { COLORS } from "@constants/colors";
 import { Week, GitHubData, GitHubStats, ContributionDay } from "types/github";
 

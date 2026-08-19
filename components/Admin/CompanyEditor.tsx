@@ -28,8 +28,8 @@ import { Badge } from '@components/ui/badge';
 import { Company } from '@lib/supabase';
 import UniversalUpload, {
   type UniversalUploadHandle,
-} from './UniversalUpload';
-import UniversalImage from './UniversalImage';
+} from '@components/Media/UniversalUpload';
+import UniversalImage from '@components/Media/UniversalImage';
 
 export default function CompanyEditor() {
   const [companies, setCompanies] = useState<Company[]>([]);

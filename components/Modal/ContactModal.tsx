@@ -3,12 +3,12 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useTheme } from "@components/providers/ThemeProvider";
+import { useTheme } from "@components/Provider/ThemeProvider";
 import { useUIStore } from "@lib/stores";
-import ContactTerminal from "@components/ContactTerminal";
-import type { Profile } from "@components/HeroSection";
+import ContactSection from "@components/ContactSection";
+import type { Profile } from "@lib/supabase";
 
-interface ContactTerminalModalProps {
+interface ContactModalProps {
   profile: Partial<Profile> | null;
 }
 
@@ -20,7 +20,7 @@ interface ContactTerminalModalProps {
  * Closing is handled here — by this button, the backdrop or Escape — so the
  * window itself carries no close control.
  */
-const ContactTerminalModal = ({ profile }: ContactTerminalModalProps) => {
+const ContactModal = ({ profile }: ContactModalProps) => {
   const { isDarkMode } = useTheme();
   const { isContactOpen, toggleContact, closeContact } = useUIStore();
 
@@ -73,7 +73,7 @@ const ContactTerminalModal = ({ profile }: ContactTerminalModalProps) => {
                 exit={{ opacity: 0, scale: 0.97, y: 16 }}
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
               >
-                <ContactTerminal profile={profile} />
+                <ContactSection profile={profile} />
               </motion.div>
             </div>
           </>
@@ -129,4 +129,4 @@ const ContactTerminalModal = ({ profile }: ContactTerminalModalProps) => {
   );
 };
 
-export default ContactTerminalModal;
+export default ContactModal;

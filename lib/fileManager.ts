@@ -463,48 +463,8 @@ async function clearEntityField(
 
 // ============= CONVENIENCE FUNCTIONS =============
 
-// Profile functions
-export const uploadProfileImage = (entityId: string, file: File) =>
-  uploadFile(file, 'profile_image', entityId);
-
-export const uploadResume = (entityId: string, file: File) =>
-  uploadFile(file, 'resume', entityId);
-
-export const deleteProfileImage = (entityId: string) =>
-  deleteFile('profile_image', entityId);
-
-export const deleteResume = (entityId: string) =>
-  deleteFile('resume', entityId);
-
-// Project functions
-export const uploadProjectThumbnail = (entityId: string, file: File) =>
-  uploadFile(file, 'project_thumbnail', entityId);
-
-export const uploadProjectImage = (entityId: string, file: File, altText: string, caption?: string) =>
-  uploadFile(file, 'project_image', entityId, altText, caption);
-
-export const deleteProjectThumbnail = (entityId: string) =>
-  deleteFile('project_thumbnail', entityId);
-
-export const deleteProjectImage = (fileId: string) =>
-  deleteFileById(fileId);
-
 export const getProjectImages = (projectId: string) =>
   getFiles('project', projectId, 'project_collection');
-
-// Experience functions
-export const uploadCompanyLogo = (entityId: string, file: File) =>
-  uploadFile(file, 'company_logo', entityId);
-
-export const deleteCompanyLogo = (entityId: string) =>
-  deleteFile('company_logo', entityId);
-
-// Education functions
-export const uploadInstitutionLogo = (entityId: string, file: File) =>
-  uploadFile(file, 'institution_logo', entityId);
-
-export const deleteInstitutionLogo = (entityId: string) =>
-  deleteFile('institution_logo', entityId);
 
 // Legacy compatibility - for gradual migration
 export type { UploadedFile as ProjectImage }; 

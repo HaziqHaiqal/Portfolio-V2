@@ -7,28 +7,13 @@ import {
   MapPin,
   Terminal
 } from "lucide-react";
-import { useTheme } from "./providers/ThemeProvider";
+import { useTheme } from "@components/Provider/ThemeProvider";
+import type { Profile } from "@lib/supabase";
 
 interface HeroSectionProps {
   profile: Partial<Profile> | null;
 }
 
-export interface Profile {
-  display_name: string;
-  title: string;
-  location: string;
-  bio: string;
-  years_coding: number;
-  projects_count: number;
-  coffee_consumed: string;
-  lines_of_code: string;
-  github_url: string;
-  linkedin_url: string;
-  email: string;
-  full_name: string;
-  phone: string;
-  profile_image_url?: string;
-}
 
 const terminalCommands = [
   "npm install creativity",

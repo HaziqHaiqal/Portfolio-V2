@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import UniversalUpload, {
   type UniversalUploadHandle,
-} from './UniversalUpload';
+} from '@components/Media/UniversalUpload';
 import {
   Plus,
   Edit,

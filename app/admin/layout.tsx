@@ -1,6 +1,6 @@
 'use client'
 
-import { AppSidebar } from "@components/app-sidebar"
+import { AppSidebar } from "@components/Layout/AppSidebar"
 import {
   SidebarInset,
   SidebarProvider,

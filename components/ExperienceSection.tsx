@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ChevronDown } from "lucide-react";
 import { Experience } from "@lib/supabase";
-import UniversalImage from "./admin/UniversalImage";
-import SectionHeader from "@components/SectionHeader";
-import { useTheme } from '@components/providers/ThemeProvider';
+import UniversalImage from "@components/Media/UniversalImage";
+import SectionHeader from "@components/Common/SectionHeader";
+import { useTheme } from '@components/Provider/ThemeProvider';
 import { generateHash } from "@lib/utils";
 
 interface ExperienceSectionProps {

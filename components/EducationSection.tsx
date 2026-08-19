@@ -2,8 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GraduationCap, Calendar } from "lucide-react";
 import { Education } from "@lib/supabase";
-import SectionHeader from "@components/SectionHeader";
-import { useTheme } from '@components/providers/ThemeProvider';
+import SectionHeader from "@components/Common/SectionHeader";
+import { useTheme } from '@components/Provider/ThemeProvider';
 
 interface EducationSectionProps {
   education: Education[] | null | undefined;

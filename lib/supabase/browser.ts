@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { setSupabaseDown } from '@components/providers/MaintenanceProvider'
+import { setSupabaseDown } from '@components/Provider/MaintenanceProvider'
 
 // Transient HTTP/2 errors that Chrome retries internally for subresources but
 // surfaces through fetch(). Most common: ERR_HTTP2_SERVER_REFUSED_STREAM on

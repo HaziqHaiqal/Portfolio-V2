@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
-import { getProjectImages, type UploadedFile } from '../lib/fileManager';
+import { getProjectImages, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectImageGalleryProps {
   projectId: string;

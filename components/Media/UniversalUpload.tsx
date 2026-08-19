@@ -4,7 +4,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, FileText, Trash2, Crop as CropIcon, ExternalLink, AlertCircle, Link2 } from 'lucide-react';
 import Image from 'next/image';
-import UniversalImage from './UniversalImage';
+import UniversalImage from '@components/Media/UniversalImage';
 import {
   uploadFile,
   deleteFile,
@@ -15,7 +15,7 @@ import {
   type DeleteResult,
   type UploadedFile
 } from '@lib/fileManager';
-import ImageCropModal from './ImageCropModal';
+import ImageCropModal from '@components/Modal/ImageCropModal';
 
 export type UniversalUploadCommitResult =
   | { ok: true; url?: string; files?: UploadedFile[] }

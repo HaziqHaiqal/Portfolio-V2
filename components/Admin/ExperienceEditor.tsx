@@ -9,8 +9,8 @@ import {
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
-import CompanySelector from './CompanySelector';
-import UniversalImage from './UniversalImage';
+import CompanySelector from '@components/Admin/CompanySelector';
+import UniversalImage from '@components/Media/UniversalImage';
 import { Company } from '@lib/supabase';
 import {
   Plus,

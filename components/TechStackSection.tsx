@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Code2 } from "lucide-react";
-import SectionHeader from "@components/SectionHeader";
+import SectionHeader from "@components/Common/SectionHeader";
 import {
   SiNextdotjs,
   SiReact,
@@ -15,7 +15,7 @@ import {
   SiGithub,
   SiPython,
 } from "react-icons/si";
-import { useTheme } from "@components/providers/ThemeProvider";
+import { useTheme } from "@components/Provider/ThemeProvider";
 
 const TechStackSection = () => {
   const { isDarkMode } = useTheme();

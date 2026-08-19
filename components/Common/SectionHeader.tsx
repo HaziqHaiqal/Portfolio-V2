@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { useTheme } from "@components/providers/ThemeProvider";
+import { useTheme } from "@components/Provider/ThemeProvider";
 
 interface SectionHeaderProps {
   icon: LucideIcon;
