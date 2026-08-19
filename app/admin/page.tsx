@@ -112,29 +112,29 @@ export default function AdminPage() {
     const [projects, skills, experience, education] = await Promise.all([
       supabase
         .from('projects')
-        .select('name, updated_at')
+        .select('id, name, updated_at')
         .order('updated_at', { ascending: false })
         .limit(3),
       supabase
         .from('skills')
-        .select('name, updated_at')
+        .select('id, name, updated_at')
         .order('updated_at', { ascending: false })
         .limit(3),
       supabase
         .from('experience')
-        .select('position, updated_at')
+        .select('id, position, updated_at')
         .order('updated_at', { ascending: false })
         .limit(3),
       supabase
         .from('education')
-        .select('degree, updated_at')
+        .select('id, degree, updated_at')
         .order('updated_at', { ascending: false })
         .limit(3),
     ]);
 
     const items: ActivityItem[] = [
       ...(projects.data ?? []).map((row) => ({
-        id: `project-${row.name}`,
+        id: `project-${row.id}`,
         label: 'Project',
         target: row.name,
         updatedAt: row.updated_at,
@@ -142,7 +142,7 @@ export default function AdminPage() {
         href: '/admin/projects',
       })),
       ...(skills.data ?? []).map((row) => ({
-        id: `skill-${row.name}`,
+        id: `skill-${row.id}`,
         label: 'Skill',
         target: row.name,
         updatedAt: row.updated_at,
@@ -150,7 +150,7 @@ export default function AdminPage() {
         href: '/admin/skills',
       })),
       ...(experience.data ?? []).map((row) => ({
-        id: `experience-${row.position}`,
+        id: `experience-${row.id}`,
         label: 'Experience',
         target: row.position,
         updatedAt: row.updated_at,
@@ -158,7 +158,7 @@ export default function AdminPage() {
         href: '/admin/experience',
       })),
       ...(education.data ?? []).map((row) => ({
-        id: `education-${row.degree}`,
+        id: `education-${row.id}`,
         label: 'Education',
         target: row.degree,
         updatedAt: row.updated_at,

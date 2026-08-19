@@ -113,10 +113,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="border-r border-sidebar-border bg-sidebar"
       {...props}
     >
-      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3">
+      {/*
+        Collapsed, the rail is 3rem (48px). `px-3` would leave a 24px box for a
+        28px mark and clip it, so the padding drops and the mark centres.
+      */}
+      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3 group-data-[collapsible=icon]:px-0">
         <Link
           href="/admin"
-          className="flex items-center gap-2.5 overflow-hidden"
+          className="flex items-center gap-2.5 overflow-hidden group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
         >
           <div className="admin-raised flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[11px] font-bold tracking-tight text-primary-foreground">
             HH
@@ -177,7 +181,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-2">
-        <div className="flex items-center gap-2 rounded-md px-1 py-1 group-data-[collapsible=icon]:px-0">
+        <div className="flex items-center gap-2 rounded-md px-1 py-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-sidebar-border bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
             {initial}
           </div>

@@ -501,9 +501,9 @@ export default function ExperienceEditor() {
 
                       {role.technologies.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {role.technologies.slice(0, 6).map((tech) => (
+                          {role.technologies.slice(0, 6).map((tech, i) => (
                             <Badge
-                              key={tech}
+                              key={`${tech}-${i}`}
                               variant="secondary"
                               className="px-2 py-0 text-[11px] font-normal"
                             >

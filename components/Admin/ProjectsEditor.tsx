@@ -508,9 +508,9 @@ export default function ProjectsEditor() {
                 {project.tech_stack.length > 0 && (
                   /* Capped at three so the row never wraps to a stray "+2". */
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {project.tech_stack.slice(0, 3).map((tech) => (
+                    {project.tech_stack.slice(0, 3).map((tech, i) => (
                       <Badge
-                        key={tech}
+                        key={`${tech}-${i}`}
                         variant="secondary"
                         className="px-2 py-0 text-[11px] font-normal"
                       >

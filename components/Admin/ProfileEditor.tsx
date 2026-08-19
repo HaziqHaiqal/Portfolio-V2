@@ -588,9 +588,9 @@ export default function ProfileEditor() {
 
             {profileData.languages.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {profileData.languages.map((language) => (
+                {profileData.languages.map((language, i) => (
                   <Badge
-                    key={language}
+                    key={`${language}-${i}`}
                     variant="secondary"
                     className="gap-1.5 py-1 pl-2.5 pr-1.5 font-normal"
                   >
