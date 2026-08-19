@@ -200,7 +200,9 @@ export default function EducationEditor() {
 
     try {
       await upsertEducationAction(payload);
-      toast.success(editingEducation?.id ? 'Programme updated' : 'Programme created');
+      toast.success(
+        editingEducation?.id ? 'Programme updated' : 'Programme created'
+      );
       setShowForm(false);
       setEditingEducation(null);
       await loadEducations();
@@ -262,7 +264,9 @@ export default function EducationEditor() {
           if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
             return sum;
           }
-          return sum + Math.max(0, (end.getTime() - start.getTime()) / msInYear);
+          return (
+            sum + Math.max(0, (end.getTime() - start.getTime()) / msInYear)
+          );
         }, 0);
 
         const primary = sortedPrograms[0];

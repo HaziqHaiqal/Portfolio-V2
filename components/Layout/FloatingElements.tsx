@@ -5,25 +5,25 @@ import { useTheme } from '@components/Provider/ThemeProvider';
 const FloatingElements = () => {
   const { isDarkMode } = useTheme();
   return (
-    <div className="fixed inset-0 pointer-events-none">
+    <div className="pointer-events-none fixed inset-0">
       <motion.div
-        className={`absolute top-20 left-10 text-6xl ${isDarkMode ? "text-blue-300" : "text-blue-200"}`}
+        className={`absolute left-10 top-20 text-6xl ${isDarkMode ? 'text-blue-300' : 'text-blue-200'}`}
         animate={{ rotate: 360, y: [0, -20, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
       >
-        {"{"}
+        {'{'}
       </motion.div>
       <motion.div
-        className={`absolute top-40 right-20 text-4xl ${isDarkMode ? "text-purple-300" : "text-purple-200"}`}
+        className={`absolute right-20 top-40 text-4xl ${isDarkMode ? 'text-purple-300' : 'text-purple-200'}`}
         animate={{ rotate: -360, y: [0, 20, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
       >
         &lt;/&gt;
       </motion.div>
       <motion.div
-        className={`absolute bottom-20 right-10 text-3xl ${isDarkMode ? "text-green-300" : "text-green-200"} opacity-30`}
+        className={`absolute bottom-20 right-10 text-3xl ${isDarkMode ? 'text-green-300' : 'text-green-200'} opacity-30`}
         animate={{ rotate: 180, y: [0, -15, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
       >
         🚀
       </motion.div>
@@ -31,4 +31,4 @@ const FloatingElements = () => {
   );
 };
 
-export default FloatingElements; 
+export default FloatingElements;

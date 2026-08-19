@@ -1,9 +1,9 @@
-import 'server-only'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import 'server-only';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function createServerSupabase() {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,19 +11,19 @@ export async function createServerSupabase() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            )
+              cookieStore.set(name, value, options)
+            );
           } catch {
             // Called from a read-only Server Component. Cookies get refreshed
             // by the session middleware on the next request; safe to ignore.
           }
         },
       },
-    },
-  )
+    }
+  );
 }

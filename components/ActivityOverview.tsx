@@ -1,47 +1,47 @@
-import { useState, useEffect, MouseEvent } from "react";
-import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
-import { Github, Calendar } from "lucide-react";
+import { useState, useEffect, MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
+import { Github, Calendar } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@components/ui/select";
-import { useTheme } from "@components/Provider/ThemeProvider";
-import SectionHeader from "@components/Common/SectionHeader";
-import { COLORS } from "@constants/colors";
-import { Week, GitHubData, GitHubStats, ContributionDay } from "types/github";
+} from '@components/ui/select';
+import { useTheme } from '@components/Provider/ThemeProvider';
+import SectionHeader from '@components/Common/SectionHeader';
+import { COLORS } from '@constants/colors';
+import { Week, GitHubData, GitHubStats, ContributionDay } from 'types/github';
 
 const MONTHS = [
-  { short: "Jan", full: "January" },
-  { short: "Feb", full: "February" },
-  { short: "Mar", full: "March" },
-  { short: "Apr", full: "April" },
-  { short: "May", full: "May" },
-  { short: "Jun", full: "June" },
-  { short: "Jul", full: "July" },
-  { short: "Aug", full: "August" },
-  { short: "Sep", full: "September" },
-  { short: "Oct", full: "October" },
-  { short: "Nov", full: "November" },
-  { short: "Dec", full: "December" },
+  { short: 'Jan', full: 'January' },
+  { short: 'Feb', full: 'February' },
+  { short: 'Mar', full: 'March' },
+  { short: 'Apr', full: 'April' },
+  { short: 'May', full: 'May' },
+  { short: 'Jun', full: 'June' },
+  { short: 'Jul', full: 'July' },
+  { short: 'Aug', full: 'August' },
+  { short: 'Sep', full: 'September' },
+  { short: 'Oct', full: 'October' },
+  { short: 'Nov', full: 'November' },
+  { short: 'Dec', full: 'December' },
 ] as const;
 
 const ordinal = (n: number) => {
-  const s = ["th", "st", "nd", "rd"];
+  const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
 
 const formatTooltip = (day: ContributionDay) => {
-  const [, month, dayOfMonth] = day.date.split("-").map(Number);
+  const [, month, dayOfMonth] = day.date.split('-').map(Number);
   const count = day.contributionCount;
   const label =
     count === 0
-      ? "No contributions"
-      : `${count} contribution${count === 1 ? "" : "s"}`;
+      ? 'No contributions'
+      : `${count} contribution${count === 1 ? '' : 's'}`;
   return `${label} on ${MONTHS[month - 1].full} ${ordinal(dayOfMonth)}`;
 };
 
@@ -53,12 +53,12 @@ const ActivityOverview = () => {
   const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
   const [loadedYear, setLoadedYear] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString(),
+    new Date().getFullYear().toString()
   );
 
   const loading = loadedYear !== selectedYear;
   const [accountCreationYear, setAccountCreationYear] = useState<number | null>(
-    null,
+    null
   );
 
   const [tooltip, setTooltip] = useState<{
@@ -71,7 +71,7 @@ const ActivityOverview = () => {
   const availableYears = accountCreationYear
     ? Array.from(
         { length: currentYear - accountCreationYear + 1 },
-        (_, i) => accountCreationYear + i,
+        (_, i) => accountCreationYear + i
       ).reverse()
     : [currentYear];
 
@@ -87,14 +87,14 @@ const ActivityOverview = () => {
 
           if (data.stats.accountCreationYear) {
             setAccountCreationYear(
-              (prev) => prev ?? data.stats.accountCreationYear ?? null,
+              (prev) => prev ?? data.stats.accountCreationYear ?? null
             );
           }
 
           const max = Math.max(
             ...data.calendar.weeks.flatMap((w) =>
-              w.contributionDays.map((d) => d.contributionCount),
-            ),
+              w.contributionDays.map((d) => d.contributionCount)
+            )
           );
           setMaxCount(max || 1);
         }
@@ -167,8 +167,8 @@ const ActivityOverview = () => {
     });
 
   return (
-    <section className={`py-16 md:py-32 px-4 md:px-6 relative`}>
-      <div className="max-w-6xl mx-auto">
+    <section className={`relative px-4 py-16 md:px-6 md:py-32`}>
+      <div className="mx-auto max-w-6xl">
         <SectionHeader
           icon={Github}
           label="github.activity()"
@@ -187,20 +187,20 @@ const ActivityOverview = () => {
           >
             {loading ? (
               <div
-                className={`backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border w-full ${isDarkMode ? "bg-gray-800/90 border-gray-700/50" : "bg-white/90 border-white/50"}`}
+                className={`w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
               >
-                <div className="flex justify-center items-center py-12">
+                <div className="flex items-center justify-center py-12">
                   <motion.div
-                    className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"
+                    className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent"
                     animate={{ rotate: 360 }}
                     transition={{
                       duration: 1,
                       repeat: Infinity,
-                      ease: "linear",
+                      ease: 'linear',
                     }}
                   />
                   <span
-                    className={`ml-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                    className={`ml-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
                   >
                     Loading GitHub data...
                   </span>
@@ -209,46 +209,46 @@ const ActivityOverview = () => {
             ) : (
               <>
                 <div
-                  className={`backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border w-full ${isDarkMode ? "bg-gray-800/90 border-gray-700/50" : "bg-white/90 border-white/50"}`}
+                  className={`w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
                 >
-                  <div className="flex items-center justify-between mb-4 md:mb-6 gap-2 sm:gap-4">
+                  <div className="mb-4 flex items-center justify-between gap-2 sm:gap-4 md:mb-6">
                     <h3
-                      className={`font-bold flex items-center gap-2 text-sm md:text-base min-w-0 ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                      className={`flex min-w-0 items-center gap-2 text-sm font-bold md:text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
                     >
-                      <Github size={16} className="md:w-5 md:h-5 shrink-0" />
+                      <Github size={16} className="shrink-0 md:h-5 md:w-5" />
                       <span className="truncate">
-                        {githubStats?.totalContributions ?? 0} contributions in{" "}
+                        {githubStats?.totalContributions ?? 0} contributions in{' '}
                         {selectedYear}
                       </span>
                     </h3>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex shrink-0 items-center gap-3">
                       <div className="flex items-center gap-2">
                         <Calendar
                           size={14}
-                          className={`hidden sm:block ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                          className={`hidden sm:block ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
                         />
                         <Select
                           value={selectedYear}
                           onValueChange={handleYearChange}
                         >
                           <SelectTrigger
-                            className={`w-20 h-8 text-xs ${isDarkMode ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300"}`}
+                            className={`h-8 w-20 text-xs ${isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white'}`}
                           >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent
                             className={
                               isDarkMode
-                                ? "bg-gray-800 border-gray-700"
-                                : "bg-white border-gray-200"
+                                ? 'border-gray-700 bg-gray-800'
+                                : 'border-gray-200 bg-white'
                             }
                           >
                             {availableYears.map((year) => (
                               <SelectItem
                                 key={year}
                                 value={year.toString()}
-                                className={`text-xs ${isDarkMode ? "text-gray-200 hover:bg-gray-700" : "text-gray-900 hover:bg-gray-100"}`}
+                                className={`text-xs ${isDarkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-900 hover:bg-gray-100'}`}
                               >
                                 {year}
                               </SelectItem>
@@ -259,16 +259,16 @@ const ActivityOverview = () => {
                     </div>
                   </div>
 
-                  <div className="mb-4 md:mb-6 flex justify-center">
+                  <div className="mb-4 flex justify-center md:mb-6">
                     <div className="max-w-full">
                       <div className="overflow-x-auto overflow-y-hidden">
-                        <div className="inline-flex flex-col min-w-max">
-                          <div className="flex gap-0.5 md:gap-1 mb-1 h-4">
+                        <div className="inline-flex min-w-max flex-col">
+                          <div className="mb-1 flex h-4 gap-0.5 md:gap-1">
                             {weeksData.map((_, wIdx) => (
-                              <div key={wIdx} className="w-2 md:w-3 relative">
+                              <div key={wIdx} className="relative w-2 md:w-3">
                                 {monthLabelAt[wIdx] && (
                                   <span
-                                    className={`absolute left-0 top-0 text-[9px] md:text-[10px] leading-none whitespace-nowrap ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                                    className={`absolute left-0 top-0 whitespace-nowrap text-[9px] leading-none md:text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                                   >
                                     {monthLabelAt[wIdx]}
                                   </span>
@@ -289,7 +289,7 @@ const ActivityOverview = () => {
                                     return (
                                       <motion.div
                                         key={dIdx}
-                                        className="w-2 h-2 md:w-3 md:h-3 rounded-sm cursor-pointer"
+                                        className="h-2 w-2 cursor-pointer rounded-sm md:h-3 md:w-3"
                                         style={{
                                           backgroundColor:
                                             intensityColor(count),
@@ -299,7 +299,7 @@ const ActivityOverview = () => {
                                         transition={{
                                           duration: 0.3,
                                           delay: (wIdx * 7 + dIdx) * 0.02,
-                                          type: "spring",
+                                          type: 'spring',
                                           stiffness: 100,
                                         }}
                                         viewport={{ once: true }}
@@ -310,7 +310,7 @@ const ActivityOverview = () => {
                                         onMouseLeave={hideTooltip}
                                       />
                                     );
-                                  },
+                                  }
                                 )}
                               </div>
                             ))}
@@ -319,13 +319,13 @@ const ActivityOverview = () => {
                       </div>
 
                       <div
-                        className={`flex items-center justify-end gap-1 mt-2 text-[10px] md:text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                        className={`mt-2 flex items-center justify-end gap-1 text-[10px] md:text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                       >
                         <span className="mr-1">Less</span>
                         {palette.map((color, i) => (
                           <span
                             key={i}
-                            className="w-2 h-2 md:w-3 md:h-3 rounded-sm"
+                            className="h-2 w-2 rounded-sm md:h-3 md:w-3"
                             style={{ backgroundColor: color }}
                           />
                         ))}
@@ -334,11 +334,11 @@ const ActivityOverview = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
+                  <div className="space-y-2 text-xs md:space-y-3 md:text-sm">
                     <div className="flex items-center justify-between">
                       <span
                         className={
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
                         }
                       >
                         Total commits
@@ -350,7 +350,7 @@ const ActivityOverview = () => {
                     <div className="flex items-center justify-between">
                       <span
                         className={
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
                         }
                       >
                         Longest streak
@@ -368,20 +368,20 @@ const ActivityOverview = () => {
       </div>
 
       {tooltip &&
-        typeof document !== "undefined" &&
+        typeof document !== 'undefined' &&
         createPortal(
           <div
             className="pointer-events-none fixed z-50 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg"
             style={{
               left: tooltip.x,
               top: tooltip.y,
-              transform: "translate(-50%, calc(-100% - 6px))",
+              transform: 'translate(-50%, calc(-100% - 6px))',
             }}
           >
             {tooltip.content}
             <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>,
-          document.body,
+          document.body
         )}
     </section>
   );

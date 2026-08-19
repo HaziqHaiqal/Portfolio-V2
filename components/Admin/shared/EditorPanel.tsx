@@ -51,7 +51,7 @@ export function EditorPanel({
         </Button>
       </div>
 
-      <div className="relative isolate admin-bloom space-y-2">
+      <div className="admin-bloom relative isolate space-y-2">
         <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
             <span className="h-px w-6 bg-copper" />
@@ -61,7 +61,9 @@ export function EditorPanel({
             {title}
           </h1>
           {description && (
-            <p className="max-w-xl text-sm text-muted-foreground">{description}</p>
+            <p className="max-w-xl text-sm text-muted-foreground">
+              {description}
+            </p>
           )}
         </div>
       </div>

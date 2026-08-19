@@ -37,7 +37,9 @@ export function FormSection({
           {title}
         </h3>
         {description && (
-          <p className="pl-[14px] text-xs text-muted-foreground">{description}</p>
+          <p className="pl-[14px] text-xs text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {children}

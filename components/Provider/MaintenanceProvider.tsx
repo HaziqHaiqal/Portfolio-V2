@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -6,8 +6,8 @@ import {
   useCallback,
   useEffect,
   ReactNode,
-} from "react";
-import { Button } from "@components/ui/button";
+} from 'react';
+import { Button } from '@components/ui/button';
 
 // Simple global flag that the Supabase client can set
 let globalSetDown: ((down: boolean) => void) | null = null;
@@ -39,10 +39,10 @@ export function MaintenanceProvider({ children }: { children: ReactNode }) {
       <div className="min-h-screen w-full bg-gradient-to-b from-gray-950 to-gray-900 text-gray-100">
         <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
           {/* Animated icon */}
-          <div className="mb-8 relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center">
+          <div className="relative mb-8">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-orange-600/20">
               <svg
-                className="w-12 h-12 text-amber-500"
+                className="h-12 w-12 text-amber-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -55,19 +55,19 @@ export function MaintenanceProvider({ children }: { children: ReactNode }) {
                 />
               </svg>
             </div>
-            <div className="absolute inset-0 rounded-full bg-amber-500/10 animate-ping" />
+            <div className="absolute inset-0 animate-ping rounded-full bg-amber-500/10" />
           </div>
 
-          <div className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-sm text-amber-400 mb-6">
-            <span className="w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse" />
+          <div className="mb-6 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-sm text-amber-400">
+            <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Service Maintenance
           </div>
 
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-3">
+          <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
             We&apos;ll be back shortly
           </h1>
 
-          <p className="text-gray-400 max-w-md mb-8">
+          <p className="mb-8 max-w-md text-gray-400">
             Our database is undergoing maintenance. This usually takes just a
             few minutes. Please try again shortly.
           </p>
@@ -75,10 +75,10 @@ export function MaintenanceProvider({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleRetry}
-              className="bg-amber-500 hover:bg-amber-600 text-black font-medium"
+              className="bg-amber-500 font-medium text-black hover:bg-amber-600"
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="mr-2 h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

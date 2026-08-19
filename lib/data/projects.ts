@@ -3,24 +3,24 @@ import type {
   Project,
   ProjectImage,
   Upload,
-} from '@lib/supabase'
-import type { ProjectProps } from 'types/portfolio'
-import type { DB } from './types'
+} from '@lib/supabase';
+import type { ProjectProps } from 'types/portfolio';
+import type { DB } from './types';
 
 export async function getProjects(db: DB): Promise<Project[]> {
   const { data, error } = await db
     .from('projects')
     .select('*')
-    .order('sort_order', { ascending: true })
-  if (error) throw error
-  return (data ?? []) as Project[]
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Project[];
 }
 
 export async function getProjectImages(
   db: DB,
-  projectIds: string[],
+  projectIds: string[]
 ): Promise<Map<string, ProjectImage[]>> {
-  if (projectIds.length === 0) return new Map()
+  if (projectIds.length === 0) return new Map();
 
   const { data, error } = await db
     .from('uploads')
@@ -28,21 +28,21 @@ export async function getProjectImages(
     .eq('entity_type', 'project')
     .eq('field_name', 'project_collection')
     .in('entity_id', projectIds)
-    .order('sort_order', { ascending: true })
-  if (error) throw error
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
 
-  const byProject = new Map<string, ProjectImage[]>()
+  const byProject = new Map<string, ProjectImage[]>();
   for (const row of (data ?? []) as Upload[]) {
-    const list = byProject.get(row.entity_id) ?? []
+    const list = byProject.get(row.entity_id) ?? [];
     list.push({
       id: row.id,
       url: row.file_url,
       alt: row.alt_text ?? 'Project image',
       caption: row.caption,
-    })
-    byProject.set(row.entity_id, list)
+    });
+    byProject.set(row.entity_id, list);
   }
-  return byProject
+  return byProject;
 }
 
 /**
@@ -50,17 +50,19 @@ export async function getProjectImages(
  * with images already attached. Single batched query for images — no N+1.
  */
 export async function getProjectsWithImages(db: DB): Promise<ProjectProps[]> {
-  const projects = await getProjects(db)
+  const projects = await getProjects(db);
   const imagesByProject = await getProjectImages(
     db,
-    projects.map((p) => p.id),
-  )
-  return projects.map((p) => toProjectProps(p, imagesByProject.get(p.id) ?? []))
+    projects.map((p) => p.id)
+  );
+  return projects.map((p) =>
+    toProjectProps(p, imagesByProject.get(p.id) ?? [])
+  );
 }
 
 export function toProjectProps(
   project: Project,
-  images: ProjectImage[],
+  images: ProjectImage[]
 ): ProjectProps {
   return {
     id: project.id,
@@ -82,23 +84,23 @@ export function toProjectProps(
     duration: project.duration,
     images,
     thumbnail_url: project.thumbnail_url,
-  }
+  };
 }
 
 export async function upsertProject(
   db: DB,
-  row: NullableWritable<Project> & { id?: string },
+  row: NullableWritable<Project> & { id?: string }
 ): Promise<Project> {
   const { data, error } = await db
     .from('projects')
     .upsert({ ...row, updated_at: new Date().toISOString() })
     .select('*')
-    .single()
-  if (error) throw error
-  return data as Project
+    .single();
+  if (error) throw error;
+  return data as Project;
 }
 
 export async function deleteProject(db: DB, id: string): Promise<void> {
-  const { error } = await db.from('projects').delete().eq('id', id)
-  if (error) throw error
+  const { error } = await db.from('projects').delete().eq('id', id);
+  if (error) throw error;
 }

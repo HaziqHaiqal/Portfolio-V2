@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import NextImage from "next/image";
-import { useState } from "react";
+import NextImage from 'next/image';
+import { useState } from 'react';
 
 interface UniversalImageProps {
   src: string;
@@ -24,7 +24,7 @@ export default function UniversalImage({
   const [imgSrc, setImgSrc] = useState(src);
 
   const isSupabaseUrl =
-    imgSrc?.includes("supabase.co") || imgSrc?.includes("supabase");
+    imgSrc?.includes('supabase.co') || imgSrc?.includes('supabase');
 
   const handleError = () => {
     if (fallback && imgSrc !== fallback) {
@@ -56,10 +56,10 @@ export default function UniversalImage({
         <div
           className={className}
           style={{
-            position: "relative",
+            position: 'relative',
             width: `${width}px`,
             height: `${height}px`,
-            overflow: "hidden",
+            overflow: 'hidden',
             flexShrink: 0,
           }}
         >
@@ -108,10 +108,10 @@ export default function UniversalImage({
     <div
       className={className}
       style={{
-        position: "relative",
+        position: 'relative',
         width: `${width}px`,
         height: `${height}px`,
-        overflow: "hidden",
+        overflow: 'hidden',
         flexShrink: 0,
       }}
     >

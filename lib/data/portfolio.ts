@@ -4,23 +4,23 @@ import type {
   Education,
   Skill,
   Interest,
-} from '@lib/supabase'
-import type { ProjectProps } from 'types/portfolio'
-import type { DB } from './types'
-import { getProfile } from './profile'
-import { getExperience } from './experience'
-import { getEducation } from './education'
-import { getSkills } from './skills'
-import { getProjectsWithImages } from './projects'
-import { getInterests } from './interests'
+} from '@lib/supabase';
+import type { ProjectProps } from 'types/portfolio';
+import type { DB } from './types';
+import { getProfile } from './profile';
+import { getExperience } from './experience';
+import { getEducation } from './education';
+import { getSkills } from './skills';
+import { getProjectsWithImages } from './projects';
+import { getInterests } from './interests';
 
 export interface PortfolioData {
-  profile: Profile | null
-  experience: Experience[]
-  education: Education[]
-  skills: Skill[]
-  projects: ProjectProps[]
-  interests: Interest[]
+  profile: Profile | null;
+  experience: Experience[];
+  education: Education[];
+  skills: Skill[];
+  projects: ProjectProps[];
+  interests: Interest[];
 }
 
 /**
@@ -35,13 +35,13 @@ export async function getPortfolio(db: DB): Promise<PortfolioData> {
     getProfile(db),
     getExperience(db),
     getEducation(db),
-  ])
+  ]);
 
   const [skills, projects, interests] = await Promise.all([
     getSkills(db),
     getProjectsWithImages(db),
     getInterests(db),
-  ])
+  ]);
 
-  return { profile, experience, education, skills, projects, interests }
+  return { profile, experience, education, skills, projects, interests };
 }

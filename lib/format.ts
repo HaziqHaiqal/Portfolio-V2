@@ -24,13 +24,14 @@ export function relativeTime(input: string | Date | null | undefined): string {
   return date.toLocaleDateString(undefined, {
     day: 'numeric',
     month: 'short',
-    year: date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+    year:
+      date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
   });
 }
 
 /** "12 projects" / "1 project" without the `(s)` hedge. */
 export function pluralize(count: number, singular: string, plural?: string) {
-  return `${count} ${count === 1 ? singular : plural ?? `${singular}s`}`;
+  return `${count} ${count === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
 
 /**

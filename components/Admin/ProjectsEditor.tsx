@@ -183,7 +183,9 @@ export default function ProjectsEditor() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
+  const [editingProject, setEditingProject] = useState<ProjectData | null>(
+    null
+  );
   const [showForm, setShowForm] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -254,7 +256,10 @@ export default function ProjectsEditor() {
       )
     );
     try {
-      await upsertProjectAction({ id: project.id, featured: !project.featured });
+      await upsertProjectAction({
+        id: project.id,
+        featured: !project.featured,
+      });
       await loadProjects();
     } catch (error) {
       console.error('Error:', error);
@@ -435,11 +440,9 @@ export default function ProjectsEditor() {
                 </CardCover>
               }
               title={project.title}
-              subtitle={
-                [project.category, project.year || null]
-                  .filter(Boolean)
-                  .join(' · ')
-              }
+              subtitle={[project.category, project.year || null]
+                .filter(Boolean)
+                .join(' · ')}
               adornment={project.featured ? <FeaturedMark onCover /> : null}
               actions={
                 <>
@@ -598,7 +601,11 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
 
     let next = formData;
     const pendingUploads = [
-      { ref: thumbnailUploadRef, field: 'thumbnail_url' as const, label: 'Thumbnail' },
+      {
+        ref: thumbnailUploadRef,
+        field: 'thumbnail_url' as const,
+        label: 'Thumbnail',
+      },
       { ref: galleryUploadRef, field: null, label: 'Gallery' },
     ];
 
@@ -885,7 +892,10 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                 type="number"
                 value={formData.year}
                 onChange={(e) =>
-                  set('year', parseInt(e.target.value) || new Date().getFullYear())
+                  set(
+                    'year',
+                    parseInt(e.target.value) || new Date().getFullYear()
+                  )
                 }
               />
             </Field>

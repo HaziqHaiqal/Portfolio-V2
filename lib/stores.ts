@@ -1,23 +1,23 @@
-import { create } from 'zustand'
-import type { ProjectProps } from 'types/portfolio'
+import { create } from 'zustand';
+import type { ProjectProps } from 'types/portfolio';
 
 /**
  * Purely UI-local state (modals, menus). All server data is fetched in
  * Server Components and passed down as props — no client-side data store.
  */
 interface UIState {
-  selectedProject: ProjectProps | null
-  isProjectModalOpen: boolean
-  isMobileMenuOpen: boolean
-  isContactOpen: boolean
+  selectedProject: ProjectProps | null;
+  isProjectModalOpen: boolean;
+  isMobileMenuOpen: boolean;
+  isContactOpen: boolean;
 
-  openProjectModal: (project: ProjectProps) => void
-  closeProjectModal: () => void
-  toggleMobileMenu: () => void
-  closeMobileMenu: () => void
-  openContact: () => void
-  closeContact: () => void
-  toggleContact: () => void
+  openProjectModal: (project: ProjectProps) => void;
+  closeProjectModal: () => void;
+  toggleMobileMenu: () => void;
+  closeMobileMenu: () => void;
+  openContact: () => void;
+  closeContact: () => void;
+  toggleContact: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -37,4 +37,4 @@ export const useUIStore = create<UIState>((set) => ({
   closeContact: () => set({ isContactOpen: false }),
   toggleContact: () =>
     set((state) => ({ isContactOpen: !state.isContactOpen })),
-}))
+}));

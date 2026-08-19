@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, {
+  type Crop,
+  centerCrop,
+  makeAspectCrop,
+} from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropModalProps {
@@ -17,7 +21,7 @@ export default function ImageCropModal({
   onClose,
   onSave,
   imageSrc,
-  aspect
+  aspect,
 }: ImageCropModalProps) {
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
@@ -91,10 +95,7 @@ export default function ImageCropModal({
 
   const handleSaveCrop = async () => {
     if (imgRef.current && crop?.width && crop?.height) {
-      const croppedImageBlob = await getCroppedImg(
-        imgRef.current,
-        crop
-      );
+      const croppedImageBlob = await getCroppedImg(imgRef.current, crop);
       if (croppedImageBlob) {
         onSave(croppedImageBlob);
         onClose();
@@ -107,10 +108,10 @@ export default function ImageCropModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-md md:max-w-xl mx-4">
-        <h2 className="text-xl font-bold text-green-400 mb-6">Crop Image</h2>
-        <div className="flex justify-center bg-black/50 rounded-lg p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="mx-4 w-full max-w-md rounded-2xl bg-gray-800 p-6 md:max-w-xl md:p-8">
+        <h2 className="mb-6 text-xl font-bold text-green-400">Crop Image</h2>
+        <div className="flex justify-center rounded-lg bg-black/50 p-4">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -129,16 +130,16 @@ export default function ImageCropModal({
             />
           </ReactCrop>
         </div>
-        <div className="flex justify-end gap-4 mt-8">
+        <div className="mt-8 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600/50 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+            className="rounded-lg bg-gray-600/50 px-6 py-2 text-gray-300 transition-colors hover:bg-gray-600"
           >
             Cancel
           </button>
           <button
             onClick={handleSaveCrop}
-            className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="rounded-lg bg-green-500 px-6 py-2 text-white transition-colors hover:bg-green-600"
           >
             Save Crop
           </button>
@@ -146,4 +147,4 @@ export default function ImageCropModal({
       </div>
     </div>
   );
-} 
+}

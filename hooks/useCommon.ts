@@ -1,12 +1,12 @@
-import { useState, useEffect, useSyncExternalStore } from "react";
-import { useTheme } from "@components/Provider/ThemeProvider";
+import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useTheme } from '@components/Provider/ThemeProvider';
 
 const emptySubscribe = () => () => {};
 export function useHydrated() {
   return useSyncExternalStore(
     emptySubscribe,
     () => true,
-    () => false,
+    () => false
   );
 }
 
@@ -32,20 +32,19 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       // Ctrl/Cmd + D for dark mode toggle
-      if ((event.ctrlKey || event.metaKey) && event.key === "d") {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
         event.preventDefault();
         toggleDarkMode();
       }
 
       // Escape to close modals (handled by UI store in components)
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         // Components should listen for this
-        window.dispatchEvent(new CustomEvent("closeModal"));
+        window.dispatchEvent(new CustomEvent('closeModal'));
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, [toggleDarkMode]);
 }
-

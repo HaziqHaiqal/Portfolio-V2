@@ -1,6 +1,6 @@
-import type { Transition, Variants } from "framer-motion";
+import type { Transition, Variants } from 'framer-motion';
 
-export const EASE_OUT: Transition["ease"] = [0.16, 1, 0.3, 1];
+export const EASE_OUT: Transition['ease'] = [0.16, 1, 0.3, 1];
 
 export const fade = {
   initial: { opacity: 0 },

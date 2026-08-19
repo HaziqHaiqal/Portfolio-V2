@@ -9,4 +9,4 @@ export type {
   ProjectImage,
   Interest,
   Upload,
-} from './types'
+} from './types';

@@ -23,12 +23,7 @@ import UniversalUpload, {
   type UniversalUploadHandle,
 } from '@components/Media/UniversalUpload';
 import UniversalImage from '@components/Media/UniversalImage';
-import {
-  Field,
-  IconAction,
-  MediaTile,
-  Modal,
-} from '@components/Admin/shared';
+import { Field, IconAction, MediaTile, Modal } from '@components/Admin/shared';
 import { cn } from '@lib/utils';
 
 interface CompanySelectorProps {
@@ -377,7 +372,10 @@ export default function CompanySelector({
               type="url"
               value={formData.website_url}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, website_url: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  website_url: e.target.value,
+                }))
               }
               placeholder="https://example.com"
             />

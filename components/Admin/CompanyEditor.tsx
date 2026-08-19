@@ -4,13 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
-import {
-  Building2,
-  Plus,
-  Loader2,
-  Check,
-  ExternalLink,
-} from 'lucide-react';
+import { Building2, Plus, Loader2, Check, ExternalLink } from 'lucide-react';
 
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
@@ -86,7 +80,9 @@ export default function CompanyEditor() {
       // A foreign-key violation means roles still point at this company;
       // surface that instead of the raw Postgres error.
       if (msg.includes('23503') || msg.toLowerCase().includes('foreign key')) {
-        toast.error('Cannot delete — this company is linked to existing roles.');
+        toast.error(
+          'Cannot delete — this company is linked to existing roles.'
+        );
       } else {
         toast.error(msg);
       }
@@ -393,7 +389,10 @@ function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
               type="url"
               value={formData.website_url}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, website_url: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  website_url: e.target.value,
+                }))
               }
               placeholder="https://example.com"
             />

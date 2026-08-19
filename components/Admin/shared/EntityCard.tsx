@@ -49,7 +49,7 @@ export function EntityCard({
     <motion.div
       variants={listItem}
       className={cn(
-        'group admin-raised hover:admin-raised-hover relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card',
+        'admin-raised hover:admin-raised-hover group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card',
         'transition-[border-color,box-shadow,background-color] duration-200',
         'hover:border-primary/40 hover:bg-surface-raised/60',
         onClick && 'cursor-pointer',
@@ -180,9 +180,7 @@ export function FeaturedMark({ onCover }: { onCover?: boolean }) {
       title="Featured"
       className={cn(
         'flex h-6 w-6 items-center justify-center rounded-md',
-        onCover
-          ? 'bg-background/70 backdrop-blur'
-          : 'bg-transparent'
+        onCover ? 'bg-background/70 backdrop-blur' : 'bg-transparent'
       )}
     >
       <Star className="h-3.5 w-3.5 fill-copper text-copper" />

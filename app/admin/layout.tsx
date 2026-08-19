@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ExternalLink } from "lucide-react"
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ExternalLink } from 'lucide-react';
 
-import { AppSidebar } from "@components/Layout/AppSidebar"
+import { AppSidebar } from '@components/Layout/AppSidebar';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@components/ui/sidebar"
+} from '@components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,8 +17,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@components/ui/breadcrumb"
-import { Separator } from "@components/ui/separator"
+} from '@components/ui/breadcrumb';
+import { Separator } from '@components/ui/separator';
 
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -29,11 +29,11 @@ const pageTitles: Record<string, string> = {
   '/admin/education': 'Education',
   '/admin/skills': 'Skills',
   '/admin/interests': 'Interests',
-}
+};
 
 function DynamicBreadcrumb() {
-  const pathname = usePathname()
-  const title = pageTitles[pathname]
+  const pathname = usePathname();
+  const title = pageTitles[pathname];
 
   return (
     <Breadcrumb>
@@ -48,7 +48,10 @@ function DynamicBreadcrumb() {
           <>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
+                <Link
+                  href="/admin"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Dashboard
                 </Link>
               </BreadcrumbLink>
@@ -63,7 +66,7 @@ function DynamicBreadcrumb() {
         )}
       </BreadcrumbList>
     </Breadcrumb>
-  )
+  );
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -111,5 +114,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </SidebarInset>
       </SidebarProvider>
     </div>
-  )
+  );
 }

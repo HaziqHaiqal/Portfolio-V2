@@ -92,7 +92,9 @@ export default function InterestsEditor() {
   const [interests, setInterests] = useState<InterestData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editingInterest, setEditingInterest] = useState<InterestData | null>(null);
+  const [editingInterest, setEditingInterest] = useState<InterestData | null>(
+    null
+  );
   const [showForm, setShowForm] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -140,7 +142,9 @@ export default function InterestsEditor() {
             return rest;
           })();
       await upsertInterestAction(payload);
-      toast.success(editingInterest?.id ? 'Interest updated' : 'Interest created');
+      toast.success(
+        editingInterest?.id ? 'Interest updated' : 'Interest created'
+      );
       setShowForm(false);
       setEditingInterest(null);
       await loadInterests();

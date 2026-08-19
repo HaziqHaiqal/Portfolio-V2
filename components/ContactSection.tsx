@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Linkedin, Github, Eraser, Trash2 } from "lucide-react";
-import { useTheme } from "@components/Provider/ThemeProvider";
-import type { Profile } from "@lib/supabase";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Linkedin, Github, Eraser, Trash2 } from 'lucide-react';
+import { useTheme } from '@components/Provider/ThemeProvider';
+import type { Profile } from '@lib/supabase';
 
 /**
  * The terminal panel itself: window chrome, greeting, output screen and
@@ -18,25 +18,25 @@ interface ContactSectionProps {
 
 interface Entry {
   id: number;
-  kind: "command" | "note" | "error" | "help";
+  kind: 'command' | 'note' | 'error' | 'help';
   text?: string;
 }
 
 const GREETING = "Hi, I'm Haziq.";
 
 // Shared horizontal gutter — every region of the window aligns to it.
-const GUTTER = "px-4 sm:px-6 lg:px-8";
+const GUTTER = 'px-4 sm:px-6 lg:px-8';
 
 const COMMANDS = [
-  { name: "email", hint: "open your mail app", icon: Mail },
-  { name: "linkedin", hint: "open my LinkedIn", icon: Linkedin },
-  { name: "github", hint: "open my GitHub", icon: Github },
-  { name: "clear", hint: "clear the screen", icon: Eraser },
+  { name: 'email', hint: 'open your mail app', icon: Mail },
+  { name: 'linkedin', hint: 'open my LinkedIn', icon: Linkedin },
+  { name: 'github', hint: 'open my GitHub', icon: Github },
+  { name: 'clear', hint: 'clear the screen', icon: Eraser },
 ];
 
 const ContactSection = ({ profile }: ContactSectionProps) => {
   const { isDarkMode } = useTheme();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
 
   // The greeting types itself in; everything else fades in just after.
@@ -61,50 +61,50 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
 
   const t = isDarkMode
     ? {
-        panel: "bg-gray-800",
-        border: "border-gray-700/60",
-        chromeText: "text-gray-400",
-        heading: "text-gray-100",
-        body: "text-gray-400",
-        screen: "bg-gray-900/60 border-gray-700/60",
-        screenMuted: "text-gray-600",
-        helpBadge: "bg-emerald-400/10 text-emerald-300",
-        helpRow: "hover:bg-gray-800/70",
-        clearBtn: "text-gray-500 hover:bg-gray-700 hover:text-rose-400",
+        panel: 'bg-gray-800',
+        border: 'border-gray-700/60',
+        chromeText: 'text-gray-400',
+        heading: 'text-gray-100',
+        body: 'text-gray-400',
+        screen: 'bg-gray-900/60 border-gray-700/60',
+        screenMuted: 'text-gray-600',
+        helpBadge: 'bg-emerald-400/10 text-emerald-300',
+        helpRow: 'hover:bg-gray-800/70',
+        clearBtn: 'text-gray-500 hover:bg-gray-700 hover:text-rose-400',
         bubble:
-          "border-gray-700 bg-gray-700/40 text-gray-300 hover:bg-gray-700 hover:border-emerald-400/50 hover:text-emerald-300",
-        accent: "text-emerald-400",
-        input: "text-gray-100 placeholder:text-gray-500",
-        entryCommand: "text-gray-200",
-        entryNote: "text-gray-400",
-        entryError: "text-amber-300",
+          'border-gray-700 bg-gray-700/40 text-gray-300 hover:bg-gray-700 hover:border-emerald-400/50 hover:text-emerald-300',
+        accent: 'text-emerald-400',
+        input: 'text-gray-100 placeholder:text-gray-500',
+        entryCommand: 'text-gray-200',
+        entryNote: 'text-gray-400',
+        entryError: 'text-amber-300',
       }
     : {
-        panel: "bg-white",
-        border: "border-gray-200",
-        chromeText: "text-gray-400",
-        heading: "text-gray-900",
-        body: "text-gray-600",
-        screen: "bg-gray-50 border-gray-200",
-        screenMuted: "text-gray-400",
-        helpBadge: "bg-emerald-500/10 text-emerald-700",
-        helpRow: "hover:bg-gray-100",
-        clearBtn: "text-gray-400 hover:bg-gray-100 hover:text-rose-500",
+        panel: 'bg-white',
+        border: 'border-gray-200',
+        chromeText: 'text-gray-400',
+        heading: 'text-gray-900',
+        body: 'text-gray-600',
+        screen: 'bg-gray-50 border-gray-200',
+        screenMuted: 'text-gray-400',
+        helpBadge: 'bg-emerald-500/10 text-emerald-700',
+        helpRow: 'hover:bg-gray-100',
+        clearBtn: 'text-gray-400 hover:bg-gray-100 hover:text-rose-500',
         bubble:
-          "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-emerald-500/50 hover:text-emerald-600",
-        accent: "text-emerald-600",
-        input: "text-gray-900 placeholder:text-gray-400",
-        entryCommand: "text-gray-700",
-        entryNote: "text-gray-500",
-        entryError: "text-amber-600",
+          'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-emerald-500/50 hover:text-emerald-600',
+        accent: 'text-emerald-600',
+        input: 'text-gray-900 placeholder:text-gray-400',
+        entryCommand: 'text-gray-700',
+        entryNote: 'text-gray-500',
+        entryError: 'text-amber-600',
       };
 
-  const email = profile?.email || "woodyz.dev@gmail.com";
+  const email = profile?.email || 'woodyz.dev@gmail.com';
   const linkedinUrl =
-    profile?.linkedin_url || "https://linkedin.com/in/mhaziqhaiqal";
-  const githubUrl = profile?.github_url || "https://github.com/haziqhaiqal";
+    profile?.linkedin_url || 'https://linkedin.com/in/mhaziqhaiqal';
+  const githubUrl = profile?.github_url || 'https://github.com/haziqhaiqal';
 
-  const push = useCallback((...bodies: Omit<Entry, "id">[]) => {
+  const push = useCallback((...bodies: Omit<Entry, 'id'>[]) => {
     setEntries((prev) => [
       ...prev,
       ...bodies.map((body) => ({ ...body, id: ++idRef.current })),
@@ -120,102 +120,102 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   const run = useCallback(
     (raw: string) => {
       const command = raw.trim().toLowerCase();
-      setInput("");
+      setInput('');
       if (!command) return;
 
-      if (command === "clear") {
+      if (command === 'clear') {
         setEntries([]);
         return;
       }
 
       switch (command) {
-        case "email":
+        case 'email':
           openEmail();
           push(
-            { kind: "command", text: command },
-            { kind: "note", text: "Opening your mail app…" },
+            { kind: 'command', text: command },
+            { kind: 'note', text: 'Opening your mail app…' }
           );
           break;
-        case "linkedin":
-          window.open(linkedinUrl, "_blank");
+        case 'linkedin':
+          window.open(linkedinUrl, '_blank');
           push(
-            { kind: "command", text: command },
-            { kind: "note", text: "Opening LinkedIn…" },
+            { kind: 'command', text: command },
+            { kind: 'note', text: 'Opening LinkedIn…' }
           );
           break;
-        case "github":
-          window.open(githubUrl, "_blank");
+        case 'github':
+          window.open(githubUrl, '_blank');
           push(
-            { kind: "command", text: command },
-            { kind: "note", text: "Opening GitHub…" },
+            { kind: 'command', text: command },
+            { kind: 'note', text: 'Opening GitHub…' }
           );
           break;
-        case "help":
-          push({ kind: "command", text: command }, { kind: "help" });
+        case 'help':
+          push({ kind: 'command', text: command }, { kind: 'help' });
           break;
         default:
           push(
-            { kind: "command", text: command },
+            { kind: 'command', text: command },
             {
-              kind: "error",
+              kind: 'error',
               text: `I don't know "${command}". Try help — or use the shortcuts below.`,
-            },
+            }
           );
       }
     },
-    [push, openEmail, linkedinUrl, githubUrl],
+    [push, openEmail, linkedinUrl, githubUrl]
   );
 
   const actions = [
     {
-      key: "email",
+      key: 'email',
       icon: Mail,
-      label: "Email",
+      label: 'Email',
       detail: email,
       onClick: openEmail,
     },
     {
-      key: "linkedin",
+      key: 'linkedin',
       icon: Linkedin,
-      label: "LinkedIn",
+      label: 'LinkedIn',
       detail: "Let's connect",
-      onClick: () => window.open(linkedinUrl, "_blank"),
+      onClick: () => window.open(linkedinUrl, '_blank'),
     },
     {
-      key: "github",
+      key: 'github',
       icon: Github,
-      label: "GitHub",
-      detail: "See my code",
-      onClick: () => window.open(githubUrl, "_blank"),
+      label: 'GitHub',
+      detail: 'See my code',
+      onClick: () => window.open(githubUrl, '_blank'),
     },
   ];
 
   const renderEntry = (entry: Entry) => {
     switch (entry.kind) {
-      case "command":
+      case 'command':
         return (
           <div className="flex items-baseline gap-2">
             <span className={t.accent}>❯</span>
             <span className={t.entryCommand}>{entry.text}</span>
           </div>
         );
-      case "note":
+      case 'note':
         return (
-          <div className={`pl-5 flex items-baseline gap-2 ${t.entryNote}`}>
+          <div className={`flex items-baseline gap-2 pl-5 ${t.entryNote}`}>
             <span className={t.accent}>→</span>
             <span className="italic">{entry.text}</span>
           </div>
         );
-      case "error":
+      case 'error':
         return (
-          <div className={`pl-5 flex items-baseline gap-2 ${t.entryError}`}>
+          <div className={`flex items-baseline gap-2 pl-5 ${t.entryError}`}>
             <span>!</span>
             <span className="italic">{entry.text}</span>
           </div>
         );
-      case "help":
+      case 'help':
         return (
-          <div className="pl-5 mt-1 space-y-1.5">
+          <div className="mt-1 space-y-1.5 pl-5">
             <div className={`text-xs italic ${t.screenMuted}`}>
               {COMMANDS.length} commands · click one to run it
             </div>
@@ -235,7 +235,9 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
                       {name}
                     </span>
                   </span>
-                  <span className={`truncate italic ${t.entryNote}`}>{hint}</span>
+                  <span className={`truncate italic ${t.entryNote}`}>
+                    {hint}
+                  </span>
                   <span
                     className={`ml-auto shrink-0 pl-2 text-xs opacity-0 transition-opacity group-hover:opacity-100 ${t.accent}`}
                   >
@@ -250,16 +252,16 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   };
 
   return (
-    <div className={`flex flex-col h-full ${t.panel}`}>
+    <div className={`flex h-full flex-col ${t.panel}`}>
       {/* Window chrome. Closing happens via the floating button, the backdrop
           or Escape, so there is no close control duplicated in here. */}
       <header
-        className={`flex-shrink-0 flex items-center gap-3 ${GUTTER} h-12 border-b ${t.border}`}
+        className={`flex flex-shrink-0 items-center gap-3 ${GUTTER} h-12 border-b ${t.border}`}
       >
         <div className="flex items-center gap-2" aria-hidden="true">
-          <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-          <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
-          <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
         </div>
         <span className={`flex-1 text-center text-sm ${t.chromeText}`}>
           Say hello
@@ -269,24 +271,24 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
 
       {/* Outer scroller catches the case where intro + screen exceed a short
           window; normally nothing overflows here and only the screen scrolls. */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col">
-        <div className={`flex-shrink-0 ${GUTTER} pt-8 pb-6`}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+        <div className={`flex-shrink-0 ${GUTTER} pb-6 pt-8`}>
           <div className="flex items-baseline gap-3 lg:gap-4">
             <span className={`font-mono text-xl lg:text-3xl ${t.accent}`}>
               ❯
             </span>
             <h2
-              className={`text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight ${t.heading}`}
+              className={`text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl ${t.heading}`}
             >
               {GREETING.slice(0, typedLen)}
               {!greetingDone && (
-                <span className="inline-block w-[3px] h-7 lg:h-10 -mb-0.5 ml-1 bg-emerald-500 animate-pulse" />
+                <span className="-mb-0.5 ml-1 inline-block h-7 w-[3px] animate-pulse bg-emerald-500 lg:h-10" />
               )}
             </h2>
           </div>
 
           <motion.p
-            className={`pl-8 lg:pl-11 mt-4 max-w-xl lg:text-lg ${t.body}`}
+            className={`mt-4 max-w-xl pl-8 lg:pl-11 lg:text-lg ${t.body}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: greetingDone ? 1 : 0 }}
             transition={{ duration: 0.4 }}
@@ -297,13 +299,13 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
 
         {/* The screen: everything typed and every response lands here. */}
         <div
-          className={`flex-1 flex flex-col ${GUTTER} pb-6`}
+          className={`flex flex-1 flex-col ${GUTTER} pb-6`}
           style={{ minHeight: 160 }}
         >
           <div
             ref={screenRef}
             onClick={() => inputRef.current?.focus()}
-            className={`flex-1 min-h-0 overflow-y-auto overscroll-contain rounded-xl border p-3 sm:p-4 font-mono text-sm leading-6 ${t.screen}`}
+            className={`min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-xl border p-3 font-mono text-sm leading-6 sm:p-4 ${t.screen}`}
           >
             {entries.length === 0 ? (
               <div className={`space-y-1 italic ${t.screenMuted}`}>
@@ -337,7 +339,9 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
       <div className={`flex-shrink-0 border-t ${t.border}`}>
         {/* One non-wrapping row that scrolls sideways once the bubbles
             outgrow the window, so adding actions never costs extra height. */}
-        <div className={`scrollbar-hide flex items-center gap-2 overflow-x-auto overscroll-x-contain ${GUTTER} pt-3 pb-3`}>
+        <div
+          className={`scrollbar-hide flex items-center gap-2 overflow-x-auto overscroll-x-contain ${GUTTER} pb-3 pt-3`}
+        >
           {actions.map(({ key, icon: Icon, label, detail, onClick }) => (
             <button
               key={key}
@@ -369,7 +373,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Prefer the keyboard? Type help"
             aria-label="Terminal command"
-            className={`flex-1 min-w-0 bg-transparent outline-none border-none font-mono text-sm caret-emerald-500 ${t.input}`}
+            className={`min-w-0 flex-1 border-none bg-transparent font-mono text-sm caret-emerald-500 outline-none ${t.input}`}
             autoComplete="off"
             autoCapitalize="off"
             autoCorrect="off"

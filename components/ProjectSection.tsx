@@ -1,10 +1,10 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
-import ProjectsGrid from "@components/List/ProjectsGrid";
-import SectionHeader from "@components/Common/SectionHeader";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Zap } from 'lucide-react';
+import ProjectsGrid from '@components/List/ProjectsGrid';
+import SectionHeader from '@components/Common/SectionHeader';
 import { ProjectProps } from 'types/portfolio';
-import { useTheme } from "@components/Provider/ThemeProvider";
+import { useTheme } from '@components/Provider/ThemeProvider';
 
 interface ProjectSectionProps {
   projects: ProjectProps[];
@@ -22,17 +22,14 @@ const ProjectSection = ({
   const { isDarkMode } = useTheme();
 
   return (
-    <section
-      id="projects"
-      className={`py-32 px-6 relative overflow-hidden`}
-    >
+    <section id="projects" className={`relative overflow-hidden px-6 py-32`}>
       {/* Standard background - no custom gradients */}
       <div className="absolute inset-0 opacity-20">
         <div className="matrix-rain" />
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative z-10 mx-auto max-w-7xl">
+        <div className="mx-auto max-w-7xl">
           <SectionHeader
             icon={Zap}
             label="repo.showcase()"
@@ -43,36 +40,44 @@ const ProjectSection = ({
 
           {/* Content */}
           {loading ? (
-            <div className="flex justify-center items-center py-20">
+            <div className="flex items-center justify-center py-20">
               <motion.div
                 className="relative"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
                 <motion.div
-                  className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full"
+                  className="h-16 w-16 rounded-full border-4 border-blue-500/30 border-t-blue-500"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
                 <motion.div
-                  className="absolute inset-2 w-12 h-12 border-4 border-purple-500/30 border-b-purple-500 rounded-full"
+                  className="absolute inset-2 h-12 w-12 rounded-full border-4 border-purple-500/30 border-b-purple-500"
                   animate={{ rotate: -360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
                 />
               </motion.div>
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-20"
+              className="py-20 text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="text-6xl mb-4">⚠️</div>
-              <p className={`text-lg ${isDarkMode ? "text-red-400" : "text-red-600"}`}>
+              <div className="mb-4 text-6xl">⚠️</div>
+              <p
+                className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}
+              >
                 Oops! Something went wrong while loading projects.
               </p>
-              <p className={`text-sm mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <p
+                className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+              >
                 {error}
               </p>
             </motion.div>
@@ -85,16 +90,20 @@ const ProjectSection = ({
             />
           ) : (
             <motion.div
-              className="text-center py-20"
+              className="py-20 text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="text-6xl mb-4">🚧</div>
-              <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <div className="mb-4 text-6xl">🚧</div>
+              <p
+                className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
+              >
                 Projects coming soon...
               </p>
-              <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+              <p
+                className={`mt-2 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}
+              >
                 Currently working on some exciting new projects!
               </p>
             </motion.div>
@@ -105,4 +114,4 @@ const ProjectSection = ({
   );
 };
 
-export default ProjectSection; 
+export default ProjectSection;

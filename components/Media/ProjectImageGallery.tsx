@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,10 @@ interface ProjectImageGalleryProps {
   compact?: boolean;
 }
 
-export default function ProjectImageGallery({ projectId, compact = false }: ProjectImageGalleryProps) {
+export default function ProjectImageGallery({
+  projectId,
+  compact = false,
+}: ProjectImageGalleryProps) {
   const [images, setImages] = useState<UploadedFile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -57,12 +60,14 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
   }, [images]);
 
   const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  const prevImage = () =>
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
 
   const scrollThumbnails = (direction: 'left' | 'right') => {
     const el = thumbnailContainerRef.current;
     if (el) {
-      const scrollAmount = direction === 'right' ? el.clientWidth * 0.8 : -el.clientWidth * 0.8;
+      const scrollAmount =
+        direction === 'right' ? el.clientWidth * 0.8 : -el.clientWidth * 0.8;
       el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -70,10 +75,13 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl h-48 animate-pulse" />
+        <div className="h-48 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
         <div className="flex gap-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-lg h-16 w-16 animate-pulse" />
+            <div
+              key={i}
+              className="h-16 w-16 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+            />
           ))}
         </div>
       </div>
@@ -82,10 +90,12 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
 
   if (images.length === 0) {
     return (
-      <div className="text-center py-16 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500">
+      <div className="rounded-3xl border-2 border-dashed border-gray-300 py-16 text-center text-gray-400 dark:border-gray-700 dark:text-gray-500">
         <Monitor size={48} className="mx-auto mb-4 opacity-50" />
         <p className="text-lg font-medium">No Images Available</p>
-        <p className="text-sm mt-1">Images for this project will appear here once uploaded.</p>
+        <p className="mt-1 text-sm">
+          Images for this project will appear here once uploaded.
+        </p>
       </div>
     );
   }
@@ -94,8 +104,8 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
     <>
       <div className="space-y-4">
         {/* Main Image */}
-        <div className="relative bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden">
-          <div className={`relative ${compact ? "h-52 sm:h-60" : "h-96"}`}>
+        <div className="relative overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
+          <div className={`relative ${compact ? 'h-52 sm:h-60' : 'h-96'}`}>
             <Image
               src={images[currentIndex].url}
               alt={images[currentIndex].alt}
@@ -111,22 +121,22 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="h-5 w-5" />
                 </button>
               </>
             )}
 
             {/* Image Counter */}
             {images.length > 1 && (
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+              <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-2 py-1 text-xs text-white">
                 {currentIndex + 1} / {images.length}
               </div>
             )}
@@ -134,7 +144,7 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
 
           {/* Caption */}
           {images[currentIndex].caption && (
-            <div className="p-4 bg-white dark:bg-gray-900">
+            <div className="bg-white p-4 dark:bg-gray-900">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 {images[currentIndex].caption}
               </p>
@@ -148,24 +158,25 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
             {canScrollLeft && (
               <button
                 onClick={() => scrollThumbnails('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-full p-1 transition-all"
+                className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 shadow-md transition-all hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                <ChevronLeft className="h-5 w-5 text-gray-800 dark:text-gray-200" />
               </button>
             )}
             <div
               ref={thumbnailContainerRef}
               onScroll={checkScrollability}
-              className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+              className="scrollbar-hide flex gap-2 overflow-x-auto pb-2"
             >
               {images.map((image, index) => (
                 <button
                   key={image.id}
                   onClick={() => setCurrentIndex(index)}
-                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${index === currentIndex
+                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                    index === currentIndex
                       ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
                 >
                   <Image
                     src={image.url}
@@ -180,9 +191,9 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
             {canScrollRight && (
               <button
                 onClick={() => scrollThumbnails('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-full p-1 transition-all"
+                className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 shadow-md transition-all hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900"
               >
-                <ChevronRight className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                <ChevronRight className="h-5 w-5 text-gray-800 dark:text-gray-200" />
               </button>
             )}
           </div>
@@ -196,31 +207,37 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-4"
             onClick={() => setIsFullscreen(false)}
           >
             {/* Close Button */}
             <button
               onClick={() => setIsFullscreen(false)}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 p-2"
+              className="absolute right-4 top-4 p-2 text-white hover:text-gray-300"
             >
-              <X className="w-6 h-6" />
+              <X className="h-6 w-6" />
             </button>
 
             {/* Navigation Arrows */}
             {images.length > 1 && (
               <>
                 <button
-                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 text-white hover:text-gray-300"
                 >
-                  <ChevronLeft className="w-8 h-8" />
+                  <ChevronLeft className="h-8 w-8" />
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white hover:text-gray-300"
                 >
-                  <ChevronRight className="w-8 h-8" />
+                  <ChevronRight className="h-8 w-8" />
                 </button>
               </>
             )}
@@ -230,7 +247,7 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              className="relative max-w-5xl max-h-[90vh] w-full h-full"
+              className="relative h-full max-h-[90vh] w-full max-w-5xl"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
@@ -245,10 +262,14 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
             {/* Image Info */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-white">
               {images.length > 1 && (
-                <p className="text-sm mb-1">{currentIndex + 1} / {images.length}</p>
+                <p className="mb-1 text-sm">
+                  {currentIndex + 1} / {images.length}
+                </p>
               )}
               {images[currentIndex].caption && (
-                <p className="text-sm text-gray-300">{images[currentIndex].caption}</p>
+                <p className="text-sm text-gray-300">
+                  {images[currentIndex].caption}
+                </p>
               )}
             </div>
           </motion.div>
@@ -256,4 +277,4 @@ export default function ProjectImageGallery({ projectId, compact = false }: Proj
       </AnimatePresence>
     </>
   );
-} 
+}

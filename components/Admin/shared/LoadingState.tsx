@@ -24,7 +24,10 @@ export function CardGridSkeleton({
       )}
     >
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="admin-raised rounded-xl border border-border bg-card p-5">
+        <div
+          key={i}
+          className="admin-raised rounded-xl border border-border bg-card p-5"
+        >
           <div className="flex items-center gap-3">
             <Skeleton className="h-9 w-9 rounded-lg" />
             <div className="flex-1 space-y-2">

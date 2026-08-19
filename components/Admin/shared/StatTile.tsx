@@ -34,9 +34,10 @@ export function StatTile({
       variants={listItem}
       onClick={onClick}
       className={cn(
-        'group admin-raised relative overflow-hidden rounded-xl border border-border bg-card p-5',
+        'admin-raised group relative overflow-hidden rounded-xl border border-border bg-card p-5',
         'transition-[border-color,box-shadow] duration-200',
-        onClick && 'cursor-pointer hover:border-primary/40 hover:admin-raised-hover',
+        onClick &&
+          'hover:admin-raised-hover cursor-pointer hover:border-primary/40',
         className
       )}
     >

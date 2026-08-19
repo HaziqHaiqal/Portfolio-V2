@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createBrowserSupabase } from "@lib/supabase/browser";
-import { User } from "@supabase/supabase-js";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { createBrowserSupabase } from '@lib/supabase/browser';
+import { User } from '@supabase/supabase-js';
 import {
   Building2,
   Briefcase,
@@ -16,7 +16,7 @@ import {
   Sparkles,
   User as UserIcon,
   type LucideIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
 import {
   Sidebar,
@@ -30,9 +30,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@components/ui/sidebar";
-import { Skeleton } from "@components/ui/skeleton";
-import { cn } from "@lib/utils";
+} from '@components/ui/sidebar';
+import { Skeleton } from '@components/ui/skeleton';
+import { cn } from '@lib/utils';
 
 type NavItem = {
   title: string;
@@ -51,23 +51,23 @@ type NavGroup = {
  */
 const navigation: NavGroup[] = [
   {
-    items: [{ title: "Dashboard", url: "/admin", icon: LayoutDashboard }],
+    items: [{ title: 'Dashboard', url: '/admin', icon: LayoutDashboard }],
   },
   {
-    label: "Content",
+    label: 'Content',
     items: [
-      { title: "Profile", url: "/admin/profile", icon: UserIcon },
-      { title: "Projects", url: "/admin/projects", icon: FolderKanban },
-      { title: "Skills", url: "/admin/skills", icon: Sparkles },
-      { title: "Interests", url: "/admin/interests", icon: Heart },
+      { title: 'Profile', url: '/admin/profile', icon: UserIcon },
+      { title: 'Projects', url: '/admin/projects', icon: FolderKanban },
+      { title: 'Skills', url: '/admin/skills', icon: Sparkles },
+      { title: 'Interests', url: '/admin/interests', icon: Heart },
     ],
   },
   {
-    label: "Career",
+    label: 'Career',
     items: [
-      { title: "Experience", url: "/admin/experience", icon: Briefcase },
-      { title: "Education", url: "/admin/education", icon: GraduationCap },
-      { title: "Companies", url: "/admin/companies", icon: Building2 },
+      { title: 'Experience', url: '/admin/experience', icon: Briefcase },
+      { title: 'Education', url: '/admin/education', icon: GraduationCap },
+      { title: 'Companies', url: '/admin/companies', icon: Building2 },
     ],
   },
 ];
@@ -87,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       } = await supabase.auth.getUser();
       if (error) {
         await supabase.auth.signOut();
-        router.push("/login");
+        router.push('/login');
         return;
       }
       setUser(user);
@@ -97,20 +97,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [supabase.auth, router]);
 
   const isActive = (url: string) =>
-    url === "/admin" ? pathname === "/admin" : pathname.startsWith(url);
+    url === '/admin' ? pathname === '/admin' : pathname.startsWith(url);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push('/login');
   };
 
-  const email = user?.email ?? "";
-  const initial = (email || "A").charAt(0).toUpperCase();
+  const email = user?.email ?? '';
+  const initial = (email || 'A').charAt(0).toUpperCase();
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar" {...props}>
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border bg-sidebar"
+      {...props}
+    >
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3">
-        <Link href="/admin" className="flex items-center gap-2.5 overflow-hidden">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2.5 overflow-hidden"
+        >
           <div className="admin-raised flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[11px] font-bold tracking-tight text-primary-foreground">
             HH
           </div>
@@ -144,17 +151,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         isActive={active}
                         tooltip={item.title}
                         className={cn(
-                          "h-8 text-sidebar-foreground transition-colors",
-                          "hover:bg-sidebar-accent/70",
+                          'h-8 text-sidebar-foreground transition-colors',
+                          'hover:bg-sidebar-accent/70',
                           active &&
-                            "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                            'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
                         )}
                       >
                         <Link href={item.url}>
                           <item.icon
                             className={cn(
-                              "h-4 w-4 transition-colors",
-                              active ? "text-primary" : "text-muted-foreground"
+                              'h-4 w-4 transition-colors',
+                              active ? 'text-primary' : 'text-muted-foreground'
                             )}
                           />
                           <span>{item.title}</span>
@@ -178,8 +185,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {loadingUser ? (
               <Skeleton className="h-3 w-28" />
             ) : (
-              <p className="truncate text-xs text-sidebar-foreground" title={email}>
-                {email || "Signed in"}
+              <p
+                className="truncate text-xs text-sidebar-foreground"
+                title={email}
+              >
+                {email || 'Signed in'}
               </p>
             )}
           </div>

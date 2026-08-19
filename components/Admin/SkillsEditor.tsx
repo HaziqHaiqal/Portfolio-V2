@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import {
-  Plus,
-  Sparkles,
-  Star,
-  Loader2,
-  Save,
-} from 'lucide-react';
+import { Plus, Sparkles, Star, Loader2, Save } from 'lucide-react';
 
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
@@ -171,7 +165,10 @@ export default function SkillsEditor() {
       )
     );
     try {
-      await upsertSkillAction({ id: skill.id, is_featured: !skill.is_featured });
+      await upsertSkillAction({
+        id: skill.id,
+        is_featured: !skill.is_featured,
+      });
       await loadSkills();
     } catch (error) {
       console.error('Error:', error);
@@ -445,7 +442,11 @@ function SkillForm({ skill, onSave, onCancel, saving }: SkillFormProps) {
               </Select>
             </Field>
 
-            <Field label="Icon" htmlFor="icon_emoji" hint="A single emoji, shown on the card.">
+            <Field
+              label="Icon"
+              htmlFor="icon_emoji"
+              hint="A single emoji, shown on the card."
+            >
               <Input
                 id="icon_emoji"
                 value={formData.icon_emoji}

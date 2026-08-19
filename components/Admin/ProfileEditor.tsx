@@ -1,6 +1,12 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -106,14 +112,35 @@ const availabilityStyles: Record<string, string> = {
 };
 
 const socialFields = [
-  { field: 'website_url', label: 'Website', icon: Globe, placeholder: 'https://yoursite.com' },
-  { field: 'github_url', label: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
-  { field: 'linkedin_url', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
-  { field: 'twitter_url', label: 'X / Twitter', icon: Twitter, placeholder: 'https://x.com/username' },
+  {
+    field: 'website_url',
+    label: 'Website',
+    icon: Globe,
+    placeholder: 'https://yoursite.com',
+  },
+  {
+    field: 'github_url',
+    label: 'GitHub',
+    icon: Github,
+    placeholder: 'https://github.com/username',
+  },
+  {
+    field: 'linkedin_url',
+    label: 'LinkedIn',
+    icon: Linkedin,
+    placeholder: 'https://linkedin.com/in/username',
+  },
+  {
+    field: 'twitter_url',
+    label: 'X / Twitter',
+    icon: Twitter,
+    placeholder: 'https://x.com/username',
+  },
 ] as const;
 
 export default function ProfileEditor() {
-  const [profileData, setProfileData] = useState<ProfileData>(initialProfileData);
+  const [profileData, setProfileData] =
+    useState<ProfileData>(initialProfileData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [committingUpload, setCommittingUpload] = useState(false);
@@ -130,7 +157,10 @@ export default function ProfileEditor() {
 
   const loadProfile = useCallback(async () => {
     try {
-      const { data, error } = await supabase.from('profile').select('*').single();
+      const { data, error } = await supabase
+        .from('profile')
+        .select('*')
+        .single();
 
       // PGRST116 = no row yet; that's a first run, not a failure.
       if (error && error.code !== 'PGRST116') {
@@ -186,7 +216,11 @@ export default function ProfileEditor() {
     let next = { ...profileData };
 
     const pendingUploads = [
-      { ref: profileImageUploadRef, field: 'profile_image_url' as const, label: 'Profile image' },
+      {
+        ref: profileImageUploadRef,
+        field: 'profile_image_url' as const,
+        label: 'Profile image',
+      },
       { ref: resumeUploadRef, field: 'resume_url' as const, label: 'Resume' },
     ];
 
@@ -225,7 +259,10 @@ export default function ProfileEditor() {
   const handleAddLanguage = () => {
     const value = languageInput.trim();
     if (!value || profileData.languages.includes(value)) return;
-    setProfileData((prev) => ({ ...prev, languages: [...prev.languages, value] }));
+    setProfileData((prev) => ({
+      ...prev,
+      languages: [...prev.languages, value],
+    }));
     setLanguageInput('');
   };
 
@@ -313,21 +350,29 @@ export default function ProfileEditor() {
               <div className="flex items-center gap-2.5 px-5 py-3">
                 <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <dd className="truncate text-foreground">
-                  {profileData.location || <span className="text-muted-foreground">No location</span>}
+                  {profileData.location || (
+                    <span className="text-muted-foreground">No location</span>
+                  )}
                 </dd>
               </div>
               <div className="flex items-center gap-2.5 px-5 py-3">
                 <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <dd className="truncate text-foreground">
-                  {profileData.email || <span className="text-muted-foreground">No email</span>}
+                  {profileData.email || (
+                    <span className="text-muted-foreground">No email</span>
+                  )}
                 </dd>
               </div>
               <div className="flex items-center gap-2.5 px-5 py-3">
                 <Briefcase className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <dd className="truncate text-foreground">
-                  {profileData.years_of_experience
-                    ? `${profileData.years_of_experience} years experience`
-                    : <span className="text-muted-foreground">Experience not set</span>}
+                  {profileData.years_of_experience ? (
+                    `${profileData.years_of_experience} years experience`
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Experience not set
+                    </span>
+                  )}
                 </dd>
               </div>
               {profileData.is_freelance_available && (
@@ -342,7 +387,10 @@ export default function ProfileEditor() {
 
         {/* Form */}
         <div className="admin-raised space-y-8 rounded-xl border border-border bg-card p-6">
-          <FormSection title="Identity" description="Name, role and how to reach you.">
+          <FormSection
+            title="Identity"
+            description="Name, role and how to reach you."
+          >
             <FormGrid>
               <Field label="Full name" htmlFor="full_name">
                 <Input
@@ -427,7 +475,10 @@ export default function ProfileEditor() {
             </Field>
           </FormSection>
 
-          <FormSection title="Links" description="Where people can find your work.">
+          <FormSection
+            title="Links"
+            description="Where people can find your work."
+          >
             <FormGrid>
               {socialFields.map(({ field, label, icon: Icon, placeholder }) => (
                 <Field key={field} label={label} htmlFor={field}>
@@ -591,8 +642,8 @@ export default function ProfileEditor() {
             </FormGrid>
             {profileData.resume_url && (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <FileText className="h-3.5 w-3.5" />
-                A résumé is attached to your profile.
+                <FileText className="h-3.5 w-3.5" />A résumé is attached to your
+                profile.
               </p>
             )}
           </FormSection>

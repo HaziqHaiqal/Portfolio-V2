@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -6,7 +6,7 @@ import {
   useContext,
   useEffect,
   useSyncExternalStore,
-} from "react";
+} from 'react';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -16,7 +16,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = "portfolio-theme";
+const THEME_STORAGE_KEY = 'portfolio-theme';
 
 // localStorage is the source of truth for the theme, surfaced to React via
 // useSyncExternalStore. This is hydration-safe by construction — the server
@@ -26,10 +26,10 @@ const themeListeners = new Set<() => void>();
 
 function subscribeToTheme(callback: () => void) {
   themeListeners.add(callback);
-  window.addEventListener("storage", callback); // keep tabs in sync
+  window.addEventListener('storage', callback); // keep tabs in sync
   return () => {
     themeListeners.delete(callback);
-    window.removeEventListener("storage", callback);
+    window.removeEventListener('storage', callback);
   };
 }
 
@@ -42,16 +42,16 @@ function readStoredTheme(): boolean {
       return parsed.state ? parsed.state.isDarkMode : parsed.isDarkMode;
     }
   } catch (error) {
-    console.warn("Error parsing saved theme:", error);
+    console.warn('Error parsing saved theme:', error);
   }
   // No stored preference: fall back to the system setting.
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 function writeStoredTheme(isDark: boolean) {
   localStorage.setItem(
     THEME_STORAGE_KEY,
-    JSON.stringify({ state: { isDarkMode: isDark } }),
+    JSON.stringify({ state: { isDarkMode: isDark } })
   );
   // The storage event only fires in other tabs, so notify this tab directly.
   themeListeners.forEach((listener) => listener());
@@ -61,12 +61,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDarkMode = useSyncExternalStore(
     subscribeToTheme,
     readStoredTheme,
-    () => false,
+    () => false
   );
 
   // Reflect the current theme on the document element.
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.classList.toggle('dark', isDarkMode);
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
@@ -93,7 +93,7 @@ export function useTheme() {
   if (context === undefined) {
     // Return fallback values instead of throwing error
     console.warn(
-      "useTheme called outside ThemeProvider, using fallback values",
+      'useTheme called outside ThemeProvider, using fallback values'
     );
     return {
       isDarkMode: false,
@@ -111,39 +111,39 @@ export function useThemeClasses() {
   return {
     // Background variants
     bg: {
-      primary: isDarkMode ? "bg-gray-800" : "bg-gray-50",
-      secondary: isDarkMode ? "bg-gray-900" : "bg-white",
-      card: isDarkMode ? "bg-gray-700/80" : "bg-white/80",
-      surface: isDarkMode ? "bg-gray-700" : "bg-white",
+      primary: isDarkMode ? 'bg-gray-800' : 'bg-gray-50',
+      secondary: isDarkMode ? 'bg-gray-900' : 'bg-white',
+      card: isDarkMode ? 'bg-gray-700/80' : 'bg-white/80',
+      surface: isDarkMode ? 'bg-gray-700' : 'bg-white',
     },
 
     // Text variants
     text: {
-      primary: isDarkMode ? "text-gray-100" : "text-gray-900",
-      secondary: isDarkMode ? "text-gray-300" : "text-gray-700",
-      muted: isDarkMode ? "text-gray-400" : "text-gray-500",
-      accent: "text-blue-600",
+      primary: isDarkMode ? 'text-gray-100' : 'text-gray-900',
+      secondary: isDarkMode ? 'text-gray-300' : 'text-gray-700',
+      muted: isDarkMode ? 'text-gray-400' : 'text-gray-500',
+      accent: 'text-blue-600',
     },
 
     // Border variants
     border: {
-      primary: isDarkMode ? "border-gray-700/20" : "border-white/20",
-      secondary: isDarkMode ? "border-gray-700" : "border-gray-200",
-      muted: isDarkMode ? "border-gray-600" : "border-gray-300",
+      primary: isDarkMode ? 'border-gray-700/20' : 'border-white/20',
+      secondary: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+      muted: isDarkMode ? 'border-gray-600' : 'border-gray-300',
     },
 
     // Interactive states
     hover: {
-      bg: isDarkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-100/50",
-      text: isDarkMode ? "hover:text-gray-200" : "hover:text-gray-800",
+      bg: isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100/50',
+      text: isDarkMode ? 'hover:text-gray-200' : 'hover:text-gray-800',
     },
 
     // Component-specific
     navbar: isDarkMode
-      ? "bg-gray-800/70 border-gray-700/20"
-      : "bg-white/70 border-white/20",
+      ? 'bg-gray-800/70 border-gray-700/20'
+      : 'bg-white/70 border-white/20',
     modal: isDarkMode
-      ? "bg-gray-800 border-gray-700"
-      : "bg-white border-gray-200",
+      ? 'bg-gray-800 border-gray-700'
+      : 'bg-white border-gray-200',
   };
 }

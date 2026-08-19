@@ -1,5 +1,5 @@
-import { createBrowserClient } from '@supabase/ssr'
-import { setSupabaseDown } from '@components/Provider/MaintenanceProvider'
+import { createBrowserClient } from '@supabase/ssr';
+import { setSupabaseDown } from '@components/Provider/MaintenanceProvider';
 
 // Transient HTTP/2 errors that Chrome retries internally for subresources but
 // surfaces through fetch(). Most common: ERR_HTTP2_SERVER_REFUSED_STREAM on
@@ -12,31 +12,31 @@ const TRANSIENT_ERROR_PATTERNS = [
   'ERR_CONNECTION_CLOSED',
   'ERR_CONNECTION_RESET',
   'Failed to fetch',
-] as const
+] as const;
 
 function isTransientFetchError(err: unknown): boolean {
-  if (!(err instanceof Error)) return false
-  const msg = `${err.name} ${err.message}`
-  return TRANSIENT_ERROR_PATTERNS.some((p) => msg.includes(p))
+  if (!(err instanceof Error)) return false;
+  const msg = `${err.name} ${err.message}`;
+  return TRANSIENT_ERROR_PATTERNS.some((p) => msg.includes(p));
 }
 
 async function fetchWithRetry(
   input: RequestInfo | URL,
   init?: RequestInit,
-  maxAttempts = 3,
+  maxAttempts = 3
 ): Promise<Response> {
-  let lastErr: unknown
+  let lastErr: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await fetch(input, init)
+      return await fetch(input, init);
     } catch (err) {
-      lastErr = err
-      if (attempt === maxAttempts || !isTransientFetchError(err)) throw err
-      const delay = 150 * 2 ** (attempt - 1) + Math.random() * 100
-      await new Promise((r) => setTimeout(r, delay))
+      lastErr = err;
+      if (attempt === maxAttempts || !isTransientFetchError(err)) throw err;
+      const delay = 150 * 2 ** (attempt - 1) + Math.random() * 100;
+      await new Promise((r) => setTimeout(r, delay));
     }
   }
-  throw lastErr
+  throw lastErr;
 }
 
 export function createBrowserSupabase() {
@@ -47,17 +47,21 @@ export function createBrowserSupabase() {
       global: {
         fetch: async (input, init) => {
           try {
-            const res = await fetchWithRetry(input, init)
-            if (res.status === 502 || res.status === 503 || res.status === 504) {
-              setSupabaseDown(true)
+            const res = await fetchWithRetry(input, init);
+            if (
+              res.status === 502 ||
+              res.status === 503 ||
+              res.status === 504
+            ) {
+              setSupabaseDown(true);
             }
-            return res
+            return res;
           } catch (err) {
-            setSupabaseDown(true)
-            throw err
+            setSupabaseDown(true);
+            throw err;
           }
         },
       },
-    },
-  )
+    }
+  );
 }

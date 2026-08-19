@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -110,10 +110,26 @@ export default function AdminPage() {
 
   const loadActivities = useCallback(async () => {
     const [projects, skills, experience, education] = await Promise.all([
-      supabase.from('projects').select('name, updated_at').order('updated_at', { ascending: false }).limit(3),
-      supabase.from('skills').select('name, updated_at').order('updated_at', { ascending: false }).limit(3),
-      supabase.from('experience').select('position, updated_at').order('updated_at', { ascending: false }).limit(3),
-      supabase.from('education').select('degree, updated_at').order('updated_at', { ascending: false }).limit(3),
+      supabase
+        .from('projects')
+        .select('name, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(3),
+      supabase
+        .from('skills')
+        .select('name, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(3),
+      supabase
+        .from('experience')
+        .select('position, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(3),
+      supabase
+        .from('education')
+        .select('degree, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(3),
     ]);
 
     const items: ActivityItem[] = [
@@ -152,7 +168,8 @@ export default function AdminPage() {
     ];
 
     items.sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
     setActivities(items.slice(0, 7));
   }, [supabase]);
@@ -187,7 +204,10 @@ export default function AdminPage() {
       <PageSkeleton>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl border border-border bg-card" />
+            <div
+              key={i}
+              className="h-28 rounded-xl border border-border bg-card"
+            />
           ))}
         </div>
       </PageSkeleton>
@@ -247,7 +267,9 @@ export default function AdminPage() {
           <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
               <History className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-medium text-foreground">Recent activity</h2>
+              <h2 className="text-sm font-medium text-foreground">
+                Recent activity
+              </h2>
             </div>
 
             {activities.length === 0 ? (
@@ -292,7 +314,9 @@ export default function AdminPage() {
         <section className="lg:col-span-2">
           <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="border-b border-border px-5 py-3.5">
-              <h2 className="text-sm font-medium text-foreground">Quick actions</h2>
+              <h2 className="text-sm font-medium text-foreground">
+                Quick actions
+              </h2>
             </div>
             <ul className="divide-y divide-border/60">
               {QUICK_ACTIONS.map((action) => (

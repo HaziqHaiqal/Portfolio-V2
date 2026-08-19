@@ -192,7 +192,9 @@ export default function ExperienceEditor() {
     // field can be cleared (e.g. end_date when switching to "current").
     return forUpdate
       ? dbData
-      : Object.fromEntries(Object.entries(dbData).filter(([, v]) => v !== null));
+      : Object.fromEntries(
+          Object.entries(dbData).filter(([, v]) => v !== null)
+        );
   };
 
   const handleSave = async (experienceData: ExperienceData) => {
@@ -267,7 +269,9 @@ export default function ExperienceEditor() {
           if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
             return sum;
           }
-          return sum + Math.max(0, (end.getTime() - start.getTime()) / msInYear);
+          return (
+            sum + Math.max(0, (end.getTime() - start.getTime()) / msInYear)
+          );
         }, 0);
 
         const primary = sortedRoles[0];
@@ -532,7 +536,10 @@ export default function ExperienceEditor() {
                           {role.achievements.length > 0 && (
                             <span className="flex items-center gap-1 text-copper">
                               <Award className="h-3 w-3" />
-                              {pluralize(role.achievements.length, 'achievement')}
+                              {pluralize(
+                                role.achievements.length,
+                                'achievement'
+                              )}
                             </span>
                           )}
                         </p>
@@ -691,7 +698,11 @@ function ExperienceForm({
             <Field
               label="End date"
               htmlFor="end_date"
-              hint={formData.is_current ? 'Disabled — this is your current role.' : undefined}
+              hint={
+                formData.is_current
+                  ? 'Disabled — this is your current role.'
+                  : undefined
+              }
             >
               <Input
                 id="end_date"

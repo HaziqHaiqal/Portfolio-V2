@@ -16,6 +16,6 @@ export interface ProjectProps {
   features?: string[];
   teamSize?: string;
   duration?: string;
-  images?: Array<{ id:string; url:string; alt:string; caption?:string }>;
+  images?: Array<{ id: string; url: string; alt: string; caption?: string }>;
   thumbnail_url?: string;
 }

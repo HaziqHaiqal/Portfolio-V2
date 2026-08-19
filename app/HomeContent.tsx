@@ -1,28 +1,25 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { Github, Linkedin, Mail } from 'lucide-react'
-import {
-  useTheme,
-  useThemeClasses,
-} from '@components/Provider/ThemeProvider'
-import { useUIStore } from '@lib/stores'
-import { useKeyboardShortcuts } from '@hooks/useCommon'
-import ProjectModal from '@components/Modal/ProjectModal'
-import FloatingElements from '@components/Layout/FloatingElements'
-import NavBar from '@components/Layout/NavBar'
-import HeroSection from '@components/HeroSection'
-import ActivityOverview from '@components/ActivityOverview'
-import TechStackSection from '@components/TechStackSection'
-import ExperienceSection from '@components/ExperienceSection'
-import EducationSection from '@components/EducationSection'
-import ProjectSection from '@components/ProjectSection'
-import ContactModal from '@components/Modal/ContactModal'
+import { motion } from 'framer-motion';
+import { Github, Linkedin, Mail } from 'lucide-react';
+import { useTheme, useThemeClasses } from '@components/Provider/ThemeProvider';
+import { useUIStore } from '@lib/stores';
+import { useKeyboardShortcuts } from '@hooks/useCommon';
+import ProjectModal from '@components/Modal/ProjectModal';
+import FloatingElements from '@components/Layout/FloatingElements';
+import NavBar from '@components/Layout/NavBar';
+import HeroSection from '@components/HeroSection';
+import ActivityOverview from '@components/ActivityOverview';
+import TechStackSection from '@components/TechStackSection';
+import ExperienceSection from '@components/ExperienceSection';
+import EducationSection from '@components/EducationSection';
+import ProjectSection from '@components/ProjectSection';
+import ContactModal from '@components/Modal/ContactModal';
 
-import type { ProjectProps } from 'types/portfolio'
-import type { PortfolioData } from '@lib/data'
+import type { ProjectProps } from 'types/portfolio';
+import type { PortfolioData } from '@lib/data';
 
-type Props = PortfolioData
+type Props = PortfolioData;
 
 export default function HomeContent({
   profile,
@@ -30,24 +27,25 @@ export default function HomeContent({
   education,
   projects,
 }: Props) {
-  const { isDarkMode } = useTheme()
-  const classes = useThemeClasses()
+  const { isDarkMode } = useTheme();
+  const classes = useThemeClasses();
   const {
     selectedProject,
     isProjectModalOpen,
     openProjectModal,
     closeProjectModal,
-  } = useUIStore()
+  } = useUIStore();
 
-  useKeyboardShortcuts()
+  useKeyboardShortcuts();
 
-  const handleProjectClick = (project: ProjectProps) => openProjectModal(project)
-  const handleCloseModal = () => closeProjectModal()
-  const currentYear = new Date().getFullYear()
+  const handleProjectClick = (project: ProjectProps) =>
+    openProjectModal(project);
+  const handleCloseModal = () => closeProjectModal();
+  const currentYear = new Date().getFullYear();
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden transition-all duration-500"
+      className="relative min-h-screen overflow-hidden transition-all duration-500"
       suppressHydrationWarning
     >
       <div className={`relative ${classes.bg.primary}`}>
@@ -75,26 +73,26 @@ export default function HomeContent({
         />
       </div>
 
-      <footer className="py-12 px-6 bg-gray-900 text-white relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex justify-center gap-6 mb-8">
+      <footer className="relative z-10 bg-gray-900 px-6 py-12 text-white">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-8 flex justify-center gap-6">
             <motion.a
               href={profile?.github_url || '#'}
-              className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-blue-600 transition-colors duration-300"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800 transition-colors duration-300 hover:bg-blue-600"
               whileHover={{ scale: 1.1, rotate: 5 }}
             >
               <Github size={20} />
             </motion.a>
             <motion.a
               href={profile?.linkedin_url || '#'}
-              className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-blue-600 transition-colors duration-300"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800 transition-colors duration-300 hover:bg-blue-600"
               whileHover={{ scale: 1.1, rotate: -5 }}
             >
               <Linkedin size={20} />
             </motion.a>
             <motion.a
               href={`mailto:${profile?.email || 'woodyz.dev@gmail.com'}`}
-              className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-purple-600 transition-colors duration-300"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800 transition-colors duration-300 hover:bg-purple-600"
               whileHover={{ scale: 1.1, rotate: 5 }}
             >
               <Mail size={20} />
@@ -120,5 +118,5 @@ export default function HomeContent({
         />
       )}
     </div>
-  )
+  );
 }

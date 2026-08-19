@@ -45,7 +45,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'profile-images',
     path: 'avatars',
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   },
 
   resume: {
@@ -55,7 +55,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'documents',
     path: 'resumes',
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ['application/pdf']
+    allowedTypes: ['application/pdf'],
   },
 
   // Project uploads
@@ -66,7 +66,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'project-thumbnails',
     path: 'thumbnails',
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
 
   project_image: {
@@ -76,7 +76,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'project-images',
     path: '', // Will use entityId as path
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   },
 
   // Company logos are stored on the standalone `companies` table.
@@ -87,7 +87,7 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'profile-images',
     path: 'company-logos',
     maxSize: 2 * 1024 * 1024, // 2MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
   },
 
   // Education uploads
@@ -98,8 +98,8 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     bucket: 'profile-images',
     path: 'institution-logos',
     maxSize: 2 * 1024 * 1024, // 2MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
-  }
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+  },
 };
 
 // ============= CORE FUNCTIONS =============
@@ -107,7 +107,10 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
 /**
  * Validate file against upload configuration
  */
-export function validateFile(file: File, config: UploadConfig): { valid: boolean; error?: string } {
+export function validateFile(
+  file: File,
+  config: UploadConfig
+): { valid: boolean; error?: string } {
   // Check file size
   if (file.size > config.maxSize) {
     const maxSizeMB = Math.round(config.maxSize / (1024 * 1024));
@@ -116,11 +119,14 @@ export function validateFile(file: File, config: UploadConfig): { valid: boolean
 
   // Check file type
   if (!config.allowedTypes.includes(file.type)) {
-    const typeNames = config.allowedTypes.map(type => {
-      if (type.startsWith('image/')) return type.replace('image/', '').toUpperCase();
-      if (type === 'application/pdf') return 'PDF';
-      return type;
-    }).join(', ');
+    const typeNames = config.allowedTypes
+      .map((type) => {
+        if (type.startsWith('image/'))
+          return type.replace('image/', '').toUpperCase();
+        if (type === 'application/pdf') return 'PDF';
+        return type;
+      })
+      .join(', ');
     return { valid: false, error: `Only ${typeNames} files are allowed` };
   }
 
@@ -173,9 +179,9 @@ export async function uploadFile(
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from(config.bucket)
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(config.bucket).getPublicUrl(fileName);
 
     // Save metadata to uploads table
     const { data: dbData, error: dbError } = await supabase
@@ -185,14 +191,15 @@ export async function uploadFile(
         entity_id: config.entityId,
         field_name: config.fieldName,
         file_url: publicUrl,
-        alt_text: altText || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+        alt_text:
+          altText || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
         caption: caption,
         file_name: fileName,
         original_name: file.name,
         file_type: file.type,
         file_size: file.size,
         bucket_name: config.bucket,
-        sort_order: 0
+        sort_order: 0,
       })
       .select()
       .single();
@@ -205,7 +212,12 @@ export async function uploadFile(
 
     // Update main entity table if needed (skip collections)
     if (config.fieldName !== 'project_collection') {
-      await updateEntityTable(config.entityType, config.entityId, config.fieldName, publicUrl);
+      await updateEntityTable(
+        config.entityType,
+        config.entityId,
+        config.fieldName,
+        publicUrl
+      );
     }
 
     return {
@@ -213,13 +225,14 @@ export async function uploadFile(
       data: {
         id: dbData.id,
         url: publicUrl,
-        alt: altText || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+        alt:
+          altText || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
         caption: caption,
         fileName: fileName,
         originalName: file.name,
         fileType: file.type,
-        fileSize: file.size
-      }
+        fileSize: file.size,
+      },
     };
   } catch (error) {
     return { success: false, error: `Unexpected error: ${error}` };
@@ -257,11 +270,18 @@ export async function deleteFile(
       if (fetchError.code === 'PGRST116') {
         // No file found, just clear the entity field
         if (config.fieldName !== 'project_collection') {
-          await clearEntityField(config.entityType, config.entityId, config.fieldName);
+          await clearEntityField(
+            config.entityType,
+            config.entityId,
+            config.fieldName
+          );
         }
         return { success: true };
       }
-      return { success: false, error: `Failed to find file: ${fetchError.message}` };
+      return {
+        success: false,
+        error: `Failed to find file: ${fetchError.message}`,
+      };
     }
 
     // Delete from uploads table
@@ -271,7 +291,10 @@ export async function deleteFile(
       .eq('id', fileData.id);
 
     if (dbError) {
-      return { success: false, error: `Database deletion failed: ${dbError.message}` };
+      return {
+        success: false,
+        error: `Database deletion failed: ${dbError.message}`,
+      };
     }
 
     // Delete from storage
@@ -285,7 +308,11 @@ export async function deleteFile(
 
     // Clear entity field if needed
     if (config.fieldName !== 'project_collection') {
-      await clearEntityField(config.entityType, config.entityId, config.fieldName);
+      await clearEntityField(
+        config.entityType,
+        config.entityId,
+        config.fieldName
+      );
     }
 
     return { success: true };
@@ -309,7 +336,10 @@ export async function deleteFileById(fileId: string): Promise<DeleteResult> {
       .single();
 
     if (fetchError) {
-      return { success: false, error: `Failed to fetch file: ${fetchError.message}` };
+      return {
+        success: false,
+        error: `Failed to fetch file: ${fetchError.message}`,
+      };
     }
 
     // Delete from database
@@ -319,7 +349,10 @@ export async function deleteFileById(fileId: string): Promise<DeleteResult> {
       .eq('id', fileId);
 
     if (dbError) {
-      return { success: false, error: `Database deletion failed: ${dbError.message}` };
+      return {
+        success: false,
+        error: `Database deletion failed: ${dbError.message}`,
+      };
     }
 
     // Delete from storage
@@ -349,7 +382,9 @@ export async function getFiles(
 
   let query = supabase
     .from('uploads')
-    .select('id, file_url, alt_text, caption, file_name, original_name, file_type, file_size')
+    .select(
+      'id, file_url, alt_text, caption, file_name, original_name, file_type, file_size'
+    )
     .eq('entity_type', entityType)
     .eq('entity_id', entityId);
 
@@ -364,7 +399,7 @@ export async function getFiles(
     return [];
   }
 
-  return data.map(file => ({
+  return data.map((file) => ({
     id: file.id,
     url: file.file_url,
     alt: file.alt_text || 'Uploaded file',
@@ -372,7 +407,7 @@ export async function getFiles(
     fileName: file.file_name,
     originalName: file.original_name,
     fileType: file.file_type,
-    fileSize: file.file_size
+    fileSize: file.file_size,
   }));
 }
 
@@ -394,7 +429,7 @@ async function updateEntityTable(
     project: 'projects',
     experience: 'experience',
     education: 'education',
-    company: 'companies'
+    company: 'companies',
   };
 
   const fieldMap: Record<string, string> = {
@@ -402,7 +437,7 @@ async function updateEntityTable(
     resume: 'resume_url',
     project_thumbnail: 'thumbnail_url',
     company_logo: 'logo_url',
-    institution_logo: 'logo_url'
+    institution_logo: 'logo_url',
   };
 
   const table = tableMap[entityType];
@@ -435,7 +470,7 @@ async function clearEntityField(
     project: 'projects',
     experience: 'experience',
     education: 'education',
-    company: 'companies'
+    company: 'companies',
   };
 
   const fieldMap: Record<string, string> = {
@@ -443,7 +478,7 @@ async function clearEntityField(
     resume: 'resume_url',
     project_thumbnail: 'thumbnail_url',
     company_logo: 'logo_url',
-    institution_logo: 'logo_url'
+    institution_logo: 'logo_url',
   };
 
   const table = tableMap[entityType];
@@ -467,4 +502,4 @@ export const getProjectImages = (projectId: string) =>
   getFiles('project', projectId, 'project_collection');
 
 // Legacy compatibility - for gradual migration
-export type { UploadedFile as ProjectImage }; 
+export type { UploadedFile as ProjectImage };
