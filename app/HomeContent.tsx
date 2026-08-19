@@ -17,7 +17,7 @@ import TechStackSection from '@components/TechStackSection'
 import ExperienceSection from '@components/ExperienceSection'
 import EducationSection from '@components/EducationSection'
 import ProjectShowcaseSection from '@components/ProjectShowcaseSection'
-import NetworkSection from '@components/NetworkSection'
+import ContactTerminalModal from '@components/ContactTerminalModal'
 
 import type { ProjectProps } from 'types/portfolio'
 import type { PortfolioData } from '@lib/data'
@@ -73,7 +73,6 @@ export default function HomeContent({
           projects={projects}
           handleProjectClick={handleProjectClick}
         />
-        <NetworkSection profile={profile} />
       </div>
 
       <footer className="py-12 px-6 bg-gray-900 text-white relative z-10">
@@ -109,6 +108,8 @@ export default function HomeContent({
           </div>
         </div>
       </footer>
+
+      <ContactTerminalModal profile={profile} />
 
       {selectedProject && (
         <ProjectModal

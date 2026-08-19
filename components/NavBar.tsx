@@ -11,7 +11,8 @@ import { useHydrated } from "@hooks/useCommon";
 const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const classes = useThemeClasses();
-  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
+  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, openContact } =
+    useUIStore();
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const mounted = useHydrated();
@@ -73,6 +74,11 @@ const NavBar = () => {
                 href={item.href}
                 onClick={(e) => {
                   e.preventDefault();
+                  // Contact lives in the floating terminal modal, not on the page.
+                  if (item.href === "#contact") {
+                    openContact();
+                    return;
+                  }
                   const targetId = item.href.replace("#", "");
                   const element = document.getElementById(targetId);
                   if (element) {
@@ -176,6 +182,11 @@ const NavBar = () => {
                       onClick={(e) => {
                         e.preventDefault();
                         closeMobileMenu();
+                        // Contact lives in the floating terminal modal.
+                        if (item.href === "#contact") {
+                          openContact();
+                          return;
+                        }
                         setTimeout(() => {
                           const targetId = item.href.replace("#", "");
                           const element = document.getElementById(targetId);
