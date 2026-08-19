@@ -1,25 +1,33 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createBrowserSupabase } from '@lib/supabase/browser';
 import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
+import { User } from '@supabase/supabase-js';
+import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
-  Activity,
-  FolderOpen,
-  CheckCircle,
-  AlertCircle,
-  XCircle,
-  TrendingUp,
-  TrendingDown,
-  Zap,
-  ArrowUpRight,
+  ArrowRight,
   Briefcase,
+  Building2,
+  FolderKanban,
   GraduationCap,
+  Heart,
+  History,
+  Sparkles,
+  UserIcon,
+  type LucideIcon,
 } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
+import {
+  EmptyState,
+  PageHeader,
+  PageSkeleton,
+  StatTile,
+} from '@components/Admin/shared';
+import { listContainer, rise } from '@constants/motion';
+import { relativeTime } from '@lib/format';
+import { cn } from '@lib/utils';
+
 interface StatsData {
   projects: number;
   experience: number;
@@ -29,151 +37,132 @@ interface StatsData {
 
 interface ActivityItem {
   id: string;
-  action: string;
+  label: string;
   target: string;
-  timestamp: string;
-  status: 'success' | 'warning' | 'error';
-  icon: React.ComponentType<{ className?: string }>;
+  /** Raw ISO timestamp — kept unformatted so the list can be sorted correctly. */
+  updatedAt: string;
+  icon: LucideIcon;
+  href: string;
 }
 
-const StatCard = ({
-  title,
-  value,
-  change,
-  changeType,
-  icon: Icon,
-  delay
-}: {
-  title: string;
-  value: string | number;
-  change: string;
-  changeType: 'increase' | 'decrease';
-  icon: React.ComponentType<{ className?: string }>;
-
-  delay: number;
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-    >
-      <Card className="bg-gray-800 border-gray-700 hover:shadow-lg transition-all duration-300">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {title}
-          </CardTitle>
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="h-4 w-4 text-primary" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-foreground mb-2">
-            {value}
-          </div>
-          <p className="text-xs text-muted-foreground flex items-center">
-            {changeType === 'increase' ? (
-              <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
-            ) : (
-              <TrendingDown className="w-3 h-3 text-red-500 mr-1" />
-            )}
-            <span className={`${changeType === 'increase' ? 'text-green-600' : 'text-red-600'} font-medium`}>
-              {change}
-            </span>
-          </p>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
-
-const ActivityCard = ({ activity }: { activity: ActivityItem, index: number }) => {
-  const statusIcons = {
-    success: CheckCircle,
-    warning: AlertCircle,
-    error: XCircle
-  };
-
-  const statusColors = {
-    success: 'text-green-500 bg-green-500/10',
-    warning: 'text-yellow-500 bg-yellow-500/10',
-    error: 'text-red-500 bg-red-500/10'
-  };
-
-  const StatusIcon = statusIcons[activity.status];
-  const ActivityIcon = activity.icon;
-
-  return (
-    <div className="flex items-center space-x-4 p-4 hover:bg-muted/50 rounded-xl transition-all duration-300">
-      <div className="relative">
-        <div className={`p-2 rounded-lg ${statusColors[activity.status]}`}>
-          <ActivityIcon className="h-4 w-4" />
-        </div>
-        <StatusIcon className={`h-3 w-3 absolute -top-1 -right-1 ${statusColors[activity.status].split(' ')[0]}`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">
-          {activity.action}
-        </p>
-        <p className="text-xs text-muted-foreground truncate">
-          {activity.target}
-        </p>
-      </div>
-      <div className="text-xs text-muted-foreground">
-        {activity.timestamp}
-      </div>
-    </div>
-  );
-};
-
-const QuickActionCard = ({ title, description, icon: Icon, onClick }: {
+const QUICK_ACTIONS: {
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  onClick: () => void;
-}) => {
-  return (
-    <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-gray-800 border-gray-700 hover:border-primary/50" onClick={onClick}>
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-lg bg-primary/10">
-            <Icon className="h-6 w-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground">{title}</h3>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Loading component
-function LoadingSpinner() {
-  return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        <p className="text-sm text-muted-foreground">Loading admin dashboard...</p>
-      </div>
-    </div>
-  );
-}
+  icon: LucideIcon;
+  href: string;
+}[] = [
+  {
+    title: 'Add a project',
+    description: 'Publish new work to the portfolio',
+    icon: FolderKanban,
+    href: '/admin/projects',
+  },
+  {
+    title: 'Log experience',
+    description: 'Record a role or update a timeline',
+    icon: Briefcase,
+    href: '/admin/experience',
+  },
+  {
+    title: 'Update skills',
+    description: 'Adjust your stack and proficiencies',
+    icon: Sparkles,
+    href: '/admin/skills',
+  },
+  {
+    title: 'Edit profile',
+    description: 'Bio, links, and contact details',
+    icon: UserIcon,
+    href: '/admin/profile',
+  },
+];
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<StatsData>({ projects: 0, experience: 0, education: 0, skills: 0 });
+  const [stats, setStats] = useState<StatsData>({
+    projects: 0,
+    experience: 0,
+    education: 0,
+    skills: 0,
+  });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const router = useRouter();
   const supabase = createBrowserSupabase();
 
+  const loadStats = useCallback(async () => {
+    // `head: true` with an exact count avoids pulling every row back just to
+    // measure the length of the array.
+    const [projects, experience, education, skills] = await Promise.all([
+      supabase.from('projects').select('id', { count: 'exact', head: true }),
+      supabase.from('experience').select('id', { count: 'exact', head: true }),
+      supabase.from('education').select('id', { count: 'exact', head: true }),
+      supabase.from('skills').select('id', { count: 'exact', head: true }),
+    ]);
+
+    setStats({
+      projects: projects.count ?? 0,
+      experience: experience.count ?? 0,
+      education: education.count ?? 0,
+      skills: skills.count ?? 0,
+    });
+  }, [supabase]);
+
+  const loadActivities = useCallback(async () => {
+    const [projects, skills, experience, education] = await Promise.all([
+      supabase.from('projects').select('name, updated_at').order('updated_at', { ascending: false }).limit(3),
+      supabase.from('skills').select('name, updated_at').order('updated_at', { ascending: false }).limit(3),
+      supabase.from('experience').select('position, updated_at').order('updated_at', { ascending: false }).limit(3),
+      supabase.from('education').select('degree, updated_at').order('updated_at', { ascending: false }).limit(3),
+    ]);
+
+    const items: ActivityItem[] = [
+      ...(projects.data ?? []).map((row) => ({
+        id: `project-${row.name}`,
+        label: 'Project',
+        target: row.name,
+        updatedAt: row.updated_at,
+        icon: FolderKanban,
+        href: '/admin/projects',
+      })),
+      ...(skills.data ?? []).map((row) => ({
+        id: `skill-${row.name}`,
+        label: 'Skill',
+        target: row.name,
+        updatedAt: row.updated_at,
+        icon: Sparkles,
+        href: '/admin/skills',
+      })),
+      ...(experience.data ?? []).map((row) => ({
+        id: `experience-${row.position}`,
+        label: 'Experience',
+        target: row.position,
+        updatedAt: row.updated_at,
+        icon: Briefcase,
+        href: '/admin/experience',
+      })),
+      ...(education.data ?? []).map((row) => ({
+        id: `education-${row.degree}`,
+        label: 'Education',
+        target: row.degree,
+        updatedAt: row.updated_at,
+        icon: GraduationCap,
+        href: '/admin/education',
+      })),
+    ];
+
+    items.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+    setActivities(items.slice(0, 7));
+  }, [supabase]);
+
   useEffect(() => {
-    const checkUser = async () => {
+    const bootstrap = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
         if (!user) {
           router.push('/login');
@@ -181,210 +170,168 @@ export default function AdminPage() {
         }
 
         setUser(user);
-        loadStats();
-        loadActivities();
+        await Promise.all([loadStats(), loadActivities()]);
       } catch (error) {
-        console.error('Error checking user:', error);
+        console.error('Error loading dashboard:', error);
         router.push('/login');
       } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, supabase.auth]);
+    bootstrap();
+  }, [router, supabase.auth, loadStats, loadActivities]);
 
-  const loadStats = useCallback(async () => {
-    try {
-      const [projectsRes, experienceRes, educationRes, skillsRes] = await Promise.all([
-        supabase.from('projects').select('id'),
-        supabase.from('experience').select('id'),
-        supabase.from('education').select('id'),
-        supabase.from('skills').select('id')
-      ]);
-
-      setStats({
-        projects: projectsRes.data?.length || 0,
-        experience: experienceRes.data?.length || 0,
-        education: educationRes.data?.length || 0,
-        skills: skillsRes.data?.length || 0
-      });
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  }, [supabase]);
-
-  const loadActivities = useCallback(async () => {
-    try {
-      // Get recent updates from various tables
-      const [projectsRes, skillsRes, experienceRes, educationRes] = await Promise.all([
-        supabase.from('projects').select('name, updated_at').order('updated_at', { ascending: false }).limit(2),
-        supabase.from('skills').select('name, updated_at').order('updated_at', { ascending: false }).limit(2),
-        supabase.from('experience').select('position, updated_at').order('updated_at', { ascending: false }).limit(2),
-        supabase.from('education').select('degree, updated_at').order('updated_at', { ascending: false }).limit(2)
-      ]);
-
-      const activities: ActivityItem[] = [];
-
-      // Add project activities
-      projectsRes.data?.forEach(project => {
-        activities.push({
-          id: `project-${project.name}`,
-          action: 'Updated project',
-          target: project.name,
-          timestamp: new Date(project.updated_at).toLocaleDateString(),
-          status: 'success',
-          icon: FolderOpen
-        });
-      });
-
-      // Add skill activities
-      skillsRes.data?.forEach(skill => {
-        activities.push({
-          id: `skill-${skill.name}`,
-          action: 'Updated skill',
-          target: skill.name,
-          timestamp: new Date(skill.updated_at).toLocaleDateString(),
-          status: 'success',
-          icon: Zap
-        });
-      });
-
-      // Add experience activities
-      experienceRes.data?.forEach(exp => {
-        activities.push({
-          id: `experience-${exp.position}`,
-          action: 'Updated experience',
-          target: exp.position,
-          timestamp: new Date(exp.updated_at).toLocaleDateString(),
-          status: 'success',
-          icon: Briefcase
-        });
-      });
-
-      // Add education activities
-      educationRes.data?.forEach(edu => {
-        activities.push({
-          id: `education-${edu.degree}`,
-          action: 'Updated education',
-          target: edu.degree,
-          timestamp: new Date(edu.updated_at).toLocaleDateString(),
-          status: 'success',
-          icon: GraduationCap
-        });
-      });
-
-      // Sort by timestamp and take the 6 most recent
-      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setActivities(activities.slice(0, 6));
-    } catch (error) {
-      console.error('Error loading activities:', error);
-      setActivities([]);
-    }
-  }, [supabase]);
-
-  if (loading) {
-    return <LoadingSpinner />;
+  if (loading || !user) {
+    return (
+      <PageSkeleton>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-xl border border-border bg-card" />
+          ))}
+        </div>
+      </PageSkeleton>
+    );
   }
 
-  if (!user) {
-    return <LoadingSpinner />;
-  }
+  const name = user.email?.split('@')[0] ?? 'there';
 
   return (
-    <>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <div className="space-y-6">
-          {/* Welcome Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-2"
-          >
-            <h1 className="text-3xl font-bold text-foreground">Welcome back!</h1>
-            <p className="text-muted-foreground">
-              Here&apos;s what&apos;s happening with your portfolio today.
-            </p>
-          </motion.div>
+    <div className="space-y-8">
+      <motion.div {...rise}>
+        <PageHeader
+          eyebrow="Overview"
+          title={`Welcome back, ${name}`}
+          description="Everything currently published on your portfolio, at a glance."
+        />
+      </motion.div>
 
-          {/* Stats Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              title="Projects"
-              value={stats.projects}
-              change={`${stats.projects} total`}
-              changeType="increase"
-              icon={FolderOpen}
-              delay={0}
-            />
-            <StatCard
-              title="Experience"
-              value={stats.experience}
-              change={`${stats.experience} positions`}
-              changeType="increase"
-              icon={Briefcase}
-              delay={0.1}
-            />
-            <StatCard
-              title="Education"
-              value={stats.education}
-              change={`${stats.education} degrees`}
-              changeType="increase"
-              icon={GraduationCap}
-              delay={0.2}
-            />
-            <StatCard
-              title="Skills"
-              value={stats.skills}
-              change={`${stats.skills} skills`}
-              changeType="increase"
-              icon={Zap}
-              delay={0.3}
-            />
+      {/* Counts */}
+      <motion.div
+        variants={listContainer}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-2 gap-4 lg:grid-cols-4"
+      >
+        <StatTile
+          label="Projects"
+          value={stats.projects}
+          icon={FolderKanban}
+          onClick={() => router.push('/admin/projects')}
+        />
+        <StatTile
+          label="Experience"
+          value={stats.experience}
+          hint="roles"
+          icon={Briefcase}
+          onClick={() => router.push('/admin/experience')}
+        />
+        <StatTile
+          label="Education"
+          value={stats.education}
+          hint="qualifications"
+          icon={GraduationCap}
+          onClick={() => router.push('/admin/education')}
+        />
+        <StatTile
+          label="Skills"
+          value={stats.skills}
+          icon={Sparkles}
+          onClick={() => router.push('/admin/skills')}
+        />
+      </motion.div>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Recent activity */}
+        <section className="lg:col-span-3">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-medium text-foreground">Recent activity</h2>
+            </div>
+
+            {activities.length === 0 ? (
+              <EmptyState
+                icon={History}
+                title="Nothing yet"
+                description="Records you create or edit will show up here."
+                className="rounded-none border-0 bg-transparent py-12"
+              />
+            ) : (
+              <ul className="divide-y divide-border/60">
+                {activities.map((activity) => (
+                  <li key={activity.id}>
+                    <button
+                      type="button"
+                      onClick={() => router.push(activity.href)}
+                      className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-accent/40"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted">
+                        <activity.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-foreground">
+                          {activity.target}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.label}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {relativeTime(activity.updatedAt)}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        </section>
 
-          {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <QuickActionCard
-              title="Add New Project"
-              description="Showcase your latest work"
-              icon={FolderOpen}
-              onClick={() => router.push('/admin/projects')}
-            />
-            <QuickActionCard
-              title="Update Experience"
-              description="Add your recent work experience"
-              icon={Briefcase}
-              onClick={() => router.push('/admin/experience')}
-            />
-            <QuickActionCard
-              title="Manage Skills"
-              description="Update your technical skills"
-              icon={Zap}
-              onClick={() => router.push('/admin/skills')}
-            />
-          </div>
-
-          {/* Recent Activity */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription>
-                Your latest updates and changes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {activities.map((activity, index) => (
-                <ActivityCard key={activity.id} activity={activity} index={index} />
+        {/* Quick actions */}
+        <section className="lg:col-span-2">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-3.5">
+              <h2 className="text-sm font-medium text-foreground">Quick actions</h2>
+            </div>
+            <ul className="divide-y divide-border/60">
+              {QUICK_ACTIONS.map((action) => (
+                <li key={action.href}>
+                  <button
+                    type="button"
+                    onClick={() => router.push(action.href)}
+                    className="group flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-accent/40"
+                  >
+                    <action.icon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {action.title}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {action.description}
+                      </p>
+                    </div>
+                    <ArrowRight
+                      className={cn(
+                        'h-3.5 w-3.5 shrink-0 text-muted-foreground',
+                        'opacity-0 transition-opacity group-hover:opacity-100'
+                      )}
+                    />
+                  </button>
+                </li>
               ))}
-            </CardContent>
-          </Card>
-        </div>
+            </ul>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-4">
+            <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <p className="flex-1 text-xs text-muted-foreground">
+              Companies and interests are managed from the sidebar.
+            </p>
+            <Heart className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </div>
+        </section>
       </div>
-    </>
+    </div>
   );
-} 
+}

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import { Search, Folder } from "lucide-react";
-import { getCategoryInfo } from "@lib/constants";
+import { getCategoryInfo } from "@constants/projects";
 import type { ProjectProps } from "types/portfolio";
 import ProjectCard from "@components/Card/ProjectCard";
 

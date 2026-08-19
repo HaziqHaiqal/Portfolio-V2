@@ -1,12 +1,16 @@
 'use client'
 
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { ExternalLink } from "lucide-react"
+
 import { AppSidebar } from "@components/Layout/AppSidebar"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@components/ui/sidebar"
-import { 
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -15,64 +19,48 @@ import {
   BreadcrumbSeparator,
 } from "@components/ui/breadcrumb"
 import { Separator } from "@components/ui/separator"
-import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  User as UserIcon,
-  FolderOpen,
-  Building,
-  Briefcase,
-  GraduationCap,
-  Zap,
-  Heart,
-} from "lucide-react"
 
-const navigationItems = {
-  '/admin': { title: 'Dashboard', icon: LayoutDashboard },
-  '/admin/profile': { title: 'Profile', icon: UserIcon },
-  '/admin/projects': { title: 'Projects', icon: FolderOpen },
-  '/admin/companies': { title: 'Companies', icon: Building },
-  '/admin/experience': { title: 'Experience', icon: Briefcase },
-  '/admin/education': { title: 'Education', icon: GraduationCap },
-  '/admin/skills': { title: 'Skills', icon: Zap },
-  '/admin/interests': { title: 'Interests', icon: Heart },
+const pageTitles: Record<string, string> = {
+  '/admin': 'Dashboard',
+  '/admin/profile': 'Profile',
+  '/admin/projects': 'Projects',
+  '/admin/companies': 'Companies',
+  '/admin/experience': 'Experience',
+  '/admin/education': 'Education',
+  '/admin/skills': 'Skills',
+  '/admin/interests': 'Interests',
 }
 
 function DynamicBreadcrumb() {
   const pathname = usePathname()
-  const currentPage = navigationItems[pathname as keyof typeof navigationItems]
-  
-  if (pathname === '/admin') {
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    )
-  }
+  const title = pageTitles[pathname]
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbLink href="/admin" className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            Admin Dashboard
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator className="hidden md:block" />
-        <BreadcrumbItem>
-          <BreadcrumbPage className="flex items-center gap-2">
-            {currentPage?.icon && <currentPage.icon className="h-4 w-4" />}
-            {currentPage?.title || 'Page'}
-          </BreadcrumbPage>
-        </BreadcrumbItem>
+      <BreadcrumbList className="text-xs sm:gap-1.5">
+        {pathname === '/admin' ? (
+          <BreadcrumbItem>
+            <BreadcrumbPage className="font-medium text-foreground">
+              Dashboard
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        ) : (
+          <>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
+                  Dashboard
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-medium text-foreground">
+                {title ?? 'Page'}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   )
@@ -80,22 +68,48 @@ function DynamicBreadcrumb() {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="admin-theme min-h-screen bg-background font-inter text-foreground antialiased">
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-700 bg-gray-800 px-4">
-            <SidebarTrigger 
-              className="outline outline-1 outline-border bg-background hover:bg-accent text-foreground shadow-sm" 
-            />
-            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-600" />
+        <SidebarInset className="bg-background">
+          {/*
+            Sticky, hairline-bordered header. Kept at 56px so it reads as chrome
+            rather than as a second page title.
+          */}
+          <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
+            <SidebarTrigger className="-ml-1 h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground" />
+            <Separator orientation="vertical" className="h-4 bg-border" />
             <DynamicBreadcrumb />
+
+            <div className="ml-auto flex items-center gap-2">
+              <Link
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                View site
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-900">
-            {children}
-          </div>
+
+          {/*
+            The blueprint grid lives on a fixed layer behind the content and
+            fades out downward, so it gives the page a material without
+            tiling visibly behind dense forms.
+          */}
+          <main className="relative flex-1">
+            <div
+              aria-hidden
+              className="admin-grid admin-grid-mask pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-70"
+            />
+            <div className="relative mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+              {children}
+            </div>
+          </main>
         </SidebarInset>
       </SidebarProvider>
     </div>
   )
-} 
+}

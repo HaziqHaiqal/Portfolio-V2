@@ -1,38 +1,68 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import UniversalImage from '@components/Media/UniversalImage';
+import {
+  ExternalLink,
+  FolderKanban,
+  Github,
+  ImageIcon,
+  Lightbulb,
+  Loader2,
+  Plus,
+  Save,
+  Star,
+  Trash2,
+} from 'lucide-react';
+
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertProjectAction,
   deleteProjectAction,
 } from '@app/admin/_actions/projects';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-
-import {
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  FolderOpen,
-  Loader2,
-  Check,
-  AlertCircle,
-  Star,
-  StarOff,
-  Sparkles
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 import { Badge } from '@components/ui/badge';
 import { Textarea } from '@components/ui/textarea';
-import { Checkbox } from '@components/ui/checkbox';
+import { Switch } from '@components/ui/switch';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@components/ui/select';
 import UniversalUpload, {
   type UniversalUploadHandle,
 } from '@components/Media/UniversalUpload';
 import { getFiles, deleteFileById, type UploadedFile } from '@lib/fileManager';
+import {
+  BulletList,
+  CardCover,
+  CardGridSkeleton,
+  ConfirmDialog,
+  EditDeleteActions,
+  EditorPanel,
+  EmptyState,
+  EntityCard,
+  FeaturedMark,
+  Field,
+  FormActions,
+  FormGrid,
+  FormSection,
+  IconAction,
+  PageHeader,
+  SearchInput,
+  TagInput,
+  ToggleRow,
+  Toolbar,
+  useConfirm,
+} from '@components/Admin/shared';
+import { listContainer } from '@constants/motion';
+import { pluralize } from '@lib/format';
+import { cn } from '@lib/utils';
 
 interface ProjectData {
   id?: string;
@@ -83,43 +113,42 @@ const initialProjectData: ProjectData = {
   commits_count: '',
   featured: false,
   sort_order: 0,
-  gradient_from: '#3B82F6',
-  gradient_to: '#8B5CF6',
+  gradient_from: '#2563EB',
+  gradient_to: '#7C3AED',
 };
 
-// Helper function to normalize project data
-const normalizeProjectData = (project: any): ProjectData => {
-  return {
-    ...initialProjectData,
-    ...project,
-    // Ensure all string fields are never null
-    title: project?.title || '',
-    description: project?.description || '',
-    long_description: project?.long_description || '',
-    project_url: project?.project_url || '',
-    github_url: project?.github_url || '',
-    demo_url: project?.demo_url || '',
-    thumbnail_url: project?.thumbnail_url || '',
-    start_date: project?.start_date || '',
-    end_date: project?.end_date || '',
-    status: project?.status || 'Completed',
-    category: project?.category || 'Web Development',
-    primary_tech: project?.primary_tech || '',
-    team_size: project?.team_size || '1',
-    duration: project?.duration || '',
-    commits_count: project?.commits_count || '',
-    gradient_from: project?.gradient_from || '#3B82F6',
-    gradient_to: project?.gradient_to || '#8B5CF6',
-    // Ensure arrays are always arrays
-    tech_stack: Array.isArray(project?.tech_stack) ? project.tech_stack : [],
-    features: Array.isArray(project?.features) ? project.features : [],
-    challenges_solved: Array.isArray(project?.challenges_solved) ? project.challenges_solved : [],
-    // Ensure numbers and booleans have proper defaults
-    year: project?.year || new Date().getFullYear(),
-    sort_order: project?.sort_order || 0,
-    featured: Boolean(project?.featured),
-  };
-};
+/** Rows come back from Postgres with nulls; the UI assumes strings and arrays. */
+const normalizeProjectData = (
+  project: Partial<ProjectData> | null | undefined
+): ProjectData => ({
+  ...initialProjectData,
+  ...project,
+  title: project?.title || '',
+  description: project?.description || '',
+  long_description: project?.long_description || '',
+  project_url: project?.project_url || '',
+  github_url: project?.github_url || '',
+  demo_url: project?.demo_url || '',
+  thumbnail_url: project?.thumbnail_url || '',
+  start_date: project?.start_date || '',
+  end_date: project?.end_date || '',
+  status: project?.status || 'Completed',
+  category: project?.category || 'Web Development',
+  primary_tech: project?.primary_tech || '',
+  team_size: project?.team_size || '1',
+  duration: project?.duration || '',
+  commits_count: project?.commits_count || '',
+  gradient_from: project?.gradient_from || initialProjectData.gradient_from,
+  gradient_to: project?.gradient_to || initialProjectData.gradient_to,
+  tech_stack: Array.isArray(project?.tech_stack) ? project.tech_stack : [],
+  features: Array.isArray(project?.features) ? project.features : [],
+  challenges_solved: Array.isArray(project?.challenges_solved)
+    ? project.challenges_solved
+    : [],
+  year: project?.year || new Date().getFullYear(),
+  sort_order: project?.sort_order || 0,
+  featured: Boolean(project?.featured),
+});
 
 const projectCategories = [
   'Web Development',
@@ -130,7 +159,7 @@ const projectCategories = [
   'Machine Learning',
   'DevOps',
   'Design',
-  'Other'
+  'Other',
 ];
 
 const statusOptions = [
@@ -138,8 +167,17 @@ const statusOptions = [
   'In Progress',
   'Planned',
   'On Hold',
-  'Archived'
+  'Archived',
 ];
+
+/** Status carries the only semantic colour on a project card. */
+const statusStyles: Record<string, string> = {
+  Completed: 'border-success/40 bg-success/10 text-success',
+  'In Progress': 'border-primary/40 bg-primary/10 text-primary',
+  Planned: 'border-border bg-muted text-muted-foreground',
+  'On Hold': 'border-warning/40 bg-warning/10 text-warning',
+  Archived: 'border-border bg-muted text-muted-foreground',
+};
 
 export default function ProjectsEditor() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -147,9 +185,11 @@ export default function ProjectsEditor() {
   const [saving, setSaving] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [filter, setFilter] = useState<string>('');
+  const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const supabase = createBrowserSupabase();
+  const confirmDelete = useConfirm<ProjectData>();
 
   const loadProjects = useCallback(async () => {
     try {
@@ -160,16 +200,14 @@ export default function ProjectsEditor() {
 
       if (error) {
         console.error('Error loading projects:', error);
-        setMessage({ type: 'error', text: 'Error loading projects' });
+        toast.error('Could not load projects');
         return;
       }
 
-      // Normalize all project data to ensure no null values
-      const normalizedProjects = (data || []).map(project => normalizeProjectData(project));
-      setProjects(normalizedProjects);
+      setProjects((data || []).map(normalizeProjectData));
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error loading projects' });
+      toast.error('Could not load projects');
     } finally {
       setLoading(false);
     }
@@ -179,98 +217,86 @@ export default function ProjectsEditor() {
     loadProjects();
   }, [loadProjects]);
 
-  const handleEdit = (project: ProjectData) => {
-    setEditingProject(normalizeProjectData(project));
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
-
-    setSaving(true);
+  const handleDelete = async (project: ProjectData) => {
     try {
-      await deleteProjectAction(id);
-      setMessage({ type: 'success', text: 'Project deleted successfully!' });
+      await deleteProjectAction(project.id!);
+      toast.success(`Deleted "${project.title}"`);
       await loadProjects();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error deleting project' });
-    } finally {
-      setSaving(false);
+      toast.error('Could not delete project');
     }
   };
 
   const handleSave = async (projectData: ProjectData) => {
     setSaving(true);
-    setMessage(null);
-
     try {
       const payload = editingProject?.id
         ? { ...projectData, id: editingProject.id }
         : projectData;
       await upsertProjectAction(payload);
-      setMessage({
-        type: 'success',
-        text: `Project ${editingProject?.id ? 'updated' : 'created'} successfully!`,
-      });
+      toast.success(editingProject?.id ? 'Project updated' : 'Project created');
       setShowForm(false);
       setEditingProject(null);
       await loadProjects();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error saving project' });
+      toast.error('Could not save project');
     } finally {
       setSaving(false);
     }
   };
 
   const toggleFeatured = async (project: ProjectData) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === project.id ? { ...p, featured: !p.featured } : p
+      )
+    );
     try {
       await upsertProjectAction({ id: project.id, featured: !project.featured });
       await loadProjects();
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Could not update project');
+      await loadProjects();
     }
   };
 
-  const filteredProjects = projects.filter(project =>
-    project.title.toLowerCase().includes(filter.toLowerCase()) ||
-    project.category.toLowerCase().includes(filter.toLowerCase()) ||
-    project.tech_stack.some(tech => tech.toLowerCase().includes(filter.toLowerCase()))
-  );
+  const filteredProjects = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return projects.filter((project) => {
+      const matchesSearch =
+        !q ||
+        project.title.toLowerCase().includes(q) ||
+        project.category.toLowerCase().includes(q) ||
+        project.tech_stack.some((tech) => tech.toLowerCase().includes(q));
+      const matchesCategory =
+        categoryFilter === 'all' || project.category === categoryFilter;
+      const matchesStatus =
+        statusFilter === 'all' || project.status === statusFilter;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [projects, query, categoryFilter, statusFilter]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <motion.div
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full font-medium shadow-xl"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <FolderOpen className="w-4 h-4" />
-            Loading projects data...
-          </motion.div>
-        </motion.div>
-      </div>
-    );
-  }
+  const isFiltered =
+    query.trim() !== '' || categoryFilter !== 'all' || statusFilter !== 'all';
+
+  const clearFilters = () => {
+    setQuery('');
+    setCategoryFilter('all');
+    setStatusFilter('all');
+  };
+
+  const startCreate = () => {
+    setEditingProject(null);
+    setShowForm(true);
+  };
 
   if (showForm) {
     return (
       <ProjectForm
-        project={editingProject ? normalizeProjectData(editingProject) : initialProjectData}
+        project={editingProject || initialProjectData}
         onSave={handleSave}
         onCancel={() => {
           setShowForm(false);
@@ -282,260 +308,243 @@ export default function ProjectsEditor() {
   }
 
   return (
-    <motion.div
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Header */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-xl mb-2 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <FolderOpen size={24} />
-            projects.manage()
-          </motion.div>
-          <p className="text-gray-400 font-mono">
-            <span className="text-blue-500">{'// '}</span>
-            Manage your portfolio projects and showcase your work.
-          </p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Button
-            onClick={() => {
-              setEditingProject(null);
-              setShowForm(true);
-            }}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Project
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Content"
+        title="Projects"
+        description="The work shown on your portfolio, newest ordering first."
+        actions={
+          <Button size="sm" onClick={startCreate}>
+            <Plus className="h-4 w-4" />
+            New project
           </Button>
-        </motion.div>
-      </motion.div>
+        }
+      />
 
-      {/* Success/Error Message */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${message.type === 'success'
-              ? 'bg-green-900/50 border-green-700 text-green-300'
-              : 'bg-red-900/50 border-red-700 text-red-300'
-              }`}
-          >
-            <div className="flex items-center gap-3">
-              {message.type === 'success' ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-              <span className="font-medium">{message.text}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Filters */}
-      <motion.div
-        className="flex flex-col sm:flex-row gap-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      <Toolbar
+        meta={
+          loading
+            ? undefined
+            : `${pluralize(filteredProjects.length, 'project')}${
+                isFiltered ? ` of ${projects.length}` : ''
+              }`
+        }
       >
-        <div className="flex-1">
-          <Input
-            placeholder="Search projects..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="bg-gray-800 border-gray-700 focus:border-blue-500 text-white"
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Badge className="bg-gray-700 text-gray-300 border-gray-600 h-10 flex items-center justify-center">
-            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
-          </Badge>
-        </div>
-      </motion.div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search by title, category or tech..."
+          className="sm:max-w-xs"
+        />
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="h-9 bg-card sm:w-44">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {projectCategories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 bg-card sm:w-36">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {statusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Toolbar>
 
-      {/* Projects Grid */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        {filteredProjects.map((project, index) => (
-          <motion.div
-            key={project.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -8 }}
-            className="group"
-          >
-            <Card className="relative overflow-hidden bg-gray-800 border-gray-700 hover:border-blue-600 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
-              {/* Featured Badge */}
-              {project.featured && (
-                <motion.div
-                  className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-1 rounded-full shadow-lg"
-                  animate={{ rotate: [0, -10, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Star className="w-3 h-3" />
-                </motion.div>
-              )}
-
-              {/* Gradient Background */}
-              <div
-                className="absolute inset-0 opacity-5"
-                style={{
-                  background: `linear-gradient(135deg, ${project.gradient_from || '#3b82f6'}, ${project.gradient_to || '#8b5cf6'})`
-                }}
-              />
-
-              <CardHeader className="relative z-10 pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">📁</span>
-                    <div>
-                      <CardTitle className="text-lg font-bold text-white">
-                        {project.title}
-                      </CardTitle>
-                      <Badge
-                        className="mt-1 bg-gray-700 text-gray-300 border-gray-600"
-                      >
-                        {project.category}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="relative z-10 space-y-4">
-                <p className="text-sm text-gray-300 line-clamp-3">
-                  {project.description}
-                </p>
-
-                {/* Tech Stack */}
-                <div className="flex flex-wrap gap-1">
-                  {project.tech_stack?.slice(0, 3).map((tech, techIndex) => (
-                    <Badge
-                      key={techIndex}
-                      variant="secondary"
-                      className="text-xs bg-gray-700 text-gray-300"
-                    >
-                      {tech}
-                    </Badge>
-                  ))}
-                  {project.tech_stack?.length > 3 && (
-                    <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-300">
-                      +{project.tech_stack.length - 3}
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Status</span>
-                  <span className="font-medium text-white">
-                    {project.status}
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleFeatured(project)}
-                    disabled={saving}
-                    className="flex-1 bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-                  >
-                    {project.featured ? (
-                      <StarOff className="w-3 h-3 mr-1" />
-                    ) : (
-                      <Star className="w-3 h-3 mr-1" />
-                    )}
-                    {project.featured ? 'Unfeature' : 'Feature'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(project)}
-                    className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(project.id!)}
-                    disabled={saving}
-                    className="bg-red-900/50 border-red-700 hover:bg-red-900 text-red-400 hover:text-red-300"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Empty State */}
-      {filteredProjects.length === 0 && (
+      {loading ? (
+        <CardGridSkeleton />
+      ) : filteredProjects.length === 0 ? (
+        <EmptyState
+          icon={FolderKanban}
+          title={isFiltered ? 'No matching projects' : 'No projects yet'}
+          description={
+            isFiltered
+              ? 'Try a different search term, category or status.'
+              : 'Add your first project to start filling out the portfolio.'
+          }
+          action={
+            isFiltered ? (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button size="sm" onClick={startCreate}>
+                <Plus className="h-4 w-4" />
+                New project
+              </Button>
+            )
+          }
+        />
+      ) : (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-12"
+          variants={listContainer}
+          initial="hidden"
+          animate="show"
+          className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
         >
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-700"
-          >
-            <FolderOpen className="w-12 h-12 text-blue-500" />
-          </motion.div>
-          <h3 className="text-xl font-semibold text-white mb-2">
-            No projects found
-          </h3>
-          <p className="text-gray-400 mb-6">
-            {filter ? 'Try adjusting your search filters.' : 'Get started by adding your first project.'}
-          </p>
-          {!filter && (
-            <Button
-              onClick={() => {
-                setEditingProject(null);
-                setShowForm(true);
-              }}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg"
+          {filteredProjects.map((project) => (
+            <EntityCard
+              key={project.id}
+              /*
+                The screenshot is what a project is judged on, so it leads the
+                card. Status rides on the image rather than adding another
+                badge row underneath it.
+              */
+              cover={
+                <CardCover>
+                  {project.thumbnail_url ? (
+                    <UniversalImage
+                      src={project.thumbnail_url}
+                      alt={project.title}
+                      width={0}
+                      height={0}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{
+                        background: `linear-gradient(135deg, ${project.gradient_from}33, ${project.gradient_to}33)`,
+                      }}
+                    >
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'absolute left-3 top-3 z-10 font-normal backdrop-blur',
+                      statusStyles[project.status] ?? statusStyles.Planned
+                    )}
+                  >
+                    {project.status}
+                  </Badge>
+                </CardCover>
+              }
+              title={project.title}
+              subtitle={
+                [project.category, project.year || null]
+                  .filter(Boolean)
+                  .join(' · ')
+              }
+              adornment={project.featured ? <FeaturedMark onCover /> : null}
+              actions={
+                <>
+                  {project.github_url && (
+                    <IconAction
+                      label="Open repository"
+                      onClick={() =>
+                        window.open(
+                          project.github_url,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                    >
+                      <Github className="h-3.5 w-3.5" />
+                    </IconAction>
+                  )}
+                  {project.project_url && (
+                    <IconAction
+                      label="Open project"
+                      onClick={() =>
+                        window.open(
+                          project.project_url,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </IconAction>
+                  )}
+                  <EditDeleteActions
+                    onEdit={() => {
+                      setEditingProject(normalizeProjectData(project));
+                      setShowForm(true);
+                    }}
+                    onDelete={() => confirmDelete.ask(project)}
+                    extra={
+                      <IconAction
+                        label={project.featured ? 'Unfeature' : 'Feature'}
+                        onClick={() => toggleFeatured(project)}
+                        className={cn(project.featured && 'text-copper')}
+                      >
+                        <Star
+                          className={cn(
+                            'h-3.5 w-3.5',
+                            project.featured && 'fill-current'
+                          )}
+                        />
+                      </IconAction>
+                    }
+                  />
+                </>
+              }
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Project
-            </Button>
-          )}
+              <div className="space-y-3">
+                {project.description && (
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {project.description}
+                  </p>
+                )}
+
+                {project.tech_stack.length > 0 && (
+                  /* Capped at three so the row never wraps to a stray "+2". */
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {project.tech_stack.slice(0, 3).map((tech) => (
+                      <Badge
+                        key={tech}
+                        variant="secondary"
+                        className="px-2 py-0 text-[11px] font-normal"
+                      >
+                        {tech}
+                      </Badge>
+                    ))}
+                    {project.tech_stack.length > 3 && (
+                      <span className="text-[11px] tabular-nums text-muted-foreground">
+                        +{project.tech_stack.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </EntityCard>
+          ))}
         </motion.div>
       )}
-    </motion.div>
+
+      <ConfirmDialog
+        open={confirmDelete.open}
+        onOpenChange={(open) => !open && confirmDelete.dismiss()}
+        loading={confirmDelete.loading}
+        title="Delete project?"
+        description={
+          confirmDelete.target
+            ? `"${confirmDelete.target.title}" will be removed from your portfolio. This cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        onConfirm={() => confirmDelete.run(handleDelete)}
+      />
+    </div>
   );
 }
 
-// ============= PROJECT FORM COMPONENT =============
+/* ---------------------------------------------------------------- form ---- */
 
 interface ProjectFormProps {
   project: ProjectData;
@@ -547,409 +556,402 @@ interface ProjectFormProps {
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectData>(() => ({
     ...normalizeProjectData(project),
+    // Stable id up front so thumbnail and gallery uploads have somewhere to go
+    // before the row exists.
     id: project.id || crypto.randomUUID(),
   }));
-  const [newTech, setNewTech] = useState('');
   const [projectImages, setProjectImages] = useState<UploadedFile[]>([]);
   const [committingUpload, setCommittingUpload] = useState(false);
   const thumbnailUploadRef = useRef<UniversalUploadHandle>(null);
   const galleryUploadRef = useRef<UniversalUploadHandle>(null);
+  const confirmImageDelete = useConfirm<UploadedFile>();
 
-  // Load existing images when editing an existing project
   useEffect(() => {
     const fetchImages = async () => {
-      if (formData.id) {
-        try {
-          const images = await getFiles('project', formData.id, 'project_collection');
-          setProjectImages(images);
-        } catch (err) {
-          console.error('Error loading project images:', err);
-        }
+      if (!formData.id) return;
+      try {
+        setProjectImages(
+          await getFiles('project', formData.id, 'project_collection')
+        );
+      } catch (err) {
+        console.error('Error loading project images:', err);
       }
     };
-
     fetchImages();
   }, [formData.id]);
 
-  const handleInputChange = (field: keyof ProjectData, value: string | number | boolean | string[]) => {
-    // Ensure string values are never null or undefined
-    const normalizedValue = typeof value === 'string' ? (value || '') : value;
-    setFormData(prev => ({ ...prev, [field]: normalizedValue }));
-  };
+  const set = <K extends keyof ProjectData>(field: K, value: ProjectData[K]) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleAddToArray = (field: 'tech_stack' | 'features' | 'challenges_solved', value: string, setValue: (value: string) => void) => {
-    if (value.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: [...prev[field], value.trim()]
-      }));
-      setValue('');
+  const handleDeleteImage = async (img: UploadedFile) => {
+    const res = await deleteFileById(img.id);
+    if (res.success) {
+      setProjectImages((prev) => prev.filter((p) => p.id !== img.id));
+      toast.success('Image deleted');
+    } else {
+      toast.error(`Could not delete image: ${res.error}`);
     }
-  };
-
-  const handleRemoveFromArray = (field: 'tech_stack' | 'features' | 'challenges_solved', index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let nextFormData = formData;
+    let next = formData;
     const pendingUploads = [
-      {
-        ref: thumbnailUploadRef,
-        field: 'thumbnail_url' as const,
-      },
-      {
-        ref: galleryUploadRef,
-        field: null,
-      },
+      { ref: thumbnailUploadRef, field: 'thumbnail_url' as const, label: 'Thumbnail' },
+      { ref: galleryUploadRef, field: null, label: 'Gallery' },
     ];
 
     if (pendingUploads.some(({ ref }) => ref.current?.hasPending())) {
       setCommittingUpload(true);
       try {
-        for (const { ref, field } of pendingUploads) {
+        for (const { ref, field, label } of pendingUploads) {
           if (!ref.current?.hasPending()) continue;
           const result = await ref.current.commitPending();
-          if (!result.ok) return;
-          if (field && result.url) {
-            nextFormData = { ...nextFormData, [field]: result.url };
+          if (!result.ok) {
+            toast.error(`${label} upload failed: ${result.error}`);
+            return;
           }
-          if (result.files) {
-            setProjectImages(result.files);
-          }
+          if (field && result.url) next = { ...next, [field]: result.url };
+          if (result.files) setProjectImages(result.files);
         }
       } finally {
         setCommittingUpload(false);
       }
     }
 
-    await onSave(nextFormData);
+    await onSave(next);
   };
 
+  const busy = saving || committingUpload;
+  const canSubmit =
+    !!formData.title && !!formData.category && !!formData.description;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="bg-gray-800 border-gray-700 shadow-xl">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <FolderOpen className="h-6 w-6 text-white" />
-                </motion.div>
-                <span className="text-white">
-                  {project.id ? 'Edit Project' : 'Add New Project'}
-                </span>
-              </CardTitle>
-              <CardDescription className="text-gray-400 mt-2">
-                {project.id ? 'Update project information and details' : 'Add a new project to your portfolio'}
-              </CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-            >
-              <X className="w-4 h-4" />
+    <form onSubmit={handleSubmit}>
+      <EditorPanel
+        eyebrow={project.id ? 'Editing project' : 'New project'}
+        title={project.id ? project.title || 'Edit project' : 'New project'}
+        description="Everything here feeds the project card and detail view on your portfolio."
+        onBack={onCancel}
+        backLabel="Projects"
+        footer={
+          <FormActions>
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+              Cancel
             </Button>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Basic Information */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Project Title <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="e.g., E-commerce Platform, Mobile App"
-                  required
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Category <span className="text-red-500">*</span>
-                </Label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  required
-                  className="w-full bg-gray-700 border border-gray-600 focus:border-blue-500 text-white rounded-md px-3 py-2"
-                >
-                  {projectCategories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-white">
-                Short Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Brief description for project cards..."
+            <Button type="submit" size="sm" disabled={busy || !canSubmit}>
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {committingUpload
+                ? 'Uploading...'
+                : project.id
+                  ? 'Save changes'
+                  : 'Create project'}
+            </Button>
+          </FormActions>
+        }
+      >
+        <FormSection title="Overview">
+          <FormGrid>
+            <Field label="Title" htmlFor="title" required>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Portfolio CMS"
                 required
-                rows={3}
-                className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
               />
-            </div>
-
-            {/* Project Thumbnail */}
-            <div className="space-y-4">
-              <Label className="text-lg font-semibold text-white">
-                Project Thumbnail
-              </Label>
-              <UniversalUpload
-                ref={thumbnailUploadRef}
-                uploadType="project_thumbnail"
-                entityId={formData.id || ''}
-                value={formData.thumbnail_url}
-                onChange={(url) => handleInputChange('thumbnail_url', url)}
-                label="Thumbnail Image"
-                description="Upload a thumbnail image for this project (recommended: 16:9 aspect ratio)"
-                enableCrop={true}
-                cropAspect={16 / 9}
-                allowUrlInput={true}
-                placeholder="https://example.com/project-thumbnail.jpg"
+            </Field>
+            <Field label="Primary technology" htmlFor="primary_tech">
+              <Input
+                id="primary_tech"
+                value={formData.primary_tech}
+                onChange={(e) => set('primary_tech', e.target.value)}
+                placeholder="Next.js"
               />
-            </div>
+            </Field>
+            <Field label="Category" htmlFor="category" required>
+              <Select
+                value={formData.category}
+                onValueChange={(v) => set('category', v)}
+              >
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Status" htmlFor="status">
+              <Select
+                value={formData.status}
+                onValueChange={(v) => set('status', v)}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </FormGrid>
 
-            {/* Project Images Gallery */}
-            {formData.id && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold text-white">
-                  Project Images Gallery
-                </Label>
-                <UniversalUpload
-                  ref={galleryUploadRef}
-                  uploadType="project_image"
-                  entityId={formData.id}
-                  onCollectionUpdate={(files) => setProjectImages(files)}
-                  label="Additional Images"
-                  description="Upload additional screenshots, mockups, or images for this project"
-                  enableCrop={true}
-                  cropAspect={16 / 9}
-                  allowUrlInput={true}
-                />
+          <Field
+            label="Short description"
+            htmlFor="description"
+            required
+            hint="Shown on the project card. One or two sentences."
+          >
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => set('description', e.target.value)}
+              placeholder="What it is and who it's for."
+              rows={3}
+              required
+              className="resize-y"
+            />
+          </Field>
 
-                {/* Display existing project images */}
-                {projectImages.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                    {projectImages.map((img) => (
-                      <div key={img.id} className="relative group">
-                        <Image
-                          src={img.url}
-                          alt={img.alt || 'Project image'}
-                          width={0}
-                          height={0}
-                          sizes="100vw"
-                          className="w-full h-auto rounded-lg object-contain bg-gray-900"
-                        />
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!confirm('Delete this image?')) return;
-                            const res = await deleteFileById(img.id);
-                            if (res.success) {
-                              setProjectImages((prev) => prev.filter((p) => p.id !== img.id));
-                            } else {
-                              alert(`Failed to delete image: ${res.error}`);
-                            }
-                          }}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Delete image"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+          <Field label="Full description" htmlFor="long_description">
+            <Textarea
+              id="long_description"
+              value={formData.long_description}
+              onChange={(e) => set('long_description', e.target.value)}
+              placeholder="The longer write-up: context, approach, outcome."
+              className="min-h-[150px] resize-y"
+            />
+          </Field>
+        </FormSection>
+
+        <FormSection
+          title="Thumbnail"
+          description="The cover image on the project card. 16:9 works best."
+        >
+          <UniversalUpload
+            ref={thumbnailUploadRef}
+            uploadType="project_thumbnail"
+            entityId={formData.id || ''}
+            value={formData.thumbnail_url}
+            onChange={(url) => set('thumbnail_url', url)}
+            enableCrop={true}
+            cropAspect={16 / 9}
+            allowUrlInput={true}
+            placeholder="https://example.com/thumbnail.jpg"
+          />
+        </FormSection>
+
+        {formData.id && (
+          <FormSection
+            title="Gallery"
+            description="Additional screenshots and mockups for the detail view."
+          >
+            <UniversalUpload
+              ref={galleryUploadRef}
+              uploadType="project_image"
+              entityId={formData.id}
+              onCollectionUpdate={(files) => setProjectImages(files)}
+              enableCrop={true}
+              cropAspect={16 / 9}
+              allowUrlInput={true}
+            />
+
+            {projectImages.length > 0 && (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                {projectImages.map((img) => (
+                  <div
+                    key={img.id}
+                    className="group relative aspect-[16/9] overflow-hidden rounded-lg border border-border bg-surface-sunken"
+                  >
+                    <UniversalImage
+                      src={img.url}
+                      alt={img.alt || 'Project image'}
+                      width={0}
+                      height={0}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => confirmImageDelete.ask(img)}
+                      title="Delete image"
+                      aria-label="Delete image"
+                      className="absolute right-2 top-2 rounded-md bg-background/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-all hover:bg-destructive hover:text-destructive-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                )}
+                ))}
               </div>
             )}
+          </FormSection>
+        )}
 
-            {/* Tech Stack */}
-            <div className="space-y-4">
-              <Label className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                Tech Stack
-              </Label>
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={newTech}
-                    onChange={(e) => setNewTech(e.target.value)}
-                    placeholder="e.g., React, Node.js, PostgreSQL"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddToArray('tech_stack', newTech, setNewTech))}
-                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => handleAddToArray('tech_stack', newTech, setNewTech)}
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0"
-                  >
-                    Add
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.tech_stack.map((tech, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-gray-700 text-gray-300 border-gray-600 cursor-pointer hover:bg-gray-600"
-                      onClick={() => handleRemoveFromArray('tech_stack', index)}
-                    >
-                      {tech} ×
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
+        <FormSection title="Tech stack" description="Press Enter to add.">
+          <TagInput
+            value={formData.tech_stack}
+            onChange={(next) => set('tech_stack', next)}
+            placeholder="React, Supabase, Tailwind..."
+          />
+        </FormSection>
 
-            {/* Project Details */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Start Date
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => handleInputChange('start_date', e.target.value)}
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  End Date
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => handleInputChange('end_date', e.target.value)}
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Status
-                </Label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 focus:border-blue-500 text-white rounded-md px-3 py-2"
-                >
-                  {statusOptions.map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+        <FormSection title="Features">
+          <BulletList
+            value={formData.features}
+            onChange={(next) => set('features', next)}
+            placeholder="Real-time collaborative editing..."
+          />
+        </FormSection>
 
-            {/* Links */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  Project URL
-                </Label>
-                <Input
-                  type="url"
-                  value={formData.project_url}
-                  onChange={(e) => handleInputChange('project_url', e.target.value)}
-                  placeholder="https://your-project.com"
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-white">
-                  GitHub URL
-                </Label>
-                <Input
-                  type="url"
-                  value={formData.github_url}
-                  onChange={(e) => handleInputChange('github_url', e.target.value)}
-                  placeholder="https://github.com/user/repo"
-                  className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                />
-              </div>
-            </div>
+        <FormSection
+          title="Challenges solved"
+          description="The hard parts, and what you did about them."
+        >
+          <BulletList
+            value={formData.challenges_solved}
+            onChange={(next) => set('challenges_solved', next)}
+            placeholder="Cut cold-start time from 4s to 300ms..."
+            icon={Lightbulb}
+            accent="copper"
+          />
+        </FormSection>
 
-            {/* Settings */}
-            <div className="space-y-4">
-              <Label className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                Settings
-              </Label>
+        <FormSection title="Links">
+          <FormGrid>
+            <Field label="Live project" htmlFor="project_url">
+              <Input
+                id="project_url"
+                type="url"
+                value={formData.project_url}
+                onChange={(e) => set('project_url', e.target.value)}
+                placeholder="https://example.com"
+              />
+            </Field>
+            <Field label="Repository" htmlFor="github_url">
+              <Input
+                id="github_url"
+                type="url"
+                value={formData.github_url}
+                onChange={(e) => set('github_url', e.target.value)}
+                placeholder="https://github.com/user/repo"
+              />
+            </Field>
+            <Field label="Demo" htmlFor="demo_url">
+              <Input
+                id="demo_url"
+                type="url"
+                value={formData.demo_url}
+                onChange={(e) => set('demo_url', e.target.value)}
+                placeholder="https://demo.example.com"
+              />
+            </Field>
+          </FormGrid>
+        </FormSection>
 
-              <div className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg border border-gray-600">
-                <Checkbox
-                  checked={formData.featured}
-                  onCheckedChange={(checked) => handleInputChange('featured', !!checked)}
-                />
-                <div>
-                  <span className="text-sm font-medium text-white">
-                    Featured Project
-                  </span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Display this project prominently on your portfolio
-                  </p>
-                </div>
-              </div>
-            </div>
+        <FormSection title="Timeline and scale">
+          <FormGrid>
+            <Field label="Start date" htmlFor="start_date">
+              <Input
+                id="start_date"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => set('start_date', e.target.value)}
+              />
+            </Field>
+            <Field label="End date" htmlFor="end_date">
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => set('end_date', e.target.value)}
+              />
+            </Field>
+            <Field label="Year" htmlFor="year">
+              <Input
+                id="year"
+                type="number"
+                value={formData.year}
+                onChange={(e) =>
+                  set('year', parseInt(e.target.value) || new Date().getFullYear())
+                }
+              />
+            </Field>
+            <Field label="Team size" htmlFor="team_size">
+              <Input
+                id="team_size"
+                value={formData.team_size}
+                onChange={(e) => set('team_size', e.target.value)}
+                placeholder="1"
+              />
+            </Field>
+            <Field label="Duration" htmlFor="duration">
+              <Input
+                id="duration"
+                value={formData.duration}
+                onChange={(e) => set('duration', e.target.value)}
+                placeholder="3 months"
+              />
+            </Field>
+            <Field label="Commits" htmlFor="commits_count">
+              <Input
+                id="commits_count"
+                value={formData.commits_count}
+                onChange={(e) => set('commits_count', e.target.value)}
+                placeholder="240"
+              />
+            </Field>
+          </FormGrid>
+        </FormSection>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-blue-200/50 dark:border-blue-800/50">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={saving || committingUpload || !formData.title || !formData.category || !formData.description}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg min-w-[120px]"
-              >
-                {committingUpload ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading...
-                  </>
-                ) : saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {project.id ? 'Update Project' : 'Create Project'}
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <FormSection title="Visibility">
+          <ToggleRow
+            label="Featured project"
+            description="Pin this project to the top of the portfolio."
+            control={
+              <Switch
+                checked={formData.featured}
+                onCheckedChange={(checked) => set('featured', checked)}
+              />
+            }
+          />
+          <Field
+            label="Sort order"
+            htmlFor="sort_order"
+            hint="Lower numbers appear first."
+            className="max-w-[10rem]"
+          >
+            <Input
+              id="sort_order"
+              type="number"
+              value={formData.sort_order}
+              onChange={(e) => set('sort_order', parseInt(e.target.value) || 0)}
+            />
+          </Field>
+        </FormSection>
+      </EditorPanel>
+
+      <ConfirmDialog
+        open={confirmImageDelete.open}
+        onOpenChange={(open) => !open && confirmImageDelete.dismiss()}
+        loading={confirmImageDelete.loading}
+        title="Delete image?"
+        description="This removes the file from storage and cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => confirmImageDelete.run(handleDeleteImage)}
+      />
+    </form>
   );
-} 
+}

@@ -1,31 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  Plus,
+  Sparkles,
+  Star,
+  Loader2,
+  Save,
+} from 'lucide-react';
+
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertSkillAction,
   deleteSkillAction,
 } from '@app/admin/_actions/skills';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  Star,
-  StarOff,
-  Zap,
-  Loader2,
-  Check,
-  AlertCircle,
-  Save
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
-import { Badge } from '@components/ui/badge';
 import {
   Select,
   SelectTrigger,
@@ -33,6 +26,30 @@ import {
   SelectContent,
   SelectItem,
 } from '@components/ui/select';
+import {
+  CardGridSkeleton,
+  ConfirmDialog,
+  EditDeleteActions,
+  EditorPanel,
+  EmptyState,
+  EntityCard,
+  FeaturedMark,
+  Field,
+  FormActions,
+  FormGrid,
+  FormSection,
+  IconAction,
+  MediaTile,
+  PageHeader,
+  ProficiencyBar,
+  SearchInput,
+  ToggleRow,
+  Toolbar,
+  useConfirm,
+} from '@components/Admin/shared';
+import { listContainer } from '@constants/motion';
+import { pluralize } from '@lib/format';
+import { cn } from '@lib/utils';
 
 interface SkillData {
   id?: string;
@@ -54,7 +71,7 @@ const initialSkillData: SkillData = {
   proficiency_level: 1,
   proficiency_percentage: 50,
   icon_emoji: '',
-  color_from: '#3B82F6',
+  color_from: '#6366F1',
   color_to: '#8B5CF6',
   years_experience: 0,
   is_featured: false,
@@ -70,16 +87,16 @@ const skillCategories = [
   'Design',
   'Tools',
   'Soft Skills',
-  'Other'
+  'Other',
 ];
 
 const skillColors = [
-  { name: 'Blue to Purple', from: '#3B82F6', to: '#8B5CF6' },
-  { name: 'Green to Teal', from: '#10B981', to: '#14B8A6' },
-  { name: 'Purple to Pink', from: '#8B5CF6', to: '#EC4899' },
-  { name: 'Orange to Red', from: '#F97316', to: '#EF4444' },
-  { name: 'Indigo to Purple', from: '#6366F1', to: '#A855F7' },
-  { name: 'Emerald to Cyan', from: '#059669', to: '#0891B2' },
+  { name: 'Indigo', from: '#6366F1', to: '#8B5CF6' },
+  { name: 'Emerald', from: '#10B981', to: '#14B8A6' },
+  { name: 'Violet', from: '#8B5CF6', to: '#EC4899' },
+  { name: 'Amber', from: '#F97316', to: '#EF4444' },
+  { name: 'Sky', from: '#0EA5E9', to: '#6366F1' },
+  { name: 'Slate', from: '#64748B', to: '#94A3B8' },
 ];
 
 export default function SkillsEditor() {
@@ -88,63 +105,43 @@ export default function SkillsEditor() {
   const [saving, setSaving] = useState(false);
   const [editingSkill, setEditingSkill] = useState<SkillData | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [filter, setFilter] = useState<string>('');
+  const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const supabase = createBrowserSupabase();
+  const confirmDelete = useConfirm<SkillData>();
 
   const loadSkills = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('skills')
-        .select('*')
-        .order('sort_order', { ascending: true });
+    const { data, error } = await supabase
+      .from('skills')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-      if (error) {
-        console.error('Error loading skills:', error);
-        setMessage({ type: 'error', text: 'Error loading skills' });
-        return;
-      }
-
+    if (error) {
+      console.error('Error loading skills:', error);
+      toast.error('Could not load skills');
+    } else {
       setSkills(data || []);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error loading skills' });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
     loadSkills();
   }, [loadSkills]);
 
-  const handleEdit = (skill: SkillData) => {
-    setEditingSkill(skill);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this skill?')) return;
-
-    setSaving(true);
+  const handleDelete = async (skill: SkillData) => {
     try {
-      await deleteSkillAction(id);
-      setMessage({ type: 'success', text: 'Skill deleted successfully!' });
+      await deleteSkillAction(skill.id!);
+      toast.success(`Deleted "${skill.name}"`);
       await loadSkills();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error deleting skill' });
-    } finally {
-      setSaving(false);
+      toast.error('Could not delete skill');
     }
   };
 
   const handleSave = async (skillData: SkillData) => {
     setSaving(true);
-    setMessage(null);
-
     try {
       const payload = editingSkill?.id
         ? { ...skillData, id: editingSkill.id }
@@ -154,63 +151,54 @@ export default function SkillsEditor() {
             return rest;
           })();
       await upsertSkillAction(payload);
-      setMessage({
-        type: 'success',
-        text: `Skill ${editingSkill?.id ? 'updated' : 'created'} successfully!`,
-      });
+      toast.success(editingSkill?.id ? 'Skill updated' : 'Skill created');
       setShowForm(false);
       setEditingSkill(null);
       await loadSkills();
-      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Error:', error);
-      setMessage({ type: 'error', text: 'Error saving skill' });
+      toast.error('Could not save skill');
     } finally {
       setSaving(false);
     }
   };
 
   const toggleFeatured = async (skill: SkillData) => {
+    // Optimistic: the star flips immediately, then reconciles with the server.
+    setSkills((prev) =>
+      prev.map((s) =>
+        s.id === skill.id ? { ...s, is_featured: !s.is_featured } : s
+      )
+    );
     try {
       await upsertSkillAction({ id: skill.id, is_featured: !skill.is_featured });
       await loadSkills();
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Could not update skill');
+      await loadSkills();
     }
   };
 
-  const filteredSkills = skills.filter(skill => {
-    const matchesSearch = skill.name.toLowerCase().includes(filter.toLowerCase()) ||
-                         skill.category.toLowerCase().includes(filter.toLowerCase());
-    const matchesCategory = !categoryFilter || categoryFilter === 'all' || skill.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredSkills = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return skills.filter((skill) => {
+      const matchesSearch =
+        !q ||
+        skill.name.toLowerCase().includes(q) ||
+        skill.category?.toLowerCase().includes(q);
+      const matchesCategory =
+        categoryFilter === 'all' || skill.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [skills, query, categoryFilter]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <motion.div
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full font-medium shadow-xl"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Zap className="w-4 h-4" />
-            Loading skills data...
-          </motion.div>
-        </motion.div>
-      </div>
-    );
-  }
+  const isFiltered = query.trim() !== '' || categoryFilter !== 'all';
+
+  const startCreate = () => {
+    setEditingSkill(null);
+    setShowForm(true);
+  };
 
   if (showForm) {
     return (
@@ -227,268 +215,159 @@ export default function SkillsEditor() {
   }
 
   return (
-    <motion.div 
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Header */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-xl mb-2 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Zap size={24} />
-            skills.manage()
-          </motion.div>
-          <p className="text-gray-400 font-mono">
-            <span className="text-blue-500">{'// '}</span>
-            Manage your technical skills and expertise levels.
-          </p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Button 
-            onClick={() => {
-              setEditingSkill(null);
-              setShowForm(true);
-            }}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Skill
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Content"
+        title="Skills"
+        description="Technologies and disciplines shown on your portfolio."
+        actions={
+          <Button size="sm" onClick={startCreate}>
+            <Plus className="h-4 w-4" />
+            New skill
           </Button>
-        </motion.div>
-      </motion.div>
+        }
+      />
 
-      {/* Success/Error Message */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${
-              message.type === 'success' 
-                ? 'bg-green-900/50 border-green-700 text-green-300' 
-                : 'bg-red-900/50 border-red-700 text-red-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {message.type === 'success' ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-              {message.text}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Filters */}
-      <motion.div
-        className="flex flex-col sm:flex-row gap-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      <Toolbar
+        meta={
+          loading
+            ? undefined
+            : `${pluralize(filteredSkills.length, 'skill')}${
+                isFiltered ? ` of ${skills.length}` : ''
+              }`
+        }
       >
-        <div className="flex-1">
-          <Input
-            placeholder="Search skills..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="bg-gray-800 border-gray-700 focus:border-blue-500 text-white"
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="bg-gray-800 border-gray-700 focus:border-blue-500 text-white">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
-              <SelectItem value="all">All Categories</SelectItem>
-              {skillCategories.map((category) => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </motion.div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search skills..."
+          className="sm:max-w-xs"
+        />
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="h-9 bg-card sm:w-44">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {skillCategories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Toolbar>
 
-      {/* Skills Grid */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        {filteredSkills.map((skill, index) => (
-          <motion.div
-            key={skill.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -8 }}
-            className="group"
-          >
-            <Card className="relative overflow-hidden bg-gray-800 border-gray-700 hover:border-blue-600 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
-              {/* Featured Badge */}
-              {skill.is_featured && (
-                <motion.div
-                  className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-1 rounded-full shadow-lg"
-                  animate={{ rotate: [0, -10, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Star className="w-3 h-3" />
-                </motion.div>
-              )}
-
-              {/* Gradient Background */}
-              <div 
-                className="absolute inset-0 opacity-5"
-                style={{
-                  background: `linear-gradient(135deg, ${skill.color_from}, ${skill.color_to})`
+      {loading ? (
+        <CardGridSkeleton />
+      ) : filteredSkills.length === 0 ? (
+        <EmptyState
+          icon={Sparkles}
+          title={isFiltered ? 'No matching skills' : 'No skills yet'}
+          description={
+            isFiltered
+              ? 'Try a different search term or category.'
+              : 'Add the technologies you work with to show them on your portfolio.'
+          }
+          action={
+            isFiltered ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setQuery('');
+                  setCategoryFilter('all');
                 }}
-              />
-
-              <CardHeader className="relative z-10 pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {skill.icon_emoji && (
-                      <span className="text-2xl">{skill.icon_emoji}</span>
-                    )}
-                    <div>
-                      <CardTitle className="text-lg font-bold text-white">
-                        {skill.name}
-                      </CardTitle>
-                      <Badge 
-                        className="mt-1 bg-gray-700 text-gray-300 border-gray-600"
-                      >
-                        {skill.category}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="relative z-10 space-y-4">
-                {/* Proficiency Bar */}
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-400">Proficiency</span>
-                    <span className="font-medium text-white">{skill.proficiency_percentage}%</span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <motion.div
-                      className="h-2 rounded-full"
-                      style={{
-                        background: `linear-gradient(90deg, ${skill.color_from}, ${skill.color_to})`
-                      }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${skill.proficiency_percentage}%` }}
-                      transition={{ duration: 1, delay: index * 0.1 }}
-                    />
-                  </div>
-                </div>
-
-                {/* Experience */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Experience</span>
-                  <span className="font-medium text-white">
-                    {skill.years_experience} year{skill.years_experience !== 1 ? 's' : ''}
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleFeatured(skill)}
-                    disabled={saving}
-                    className="flex-1 bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-                  >
-                    {skill.is_featured ? (
-                      <StarOff className="w-3 h-3 mr-1" />
-                    ) : (
-                      <Star className="w-3 h-3 mr-1" />
-                    )}
-                    {skill.is_featured ? 'Unfeature' : 'Feature'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(skill)}
-                    className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(skill.id!)}
-                    disabled={saving}
-                    className="bg-red-900/50 border-red-700 hover:bg-red-900 text-red-400 hover:text-red-300"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Empty State */}
-      {filteredSkills.length === 0 && (
+              >
+                Clear filters
+              </Button>
+            ) : (
+              <Button size="sm" onClick={startCreate}>
+                <Plus className="h-4 w-4" />
+                New skill
+              </Button>
+            )
+          }
+        />
+      ) : (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-12"
+          variants={listContainer}
+          initial="hidden"
+          animate="show"
+          className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
         >
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-700"
-          >
-            <Zap className="w-12 h-12 text-blue-500" />
-          </motion.div>
-          <h3 className="text-xl font-semibold text-white mb-2">
-            No skills found
-          </h3>
-          <p className="text-gray-400 mb-6">
-            {filter || (categoryFilter && categoryFilter !== 'all') ? 'Try adjusting your search filters.' : 'Get started by adding your first skill.'}
-          </p>
-          {!filter && (!categoryFilter || categoryFilter === 'all') && (
-            <Button 
-              onClick={() => {
-                setEditingSkill(null);
-                setShowForm(true);
-              }}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg"
+          {filteredSkills.map((skill) => (
+            <EntityCard
+              key={skill.id}
+              media={
+                <MediaTile className="text-base">
+                  {skill.icon_emoji || skill.name.charAt(0).toUpperCase()}
+                </MediaTile>
+              }
+              title={skill.name}
+              subtitle={
+                [
+                  skill.category,
+                  skill.years_experience
+                    ? pluralize(skill.years_experience, 'yr')
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || undefined
+              }
+              adornment={skill.is_featured ? <FeaturedMark /> : null}
+              actions={
+                <EditDeleteActions
+                  onEdit={() => {
+                    setEditingSkill(skill);
+                    setShowForm(true);
+                  }}
+                  onDelete={() => confirmDelete.ask(skill)}
+                  extra={
+                    <IconAction
+                      label={skill.is_featured ? 'Unfeature' : 'Feature'}
+                      onClick={() => toggleFeatured(skill)}
+                      className={cn(skill.is_featured && 'text-copper')}
+                    >
+                      <Star
+                        className={cn(
+                          'h-3.5 w-3.5',
+                          skill.is_featured && 'fill-current'
+                        )}
+                      />
+                    </IconAction>
+                  }
+                />
+              }
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Skill
-            </Button>
-          )}
+              <ProficiencyBar
+                value={skill.proficiency_percentage}
+                from={skill.color_from}
+                to={skill.color_to}
+              />
+            </EntityCard>
+          ))}
         </motion.div>
       )}
-    </motion.div>
+
+      <ConfirmDialog
+        open={confirmDelete.open}
+        onOpenChange={(open) => !open && confirmDelete.dismiss()}
+        loading={confirmDelete.loading}
+        title="Delete skill?"
+        description={
+          confirmDelete.target
+            ? `"${confirmDelete.target.name}" will be removed from your portfolio. This cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        onConfirm={() => confirmDelete.run(handleDelete)}
+      />
+    </div>
   );
 }
 
-// ============= SKILL FORM COMPONENT =============
+/* ---------------------------------------------------------------- form ---- */
 
 interface SkillFormProps {
   skill: SkillData;
@@ -500,9 +379,8 @@ interface SkillFormProps {
 function SkillForm({ skill, onSave, onCancel, saving }: SkillFormProps) {
   const [formData, setFormData] = useState<SkillData>(skill);
 
-  const handleInputChange = (field: keyof SkillData, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const set = <K extends keyof SkillData>(field: K, value: SkillData[K]) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -510,194 +388,181 @@ function SkillForm({ skill, onSave, onCancel, saving }: SkillFormProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-        <Card className="bg-gray-800 border-gray-700 shadow-xl">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                  <motion.div
-                    className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                  >
-                    <Zap className="h-6 w-6 text-white" />
-                  </motion.div>
-                  {skill.id ? 'Edit Skill' : 'Add New Skill'}
-                </CardTitle>
-                <CardDescription className="text-gray-400 mt-2">
-                  {skill.id ? 'Update skill information and proficiency' : 'Add a new skill to your portfolio'}
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
+    <form onSubmit={handleSubmit}>
+      <EditorPanel
+        eyebrow={skill.id ? 'Editing skill' : 'New skill'}
+        title={skill.id ? skill.name || 'Edit skill' : 'New skill'}
+        description={
+          skill.id
+            ? 'Update how this skill appears on your portfolio.'
+            : 'Add a technology or discipline to your portfolio.'
+        }
+        onBack={onCancel}
+        backLabel="Skills"
+        footer={
+          <FormActions>
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={saving}>
+              {saving ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {skill.id ? 'Save changes' : 'Create skill'}
+            </Button>
+          </FormActions>
+        }
+      >
+        <FormSection title="Details">
+          <FormGrid>
+            <Field label="Name" htmlFor="name" required>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => set('name', e.target.value)}
+                placeholder="React, PostgreSQL, Figma..."
+                required
+              />
+            </Field>
+
+            <Field label="Category" htmlFor="category">
+              <Select
+                value={formData.category}
+                onValueChange={(value) => set('category', value)}
               >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white">Skill Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="e.g., React.js, Python, Design"
-                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-white">Category</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => handleInputChange('category', value)}
-                  >
-                    <SelectTrigger className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      {skillCategories.map((category) => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="icon_emoji" className="text-white">Icon Emoji</Label>
-                  <Input
-                    id="icon_emoji"
-                    value={formData.icon_emoji}
-                    onChange={(e) => handleInputChange('icon_emoji', e.target.value)}
-                    placeholder="⚛️"
-                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="years_experience" className="text-white">Years of Experience</Label>
-                  <Input
-                    id="years_experience"
-                    type="number"
-                    min="0"
-                    value={formData.years_experience}
-                    onChange={(e) => handleInputChange('years_experience', parseInt(e.target.value) || 0)}
-                    className="bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Proficiency */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="proficiency_percentage" className="text-white">
-                    Proficiency Level: {formData.proficiency_percentage}%
-                  </Label>
-                  <input
-                    id="proficiency_percentage"
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={formData.proficiency_percentage}
-                    onChange={(e) => handleInputChange('proficiency_percentage', parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400">
-                    <span>Beginner</span>
-                    <span>Intermediate</span>
-                    <span>Expert</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Color Selection */}
-              <div className="space-y-2">
-                <Label className="text-white">Color Scheme</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {skillColors.map((color, index) => (
-                    <motion.button
-                      key={index}
-                      type="button"
-                      onClick={() => {
-                        handleInputChange('color_from', color.from);
-                        handleInputChange('color_to', color.to);
-                      }}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        formData.color_from === color.from && formData.color_to === color.to
-                          ? 'border-blue-500 bg-gray-700'
-                          : 'border-gray-600 bg-gray-800 hover:border-gray-500'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <div
-                        className="w-full h-8 rounded"
-                        style={{
-                          background: `linear-gradient(135deg, ${color.from}, ${color.to})`
-                        }}
-                      />
-                      <p className="text-xs text-gray-400 mt-1">{color.name}</p>
-                    </motion.button>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {skillCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
-                </div>
-              </div>
+                </SelectContent>
+              </Select>
+            </Field>
 
-              {/* Settings */}
-              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                <div>
-                  <Label htmlFor="is_featured" className="text-white font-medium">Featured Skill</Label>
-                  <p className="text-sm text-gray-400">Display this skill prominently</p>
-                </div>
-                <Switch
-                  id="is_featured"
-                  checked={formData.is_featured}
-                  onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
-                />
-              </div>
+            <Field label="Icon" htmlFor="icon_emoji" hint="A single emoji, shown on the card.">
+              <Input
+                id="icon_emoji"
+                value={formData.icon_emoji}
+                onChange={(e) => set('icon_emoji', e.target.value)}
+                placeholder="⚛️"
+              />
+            </Field>
 
-              {/* Actions */}
-              <div className="flex gap-4 pt-6">
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      {skill.id ? 'Update Skill' : 'Create Skill'}
-                    </>
-                  )}
-                </Button>
-                <Button
+            <Field label="Years of experience" htmlFor="years_experience">
+              <Input
+                id="years_experience"
+                type="number"
+                min="0"
+                value={formData.years_experience}
+                onChange={(e) =>
+                  set('years_experience', parseInt(e.target.value) || 0)
+                }
+              />
+            </Field>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          title="Proficiency"
+          description="Drives the progress bar shown on the skill card."
+        >
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">Level</span>
+              <span className="text-sm font-medium tabular-nums text-foreground">
+                {formData.proficiency_percentage}%
+              </span>
+            </div>
+            <input
+              id="proficiency_percentage"
+              type="range"
+              min="0"
+              max="100"
+              value={formData.proficiency_percentage}
+              onChange={(e) =>
+                set('proficiency_percentage', parseInt(e.target.value))
+              }
+              className="admin-range"
+              aria-label="Proficiency percentage"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Beginner</span>
+              <span>Intermediate</span>
+              <span>Expert</span>
+            </div>
+          </div>
+        </FormSection>
+
+        <FormSection title="Accent" description="Tints the proficiency bar.">
+          <div className="flex flex-wrap gap-2">
+            {skillColors.map((color) => {
+              const selected =
+                formData.color_from === color.from &&
+                formData.color_to === color.to;
+              return (
+                <button
+                  key={color.name}
                   type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
+                  onClick={() => {
+                    set('color_from', color.from);
+                    set('color_to', color.to);
+                  }}
+                  title={color.name}
+                  aria-label={color.name}
+                  aria-pressed={selected}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors',
+                    selected
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-card text-muted-foreground hover:border-input hover:text-foreground'
+                  )}
                 >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-    </motion.div>
+                  <span
+                    className="h-3 w-3 rounded-full"
+                    style={{
+                      background: `linear-gradient(135deg, ${color.from}, ${color.to})`,
+                    }}
+                  />
+                  {color.name}
+                </button>
+              );
+            })}
+          </div>
+        </FormSection>
+
+        <FormSection title="Visibility">
+          <ToggleRow
+            label="Featured skill"
+            description="Highlight this skill at the top of the section."
+            control={
+              <Switch
+                id="is_featured"
+                checked={formData.is_featured}
+                onCheckedChange={(checked) => set('is_featured', checked)}
+              />
+            }
+          />
+          <Field
+            label="Sort order"
+            htmlFor="sort_order"
+            hint="Lower numbers appear first."
+            className="max-w-[10rem]"
+          >
+            <Input
+              id="sort_order"
+              type="number"
+              value={formData.sort_order}
+              onChange={(e) => set('sort_order', parseInt(e.target.value) || 0)}
+            />
+          </Field>
+        </FormSection>
+      </EditorPanel>
+    </form>
   );
-} 
+}

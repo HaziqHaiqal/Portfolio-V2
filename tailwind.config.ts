@@ -56,6 +56,13 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+  			success: 'hsl(var(--success))',
+  			warning: 'hsl(var(--warning))',
+  			copper: 'hsl(var(--brand-copper))',
+  			surface: {
+  				sunken: 'hsl(var(--surface-sunken))',
+  				raised: 'hsl(var(--surface-raised))'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

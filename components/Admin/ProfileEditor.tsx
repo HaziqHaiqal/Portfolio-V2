@@ -1,31 +1,52 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  Briefcase,
+  FileText,
+  Github,
+  Globe,
+  Linkedin,
+  Loader2,
+  Mail,
+  MapPin,
+  Plus,
+  Save,
+  Twitter,
+  User,
+  X,
+} from 'lucide-react';
+
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import { upsertProfileAction } from '@app/admin/_actions/profile';
-import { motion, AnimatePresence } from 'framer-motion';
 import UniversalUpload, {
   type UniversalUploadHandle,
 } from '@components/Media/UniversalUpload';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
+import UniversalImage from '@components/Media/UniversalImage';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { Badge } from '@components/ui/badge';
-import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
 import {
-  Briefcase,
-  Check,
-  AlertCircle,
-  FileText,
-  Loader2,
-  Plus,
-  X,
-  Save,
-  User,
-  Globe
-} from 'lucide-react';
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@components/ui/select';
+import {
+  Field,
+  FormGrid,
+  FormSection,
+  PageHeader,
+  PageSkeleton,
+  ToggleRow,
+} from '@components/Admin/shared';
+import { rise } from '@constants/motion';
+import { cn } from '@lib/utils';
 
 interface ProfileData {
   id?: string;
@@ -78,47 +99,48 @@ const initialProfileData: ProfileData = {
   is_freelance_available: false,
 };
 
+const availabilityStyles: Record<string, string> = {
+  Available: 'border-success/40 bg-success/10 text-success',
+  Busy: 'border-warning/40 bg-warning/10 text-warning',
+  Unavailable: 'border-border bg-muted text-muted-foreground',
+};
+
+const socialFields = [
+  { field: 'website_url', label: 'Website', icon: Globe, placeholder: 'https://yoursite.com' },
+  { field: 'github_url', label: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
+  { field: 'linkedin_url', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
+  { field: 'twitter_url', label: 'X / Twitter', icon: Twitter, placeholder: 'https://x.com/username' },
+] as const;
+
 export default function ProfileEditor() {
   const [profileData, setProfileData] = useState<ProfileData>(initialProfileData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [committingUpload, setCommittingUpload] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [languageInput, setLanguageInput] = useState('');
   const profileImageUploadRef = useRef<UniversalUploadHandle>(null);
   const resumeUploadRef = useRef<UniversalUploadHandle>(null);
 
-  const supabase = createBrowserSupabase();
+  /** Last persisted snapshot, used to drive the unsaved-changes state. */
+  const [savedSnapshot, setSavedSnapshot] = useState<string>(
+    JSON.stringify(initialProfileData)
+  );
 
-  useEffect(() => {
-    loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        setMessage(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
 
   const loadProfile = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('profile')
-        .select('*')
-        .single();
+      const { data, error } = await supabase.from('profile').select('*').single();
 
+      // PGRST116 = no row yet; that's a first run, not a failure.
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile:', error);
-        setMessage({ type: 'error', text: 'Error loading profile data' });
+        toast.error('Could not load profile');
         return;
       }
 
       if (data) {
-        const normalizedProfile = {
+        const normalized: ProfileData = {
           ...initialProfileData,
           ...data,
           full_name: data.full_name || '',
@@ -143,30 +165,29 @@ export default function ProfileEditor() {
           years_of_experience: data.years_of_experience || 0,
           is_freelance_available: data.is_freelance_available || false,
         };
-        setProfileData(normalizedProfile);
+        setProfileData(normalized);
+        setSavedSnapshot(JSON.stringify(normalized));
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      setMessage({ type: 'error', text: 'Error loading profile data' });
+      toast.error('Could not load profile');
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const isDirty = JSON.stringify(profileData) !== savedSnapshot;
+
   const handleSave = async () => {
-    let nextProfileData = { ...profileData };
+    let next = { ...profileData };
 
     const pendingUploads = [
-      {
-        ref: profileImageUploadRef,
-        field: 'profile_image_url' as const,
-        label: 'Profile image',
-      },
-      {
-        ref: resumeUploadRef,
-        field: 'resume_url' as const,
-        label: 'Resume',
-      },
+      { ref: profileImageUploadRef, field: 'profile_image_url' as const, label: 'Profile image' },
+      { ref: resumeUploadRef, field: 'resume_url' as const, label: 'Resume' },
     ];
 
     try {
@@ -176,512 +197,407 @@ export default function ProfileEditor() {
           if (!ref.current?.hasPending()) continue;
           const result = await ref.current.commitPending();
           if (!result.ok) {
-            setMessage({ type: 'error', text: `${label} upload failed: ${result.error}` });
+            toast.error(`${label} upload failed: ${result.error}`);
             return;
           }
-          if (result.url) {
-            nextProfileData = { ...nextProfileData, [field]: result.url };
-          }
+          if (result.url) next = { ...next, [field]: result.url };
         }
       }
 
       setSaving(true);
-      const data = await upsertProfileAction(nextProfileData);
-      setProfileData({ ...nextProfileData, ...data });
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      const data = await upsertProfileAction(next);
+      const merged = { ...next, ...data };
+      setProfileData(merged);
+      setSavedSnapshot(JSON.stringify(merged));
+      toast.success('Profile saved');
     } catch (error) {
       console.error('Error saving profile:', error);
-      setMessage({ type: 'error', text: 'Error saving profile. Please try again.' });
+      toast.error('Could not save profile');
     } finally {
       setCommittingUpload(false);
       setSaving(false);
     }
   };
 
-  const handleInputChange = (field: keyof ProfileData, value: string | number | boolean | string[]) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
-  };
+  const set = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) =>
+    setProfileData((prev) => ({ ...prev, [field]: value }));
 
   const handleAddLanguage = () => {
-    if (languageInput.trim() && !profileData.languages.includes(languageInput.trim())) {
-      setProfileData(prev => ({
-        ...prev,
-        languages: [...prev.languages, languageInput.trim()]
-      }));
-      setLanguageInput('');
-    }
+    const value = languageInput.trim();
+    if (!value || profileData.languages.includes(value)) return;
+    setProfileData((prev) => ({ ...prev, languages: [...prev.languages, value] }));
+    setLanguageInput('');
   };
 
-  const handleRemoveLanguage = (language: string) => {
-    setProfileData(prev => ({
+  const handleRemoveLanguage = (language: string) =>
+    setProfileData((prev) => ({
       ...prev,
-      languages: prev.languages.filter(lang => lang !== language)
+      languages: prev.languages.filter((l) => l !== language),
     }));
-  };
+
+  const busy = saving || committingUpload;
 
   if (loading) {
     return (
-      <div className="flex h-64 w-full items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
-          />
-          <motion.div
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full font-medium shadow-xl"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <User className="w-4 h-4" />
-            Loading profile data...
-          </motion.div>
-        </div>
-      </div>
+      <PageSkeleton>
+        <div className="h-96 rounded-xl border border-border bg-card" />
+      </PageSkeleton>
     );
   }
 
   return (
-    <motion.div
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Header */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-xl mb-2 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <User size={24} />
-            profile.manage()
-          </motion.div>
-          <p className="text-gray-400 font-mono">
-            <span className="text-blue-500">{'// '}</span>
-            Manage your personal and professional information.
-          </p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Button
-            onClick={handleSave}
-            disabled={saving || committingUpload}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
-          >
-            {committingUpload ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Profile
-              </>
+    <motion.div {...rise} className="space-y-6">
+      <PageHeader
+        eyebrow="Content"
+        title="Profile"
+        description="The identity block at the top of your portfolio."
+        actions={
+          <>
+            {isDirty && (
+              <span className="hidden items-center gap-1.5 text-xs text-warning sm:inline-flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                Unsaved changes
+              </span>
             )}
-          </Button>
-        </motion.div>
-      </motion.div>
-
-      {/* Success/Error Message */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`p-4 rounded-lg border ${message.type === 'success'
-                ? 'bg-green-500/10 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
-                : 'bg-red-500/10 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
-              }`}
-          >
-            <div className="flex items-center gap-3">
-              {message.type === 'success' ? (
-                <Check className="w-5 h-5" />
+            <Button size="sm" onClick={handleSave} disabled={busy || !isDirty}>
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <AlertCircle className="w-5 h-5" />
+                <Save className="h-3.5 w-3.5" />
               )}
-              <span className="font-medium">{message.text}</span>
+              {committingUpload ? 'Uploading...' : 'Save profile'}
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        {/* Live summary of what the public page will show. */}
+        <aside className="lg:sticky lg:top-20 lg:self-start">
+          <div className="admin-raised overflow-hidden rounded-xl border border-border bg-card">
+            <div className="admin-grid relative flex flex-col items-center border-b border-border bg-surface-sunken/60 px-5 py-6 text-center">
+              <div className="admin-raised relative h-20 w-20 overflow-hidden rounded-2xl border border-border bg-surface-raised">
+                {profileData.profile_image_url ? (
+                  <UniversalImage
+                    src={profileData.profile_image_url}
+                    alt={profileData.full_name || 'Profile'}
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <User className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <p className="admin-display mt-4 text-base font-semibold text-foreground">
+                {profileData.full_name || 'Your name'}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {profileData.title || 'Your professional title'}
+              </p>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'mt-3 font-normal',
+                  availabilityStyles[profileData.availability_status] ??
+                    availabilityStyles.Unavailable
+                )}
+              >
+                {profileData.availability_status}
+              </Badge>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Profile Form */}
-      <div className="grid gap-8">
-        {/* Basic Information */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <User className="h-6 w-6 text-white" />
-                </motion.div>
-                Basic Information
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Your personal details and contact information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-white">Full Name</Label>
-                  <Input
-                    value={profileData.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
-                    placeholder="Your full name"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Professional Title</Label>
-                  <Input
-                    value={profileData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="e.g., Full Stack Developer"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Email</Label>
-                  <Input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="your.email@example.com"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Phone</Label>
-                  <Input
-                    value={profileData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Location</Label>
-                  <Input
-                    value={profileData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="City, Country"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Years of Experience</Label>
-                  <Input
-                    type="number"
-                    value={profileData.years_of_experience}
-                    onChange={(e) => handleInputChange('years_of_experience', parseInt(e.target.value) || 0)}
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
+            <dl className="divide-y divide-border/60 text-xs">
+              <div className="flex items-center gap-2.5 px-5 py-3">
+                <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <dd className="truncate text-foreground">
+                  {profileData.location || <span className="text-muted-foreground">No location</span>}
+                </dd>
               </div>
+              <div className="flex items-center gap-2.5 px-5 py-3">
+                <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <dd className="truncate text-foreground">
+                  {profileData.email || <span className="text-muted-foreground">No email</span>}
+                </dd>
+              </div>
+              <div className="flex items-center gap-2.5 px-5 py-3">
+                <Briefcase className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <dd className="truncate text-foreground">
+                  {profileData.years_of_experience
+                    ? `${profileData.years_of_experience} years experience`
+                    : <span className="text-muted-foreground">Experience not set</span>}
+                </dd>
+              </div>
+              {profileData.is_freelance_available && (
+                <div className="flex items-center gap-2.5 px-5 py-3">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
+                  <dd className="truncate text-copper">Open to freelance</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </aside>
 
-              <div className="space-y-2">
-                <Label className="text-white">Bio</Label>
-                <Textarea
-                  value={profileData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="A brief description about yourself..."
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white min-h-[100px]"
+        {/* Form */}
+        <div className="admin-raised space-y-8 rounded-xl border border-border bg-card p-6">
+          <FormSection title="Identity" description="Name, role and how to reach you.">
+            <FormGrid>
+              <Field label="Full name" htmlFor="full_name">
+                <Input
+                  id="full_name"
+                  value={profileData.full_name}
+                  onChange={(e) => set('full_name', e.target.value)}
+                  placeholder="Ada Lovelace"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white">About</Label>
-                <Textarea
-                  value={profileData.about}
-                  onChange={(e) => handleInputChange('about', e.target.value)}
-                  placeholder="Detailed information about your background, skills, and experience..."
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white min-h-[150px]"
+              </Field>
+              <Field label="Professional title" htmlFor="title">
+                <Input
+                  id="title"
+                  value={profileData.title}
+                  onChange={(e) => set('title', e.target.value)}
+                  placeholder="Full Stack Developer"
                 />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </Field>
+              <Field label="Email" htmlFor="email">
+                <Input
+                  id="email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) => set('email', e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </Field>
+              <Field label="Phone" htmlFor="phone">
+                <Input
+                  id="phone"
+                  value={profileData.phone}
+                  onChange={(e) => set('phone', e.target.value)}
+                  placeholder="+60 12 345 6789"
+                />
+              </Field>
+              <Field label="Location" htmlFor="location">
+                <Input
+                  id="location"
+                  value={profileData.location}
+                  onChange={(e) => set('location', e.target.value)}
+                  placeholder="Kuala Lumpur, Malaysia"
+                />
+              </Field>
+              <Field label="Years of experience" htmlFor="years_of_experience">
+                <Input
+                  id="years_of_experience"
+                  type="number"
+                  min={0}
+                  value={profileData.years_of_experience}
+                  onChange={(e) =>
+                    set('years_of_experience', parseInt(e.target.value) || 0)
+                  }
+                />
+              </Field>
+            </FormGrid>
+          </FormSection>
 
-        {/* Social Links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+          <FormSection
+            title="Narrative"
+            description="The short line under your name, and the longer story below it."
+          >
+            <Field
+              label="Bio"
+              htmlFor="bio"
+              hint={`${profileData.bio.length} characters — keep it to a sentence or two.`}
+            >
+              <Textarea
+                id="bio"
+                value={profileData.bio}
+                onChange={(e) => set('bio', e.target.value)}
+                placeholder="One or two lines that introduce you."
+                className="min-h-[90px] resize-y"
+              />
+            </Field>
+            <Field label="About" htmlFor="about">
+              <Textarea
+                id="about"
+                value={profileData.about}
+                onChange={(e) => set('about', e.target.value)}
+                placeholder="Background, focus areas, and what you're working toward."
+                className="min-h-[150px] resize-y"
+              />
+            </Field>
+          </FormSection>
+
+          <FormSection title="Links" description="Where people can find your work.">
+            <FormGrid>
+              {socialFields.map(({ field, label, icon: Icon, placeholder }) => (
+                <Field key={field} label={label} htmlFor={field}>
+                  <div className="relative">
+                    <Icon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id={field}
+                      value={profileData[field]}
+                      onChange={(e) => set(field, e.target.value)}
+                      placeholder={placeholder}
+                      className="pl-9"
+                    />
+                  </div>
+                </Field>
+              ))}
+            </FormGrid>
+          </FormSection>
+
+          <FormSection title="Work preferences">
+            <FormGrid>
+              <Field label="Availability" htmlFor="availability_status">
+                <Select
+                  value={profileData.availability_status}
+                  onValueChange={(v) => set('availability_status', v)}
                 >
-                  <Globe className="h-6 w-6 text-white" />
-                </motion.div>
-                Social Links
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Your online presence and portfolio links
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-white">Website</Label>
-                  <Input
-                    value={profileData.website_url}
-                    onChange={(e) => handleInputChange('website_url', e.target.value)}
-                    placeholder="https://yourwebsite.com"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">GitHub</Label>
-                  <Input
-                    value={profileData.github_url}
-                    onChange={(e) => handleInputChange('github_url', e.target.value)}
-                    placeholder="https://github.com/yourusername"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">LinkedIn</Label>
-                  <Input
-                    value={profileData.linkedin_url}
-                    onChange={(e) => handleInputChange('linkedin_url', e.target.value)}
-                    placeholder="https://linkedin.com/in/yourusername"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Twitter</Label>
-                  <Input
-                    value={profileData.twitter_url}
-                    onChange={(e) => handleInputChange('twitter_url', e.target.value)}
-                    placeholder="https://twitter.com/yourusername"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Professional Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  <SelectTrigger id="availability_status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Busy">Busy</SelectItem>
+                    <SelectItem value="Unavailable">Unavailable</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Preferred contact" htmlFor="preferred_contact">
+                <Select
+                  value={profileData.preferred_contact}
+                  onValueChange={(v) => set('preferred_contact', v)}
                 >
-                  <Briefcase className="h-6 w-6 text-white" />
-                </motion.div>
-                Professional Settings
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Work availability and professional preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-white">Availability Status</Label>
-                  <select
-                    value={profileData.availability_status}
-                    onChange={(e) => handleInputChange('availability_status', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-700 focus:border-blue-500 rounded-md px-3 py-2 text-white"
-                  >
-                    <option value="Available">Available</option>
-                    <option value="Busy">Busy</option>
-                    <option value="Unavailable">Unavailable</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Preferred Contact</Label>
-                  <select
-                    value={profileData.preferred_contact}
-                    onChange={(e) => handleInputChange('preferred_contact', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-700 focus:border-blue-500 rounded-md px-3 py-2 text-white"
-                  >
-                    <option value="email">Email</option>
-                    <option value="phone">Phone</option>
-                    <option value="linkedin">LinkedIn</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Hourly Rate</Label>
-                  <Input
-                    value={profileData.hourly_rate}
-                    onChange={(e) => handleInputChange('hourly_rate', e.target.value)}
-                    placeholder="$50/hour"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white">Timezone</Label>
-                  <Input
-                    value={profileData.timezone}
-                    onChange={(e) => handleInputChange('timezone', e.target.value)}
-                    placeholder="UTC-5 (EST)"
-                    className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                  />
-                </div>
-              </div>
+                  <SelectTrigger id="preferred_contact">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="phone">Phone</SelectItem>
+                    <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Hourly rate" htmlFor="hourly_rate">
+                <Input
+                  id="hourly_rate"
+                  value={profileData.hourly_rate}
+                  onChange={(e) => set('hourly_rate', e.target.value)}
+                  placeholder="$50/hour"
+                />
+              </Field>
+              <Field label="Timezone" htmlFor="timezone">
+                <Input
+                  id="timezone"
+                  value={profileData.timezone}
+                  onChange={(e) => set('timezone', e.target.value)}
+                  placeholder="UTC+8 (MYT)"
+                />
+              </Field>
+            </FormGrid>
 
-              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                <div>
-                  <Label className="text-white font-medium">Available for Freelance</Label>
-                  <p className="text-sm text-gray-400">Show availability for freelance projects</p>
-                </div>
+            <ToggleRow
+              label="Available for freelance"
+              description="Shows an open-to-work marker on your portfolio."
+              control={
                 <Switch
                   checked={profileData.is_freelance_available}
-                  onCheckedChange={(checked) => handleInputChange('is_freelance_available', checked)}
+                  onCheckedChange={(checked) =>
+                    set('is_freelance_available', checked)
+                  }
                 />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              }
+            />
+          </FormSection>
 
-        {/* Languages */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <Globe className="h-6 w-6 text-white" />
-                </motion.div>
-                Languages
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Languages you speak and their proficiency levels
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex gap-2">
-                <Input
-                  value={languageInput}
-                  onChange={(e) => setLanguageInput(e.target.value)}
-                  placeholder="e.g., English, Spanish, French"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLanguage())}
-                  className="bg-gray-700 border-gray-700 focus:border-blue-500 text-white"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddLanguage}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+          <FormSection title="Languages" description="Press Enter to add.">
+            <div className="flex gap-2">
+              <Input
+                value={languageInput}
+                onChange={(e) => setLanguageInput(e.target.value)}
+                placeholder="English, Malay, Japanese..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddLanguage();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleAddLanguage}
+                disabled={!languageInput.trim()}
+                aria-label="Add language"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
+            {profileData.languages.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {profileData.languages.map((language, index) => (
+                {profileData.languages.map((language) => (
                   <Badge
-                    key={index}
-                    className="bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600 px-3 py-1"
+                    key={language}
+                    variant="secondary"
+                    className="gap-1.5 py-1 pl-2.5 pr-1.5 font-normal"
                   >
                     {language}
                     <button
+                      type="button"
                       onClick={() => handleRemoveLanguage(language)}
-                      className="ml-2 text-gray-400 hover:text-white"
+                      aria-label={`Remove ${language}`}
+                      className="rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="h-3 w-3" />
                     </button>
                   </Badge>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No languages added yet.
+              </p>
+            )}
+          </FormSection>
 
-        {/* Media Files */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl text-white">
-                <motion.div
-                  className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <FileText className="h-6 w-6 text-white" />
-                </motion.div>
-                Media & Files
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Upload your profile image and resume
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label className="text-white">Profile Image</Label>
-                  <UniversalUpload
-                    ref={profileImageUploadRef}
-                    uploadType="profile_image"
-                    entityId="profile"
-                    value={profileData.profile_image_url}
-                    onChange={(url: string) => handleInputChange('profile_image_url', url)}
-                    enableCrop={true}
-                    cropAspect={1}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-white">Resume/CV</Label>
-                  <UniversalUpload
-                    ref={resumeUploadRef}
-                    uploadType="resume"
-                    entityId="profile"
-                    value={profileData.resume_url}
-                    onChange={(url: string) => handleInputChange('resume_url', url)}
-                    enableCrop={false}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          <FormSection
+            title="Files"
+            description="Profile photo and downloadable CV."
+          >
+            <FormGrid>
+              <Field label="Profile image">
+                <UniversalUpload
+                  ref={profileImageUploadRef}
+                  uploadType="profile_image"
+                  entityId="profile"
+                  value={profileData.profile_image_url}
+                  onChange={(url: string) => set('profile_image_url', url)}
+                  enableCrop={true}
+                  cropAspect={1}
+                />
+              </Field>
+              <Field label="Résumé / CV">
+                <UniversalUpload
+                  ref={resumeUploadRef}
+                  uploadType="resume"
+                  entityId="profile"
+                  value={profileData.resume_url}
+                  onChange={(url: string) => set('resume_url', url)}
+                  enableCrop={false}
+                />
+              </Field>
+            </FormGrid>
+            {profileData.resume_url && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <FileText className="h-3.5 w-3.5" />
+                A résumé is attached to your profile.
+              </p>
+            )}
+          </FormSection>
+        </div>
       </div>
     </motion.div>
   );
-} 
+}

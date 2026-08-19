@@ -13,7 +13,7 @@ import {
   GitCommit,
 } from "lucide-react";
 import ProjectImageGallery from "@components/Media/ProjectImageGallery";
-import { getCategoryInfo } from "@lib/constants";
+import { getCategoryInfo } from "@constants/projects";
 
 interface ProjectModalProps {
   isOpen: boolean;

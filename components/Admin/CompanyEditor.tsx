@@ -1,35 +1,47 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { isEmpty } from 'lodash';
+import {
+  Building2,
+  Plus,
+  Loader2,
+  Check,
+  ExternalLink,
+} from 'lucide-react';
+
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
   upsertCompanyAction,
   deleteCompanyAction,
 } from '@app/admin/_actions/companies';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-import { isEmpty } from 'lodash';
-import {
-  Building,
-  Edit,
-  Trash2,
-  Plus,
-  X,
-  Loader2,
-  Check,
-  Search,
-  ExternalLink,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
-import { Badge } from '@components/ui/badge';
 import { Company } from '@lib/supabase';
 import UniversalUpload, {
   type UniversalUploadHandle,
 } from '@components/Media/UniversalUpload';
 import UniversalImage from '@components/Media/UniversalImage';
+import {
+  CardGridSkeleton,
+  ConfirmDialog,
+  EditDeleteActions,
+  EditorPanel,
+  EmptyState,
+  EntityCard,
+  Field,
+  FormActions,
+  FormSection,
+  MediaTile,
+  PageHeader,
+  SearchInput,
+  Toolbar,
+  useConfirm,
+} from '@components/Admin/shared';
+import { listContainer } from '@constants/motion';
+import { hostnameOf, pluralize } from '@lib/format';
 
 export default function CompanyEditor() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -37,8 +49,9 @@ export default function CompanyEditor() {
   const [saving, setSaving] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [filter, setFilter] = useState('');
+  const [query, setQuery] = useState('');
   const supabase = createBrowserSupabase();
+  const confirmDelete = useConfirm<Company>();
 
   const loadCompanies = useCallback(async () => {
     try {
@@ -61,37 +74,22 @@ export default function CompanyEditor() {
     loadCompanies();
   }, [loadCompanies]);
 
-  const handleEdit = (company: Company) => {
-    setEditingCompany(company);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this company? This will remove the logo but keep existing experiences linked to it.',
-      )
-    )
-      return;
-
-    setSaving(true);
+  const handleDelete = async (company: Company) => {
     try {
-      await deleteCompanyAction(id);
-      toast.success('Company deleted successfully');
+      await deleteCompanyAction(company.id);
+      toast.success(`Deleted ${company.name}`);
       await loadCompanies();
     } catch (error: unknown) {
       console.error('Error deleting company:', error);
       const msg =
         error instanceof Error ? error.message : 'Failed to delete company';
+      // A foreign-key violation means roles still point at this company;
+      // surface that instead of the raw Postgres error.
       if (msg.includes('23503') || msg.toLowerCase().includes('foreign key')) {
-        toast.error(
-          'Cannot delete company. It is linked to existing experiences.',
-        );
+        toast.error('Cannot delete — this company is linked to existing roles.');
       } else {
         toast.error(msg);
       }
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -105,48 +103,29 @@ export default function CompanyEditor() {
         return;
       }
 
-      if (editingCompany?.id) {
-        const duplicate = companies.find(
-          (c) =>
-            c.name.toLowerCase() === name.toLowerCase() &&
-            c.id !== editingCompany.id,
-        );
-        if (duplicate) {
-          toast.error(
-            `Company "${name}" already exists. Please use a different name.`,
-          );
-          return;
-        }
-        await upsertCompanyAction({
-          id: editingCompany.id,
-          name,
-          logo_url: companyData.logo_url || undefined,
-          website_url: companyData.website_url || undefined,
-        });
-        toast.success('Company updated successfully');
-      } else {
-        const duplicate = companies.find(
-          (c) => c.name.toLowerCase() === name.toLowerCase(),
-        );
-        if (duplicate) {
-          toast.error(
-            `Company "${name}" already exists. Please select it from the list instead.`,
-          );
-          return;
-        }
-
-        if (!companyData.id) {
-          toast.error('Missing company id. Please reload and try again.');
-          return;
-        }
-        await upsertCompanyAction({
-          id: companyData.id,
-          name,
-          logo_url: companyData.logo_url || undefined,
-          website_url: companyData.website_url || undefined,
-        });
-        toast.success('Company created successfully');
+      const duplicate = companies.find(
+        (c) =>
+          c.name.toLowerCase() === name.toLowerCase() &&
+          c.id !== editingCompany?.id
+      );
+      if (duplicate) {
+        toast.error(`"${name}" already exists.`);
+        return;
       }
+
+      const id = editingCompany?.id ?? companyData.id;
+      if (!id) {
+        toast.error('Missing company id. Please reload and try again.');
+        return;
+      }
+
+      await upsertCompanyAction({
+        id,
+        name,
+        logo_url: companyData.logo_url || undefined,
+        website_url: companyData.website_url || undefined,
+      });
+      toast.success(editingCompany?.id ? 'Company updated' : 'Company created');
 
       setShowForm(false);
       setEditingCompany(null);
@@ -156,9 +135,7 @@ export default function CompanyEditor() {
       const msg =
         error instanceof Error ? error.message : 'Failed to save company';
       if (msg.includes('23505') || msg.toLowerCase().includes('duplicate')) {
-        toast.error(
-          `Company "${companyData.name?.trim()}" already exists. Please use a different name.`,
-        );
+        toast.error(`"${companyData.name?.trim()}" already exists.`);
       } else {
         toast.error(msg);
       }
@@ -167,24 +144,17 @@ export default function CompanyEditor() {
     }
   };
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredCompanies = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q
+      ? companies.filter((c) => c.name.toLowerCase().includes(q))
+      : companies;
+  }, [companies, query]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <span className="text-gray-400">Loading companies...</span>
-        </div>
-      </div>
-    );
-  }
+  const startCreate = () => {
+    setEditingCompany(null);
+    setShowForm(true);
+  };
 
   if (showForm) {
     return (
@@ -201,133 +171,134 @@ export default function CompanyEditor() {
   }
 
   return (
-    <motion.div
-      className="space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <motion.div
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-xl mb-2 shadow-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Building className="h-6 w-6" />
-            companies.manage()
-          </motion.div>
-          <p className="text-gray-400 font-mono">
-            <span className="text-blue-500">{'// '}</span>
-            Manage company logos shared across all roles
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setEditingCompany(null);
-            setShowForm(true);
-          }}
-          className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Company
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Career"
+        title="Companies"
+        description="Shared logos and links, reused across every role you record."
+        actions={
+          <Button size="sm" onClick={startCreate}>
+            <Plus className="h-4 w-4" />
+            New company
+          </Button>
+        }
+      />
 
-      {/* Search */}
-      <div className="flex items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search companies..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="pl-10 bg-gray-800 border-gray-700 text-white"
-          />
-        </div>
-        <Badge className="bg-gray-700 text-gray-300 border-gray-600">
-          {filteredCompanies.length} {filteredCompanies.length === 1 ? 'company' : 'companies'}
-        </Badge>
-      </div>
+      <Toolbar
+        meta={
+          loading
+            ? undefined
+            : `${pluralize(filteredCompanies.length, 'company', 'companies')}${
+                query.trim() ? ` of ${companies.length}` : ''
+              }`
+        }
+      >
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search companies..."
+          className="sm:max-w-xs"
+        />
+      </Toolbar>
 
-      {/* Companies Grid */}
-      {filteredCompanies.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredCompanies.map((company, index) => (
-            <motion.div
-              key={company.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    {company.logo_url ? (
-                      <UniversalImage
-                        src={company.logo_url}
-                        alt={company.name}
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-lg bg-gray-700 flex items-center justify-center flex-shrink-0">
-                        <Building className="w-7 h-7 text-gray-400" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg font-semibold text-white truncate">
-                        {company.name}
-                      </CardTitle>
-                      {company.website_url && (
-                        <a
-                          href={company.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Website
-                        </a>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(company)}
-                        className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(company.id)}
-                        disabled={saving}
-                        className="bg-red-900/40 border-red-700/70 hover:bg-red-900 text-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+      {loading ? (
+        <CardGridSkeleton count={3} />
+      ) : filteredCompanies.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title={query.trim() ? 'No matching companies' : 'No companies yet'}
+          description={
+            query.trim()
+              ? 'Try a different search term.'
+              : 'Add a company once, then link it from any role.'
+          }
+          action={
+            query.trim() ? (
+              <Button variant="outline" size="sm" onClick={() => setQuery('')}>
+                Clear search
+              </Button>
+            ) : (
+              <Button size="sm" onClick={startCreate}>
+                <Plus className="h-4 w-4" />
+                New company
+              </Button>
+            )
+          }
+        />
       ) : (
-        <div className="text-center py-12">
-          <Building className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-100 mb-2">No companies found</h3>
-          <p className="text-gray-400 mb-6">
-            {filter ? 'Try adjusting your search.' : 'Add your first company to get started.'}
-          </p>
-        </div>
+        <motion.div
+          variants={listContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+        >
+          {filteredCompanies.map((company) => (
+            <EntityCard
+              key={company.id}
+              media={
+                <MediaTile className="h-11 w-11">
+                  {company.logo_url ? (
+                    <UniversalImage
+                      src={company.logo_url}
+                      alt={company.name}
+                      width={44}
+                      height={44}
+                      className="h-11 w-11 object-cover"
+                    />
+                  ) : (
+                    <Building2 className="h-4 w-4" />
+                  )}
+                </MediaTile>
+              }
+              title={company.name}
+              subtitle={
+                company.website_url ? (
+                  <a
+                    href={company.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 text-primary transition-colors hover:text-primary/80"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    {hostnameOf(company.website_url)}
+                  </a>
+                ) : (
+                  'No website'
+                )
+              }
+              actions={
+                <EditDeleteActions
+                  onEdit={() => {
+                    setEditingCompany(company);
+                    setShowForm(true);
+                  }}
+                  onDelete={() => confirmDelete.ask(company)}
+                />
+              }
+            />
+          ))}
+        </motion.div>
       )}
-    </motion.div>
+
+      <ConfirmDialog
+        open={confirmDelete.open}
+        onOpenChange={(open) => !open && confirmDelete.dismiss()}
+        loading={confirmDelete.loading}
+        title="Delete company?"
+        description={
+          confirmDelete.target
+            ? `The logo for "${confirmDelete.target.name}" will be removed. Roles already linked to it are kept.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        onConfirm={() => confirmDelete.run(handleDelete)}
+      />
+    </div>
   );
 }
+
+/* ---------------------------------------------------------------- form ---- */
 
 interface CompanyFormProps {
   company: Company | null;
@@ -367,111 +338,86 @@ function CompanyForm({ company, onSave, onCancel, saving }: CompanyFormProps) {
     await onSave({ ...formData, id: companyId, logo_url: logoUrl });
   };
 
+  const busy = saving || committingUpload;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card className="bg-gray-800 border-gray-700 shadow-xl max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-3 text-xl text-white">
-                <Building className="h-6 w-6 text-blue-500" />
-                {company?.id ? 'Edit Company' : 'Add New Company'}
-              </CardTitle>
-              <p className="text-gray-400 mt-1 text-sm">
-                {company?.id
-                  ? 'Update company details and logo'
-                  : 'Create company and upload logo'}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-            >
-              <X className="w-4 h-4" />
+    <form onSubmit={handleSubmit}>
+      <EditorPanel
+        eyebrow={company?.id ? 'Editing company' : 'New company'}
+        title={company?.id ? company.name || 'Edit company' : 'New company'}
+        description="Logos are shared — updating one updates every role that uses it."
+        onBack={onCancel}
+        backLabel="Companies"
+        className="max-w-3xl"
+        footer={
+          <FormActions>
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+              Cancel
             </Button>
-          </div>
-        </CardHeader>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={busy || isEmpty(formData.name.trim())}
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
+              {committingUpload
+                ? 'Uploading...'
+                : company?.id
+                  ? 'Save changes'
+                  : 'Create company'}
+            </Button>
+          </FormActions>
+        }
+      >
+        <FormSection title="Details">
+          <Field label="Company name" htmlFor="name" required>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="Acme Corporation"
+              required
+              autoFocus
+            />
+          </Field>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label className="text-sm text-gray-300">Company Name *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Google, Microsoft"
-                required
-                className="mt-1 bg-gray-700 border-gray-600 text-white"
-                autoFocus
-              />
-            </div>
+          <Field label="Website" htmlFor="website_url">
+            <Input
+              id="website_url"
+              type="url"
+              value={formData.website_url}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, website_url: e.target.value }))
+              }
+              placeholder="https://example.com"
+            />
+          </Field>
+        </FormSection>
 
-            <div>
-              <Label className="text-sm text-gray-300">Website URL</Label>
-              <Input
-                value={formData.website_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                placeholder="https://example.com"
-                type="url"
-                className="mt-1 bg-gray-700 border-gray-600 text-white"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm text-gray-300">Company Logo</Label>
-              <p className="text-xs text-gray-500 mb-2">Upload an image or paste a URL</p>
-              <UniversalUpload
-                ref={uploadRef}
-                uploadType="company_logo"
-                entityId={companyId}
-                value={formData.logo_url}
-                onChange={(url: string) => setFormData(prev => ({ ...prev, logo_url: url }))}
-                enableCrop={true}
-                cropAspect={1}
-                allowUrlInput={true}
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                className="bg-gray-700 border-gray-600 text-white"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={saving || committingUpload || isEmpty(formData.name.trim())}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {committingUpload ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading...
-                  </>
-                ) : saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    {company?.id ? 'Save Changes' : 'Create Company'}
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <FormSection
+          title="Logo"
+          description="Upload a square image or paste a URL. Shown on every linked role."
+        >
+          <UniversalUpload
+            ref={uploadRef}
+            uploadType="company_logo"
+            entityId={companyId}
+            value={formData.logo_url}
+            onChange={(url: string) =>
+              setFormData((prev) => ({ ...prev, logo_url: url }))
+            }
+            enableCrop={true}
+            cropAspect={1}
+            allowUrlInput={true}
+          />
+        </FormSection>
+      </EditorPanel>
+    </form>
   );
 }
-
