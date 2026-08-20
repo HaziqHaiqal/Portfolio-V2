@@ -29,11 +29,13 @@ export async function upsertProfile(
   db: DB,
   row: NullableWritable<Profile>
 ): Promise<Profile> {
-  const { data, error } = await db
-    .from('profile')
-    .upsert({ ...row, updated_at: new Date().toISOString() })
-    .select('*')
-    .single();
+  const { id, ...patch } = row;
+  const payload = { ...patch, updated_at: new Date().toISOString() };
+
+  const { data, error } = id
+    ? await db.from('profile').update(payload).eq('id', id).select('*').single()
+    : await db.from('profile').insert(payload).select('*').single();
+
   if (error) throw error;
   return data as Profile;
 }

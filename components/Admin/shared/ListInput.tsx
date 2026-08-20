@@ -7,18 +7,10 @@ import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { cn } from '@lib/utils';
 
-/**
- * Editors repeat the same "type a value, press Enter, get a removable entry"
- * pattern for technologies, responsibilities, achievements, features and
- * languages. These two components are that pattern, so the behaviour (Enter to
- * add, no duplicates, no blanks) is identical everywhere.
- */
-
 interface BaseProps {
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
-  /** Rejects values already in the list. On by default. */
   unique?: boolean;
   className?: string;
 }
@@ -50,7 +42,6 @@ function useAdder({ value, onChange, unique = true }: BaseProps) {
   return { draft, setDraft, add, removeAt, onKeyDown };
 }
 
-/** Compact chips. Use for short values: technologies, tags, languages. */
 export function TagInput({
   value,
   onChange,
@@ -110,7 +101,6 @@ export function TagInput({
   );
 }
 
-/** Full-width rows. Use for sentences: responsibilities, achievements. */
 export function BulletList({
   value,
   onChange,

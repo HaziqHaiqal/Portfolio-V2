@@ -45,10 +45,6 @@ type NavGroup = {
   items: NavItem[];
 };
 
-/**
- * Nav is grouped by what the records describe rather than listed flat, so the
- * eight destinations read as three short lists instead of one long one.
- */
 const navigation: NavGroup[] = [
   {
     items: [{ title: 'Dashboard', url: '/admin', icon: LayoutDashboard }],
@@ -113,10 +109,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="border-r border-sidebar-border bg-sidebar"
       {...props}
     >
-      {/*
-        Collapsed, the rail is 3rem (48px). `px-3` would leave a 24px box for a
-        28px mark and clip it, so the padding drops and the mark centres.
-      */}
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3 group-data-[collapsible=icon]:px-0">
         <Link
           href="/admin"

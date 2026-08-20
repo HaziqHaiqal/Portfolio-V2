@@ -77,8 +77,6 @@ export default function CompanyEditor() {
       console.error('Error deleting company:', error);
       const msg =
         error instanceof Error ? error.message : 'Failed to delete company';
-      // A foreign-key violation means roles still point at this company;
-      // surface that instead of the raw Postgres error.
       if (msg.includes('23503') || msg.toLowerCase().includes('foreign key')) {
         toast.error(
           'Cannot delete — this company is linked to existing roles.'
@@ -171,7 +169,7 @@ export default function CompanyEditor() {
       <PageHeader
         eyebrow="Career"
         title="Companies"
-        description="Shared logos and links, reused across every role you record."
+        description="The employers linked to your work history."
         actions={
           <Button size="sm" onClick={startCreate}>
             <Plus className="h-4 w-4" />
@@ -293,8 +291,6 @@ export default function CompanyEditor() {
     </div>
   );
 }
-
-/* ---------------------------------------------------------------- form ---- */
 
 interface CompanyFormProps {
   company: Company | null;

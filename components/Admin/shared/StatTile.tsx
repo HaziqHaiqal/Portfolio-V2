@@ -9,18 +9,12 @@ import { listItem } from '@constants/motion';
 interface StatTileProps {
   label: string;
   value: number | string;
-  /** Short qualifier under the number, e.g. "3 featured". */
   hint?: string;
   icon: LucideIcon;
   onClick?: () => void;
   className?: string;
 }
 
-/**
- * Dashboard metric. No trend arrows — the previous version rendered a green
- * "increase" chevron on every tile regardless of whether anything had changed,
- * which made all four of them meaningless.
- */
 export function StatTile({
   label,
   value,
@@ -41,7 +35,6 @@ export function StatTile({
         className
       )}
     >
-      {/* Accent edge, revealed on hover. */}
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"

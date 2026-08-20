@@ -7,25 +7,12 @@ import { Button } from '@components/ui/button';
 import { cn } from '@lib/utils';
 import { listItem } from '@constants/motion';
 
-/**
- * The card used for one record in a collection view. Every editor renders this
- * same surface, so Projects, Skills and Education stop looking like three
- * different products.
- *
- * Depth comes from `admin-raised` — a 1px top highlight plus a real shadow —
- * and hover lifts the border to steel blue rather than moving the card.
- */
-
 interface EntityCardProps {
-  /** Full-bleed 16:9 image rendered above everything else. */
   cover?: React.ReactNode;
-  /** Avatar, logo, icon tile — anything 40px square. */
   media?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
-  /** Badges or status pills shown under the title block. */
   meta?: React.ReactNode;
-  /** Corner slot, typically a featured indicator. */
   adornment?: React.ReactNode;
   children?: React.ReactNode;
   actions?: React.ReactNode;
@@ -87,19 +74,18 @@ export function EntityCard({
   );
 }
 
-/**
- * Square media tile with a fixed size and fallback, so cards line up whether
- * the record has a logo or not.
- */
 export function MediaTile({
   children,
   className,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
+      style={style}
       className={cn(
         'admin-raised flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-raised text-sm font-medium text-muted-foreground',
         className
@@ -110,7 +96,6 @@ export function MediaTile({
   );
 }
 
-/** Compact ghost icon button used in card action rows and list rows. */
 export const IconAction = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button> & { label: string; destructive?: boolean }
@@ -136,7 +121,6 @@ export const IconAction = React.forwardRef<
 ));
 IconAction.displayName = 'IconAction';
 
-/** The default edit + delete pairing, since every collection needs it. */
 export function EditDeleteActions({
   onEdit,
   onDelete,
@@ -146,7 +130,6 @@ export function EditDeleteActions({
   onEdit: () => void;
   onDelete: () => void;
   disabled?: boolean;
-  /** Rendered before edit/delete — e.g. a feature toggle. */
   extra?: React.ReactNode;
 }) {
   return (
@@ -167,13 +150,6 @@ export function EditDeleteActions({
   );
 }
 
-/**
- * The featured marker. A small copper star on a legible backdrop — used in the
- * `adornment` slot so it works both on a plain card and on top of a cover
- * image. Deliberately the *only* featured treatment: an earlier version also
- * drew a copper edge down every featured card, which meant nothing once most
- * records were featured.
- */
 export function FeaturedMark({ onCover }: { onCover?: boolean }) {
   return (
     <span
@@ -188,7 +164,6 @@ export function FeaturedMark({ onCover }: { onCover?: boolean }) {
   );
 }
 
-/** 16:9 cover for a record that has a real image. */
 export function CardCover({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-border bg-surface-sunken">

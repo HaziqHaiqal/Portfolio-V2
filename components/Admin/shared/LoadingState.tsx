@@ -4,11 +4,6 @@ import * as React from 'react';
 import { Skeleton } from '@components/ui/skeleton';
 import { cn } from '@lib/utils';
 
-/**
- * Skeletons rather than spinners: the page keeps its shape while data loads,
- * so nothing jumps when it arrives.
- */
-
 export function CardGridSkeleton({
   count = 6,
   className,
@@ -87,6 +82,36 @@ export function PageSkeleton({ children }: { children?: React.ReactNode }) {
         <Skeleton className="h-3.5 w-72" />
       </div>
       {children ?? <CardGridSkeleton />}
+    </div>
+  );
+}
+
+export function TableSkeleton({
+  rows = 6,
+  columns = 5,
+}: {
+  rows?: number;
+  columns?: number;
+}) {
+  return (
+    <div className="admin-raised overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border bg-surface-sunken/60 px-4 py-3">
+        <Skeleton className="h-3 w-full max-w-md" />
+      </div>
+      <div className="divide-y divide-border/60">
+        {Array.from({ length: rows }).map((_, r) => (
+          <div key={r} className="flex items-center gap-4 px-4 py-3">
+            {Array.from({ length: columns }).map((_, c) => (
+              <Skeleton
+                key={c}
+                className={
+                  c === 0 ? 'h-8 w-8 shrink-0 rounded-lg' : 'h-3 flex-1'
+                }
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

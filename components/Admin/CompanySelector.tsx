@@ -33,10 +33,6 @@ interface CompanySelectorProps {
 
 const emptyForm = { id: '', name: '', logo_url: '', website_url: '' };
 
-/**
- * Combobox that picks an existing company or creates one inline, so recording
- * a role never requires leaving the form to go set the company up first.
- */
 export default function CompanySelector({
   value,
   onChange,
@@ -89,8 +85,6 @@ export default function CompanySelector({
   }, [loadCompanies]);
 
   const openCreateForm = () => {
-    // The id is generated up front so a logo can be uploaded before the row
-    // exists — the upload path is keyed by entity id.
     setFormData({ ...emptyForm, id: crypto.randomUUID(), name: searchQuery });
     setIsEditing(false);
     setShowForm(true);
@@ -162,8 +156,6 @@ export default function CompanySelector({
       toast.success(isEditing ? 'Company updated' : 'Company created');
       await loadCompanies();
 
-      // Creating always selects the new company; editing only re-syncs the
-      // selection if this was the one already chosen.
       if (!isEditing || value?.id === formData.id) onChange(saved);
 
       closeForm();
@@ -204,7 +196,6 @@ export default function CompanySelector({
         </label>
 
         {value ? (
-          /* Selected state — reads as a filled control, not as a list row. */
           <div className="admin-raised flex items-center gap-3 rounded-lg border border-border bg-surface-raised/60 p-2.5">
             <MediaTile>
               {value.logo_url ? (

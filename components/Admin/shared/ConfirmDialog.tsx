@@ -18,10 +18,6 @@ interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
 }
 
-/**
- * Replaces the native `confirm()` calls the editors used for deletes — those
- * broke out of the admin surface entirely and could not show pending state.
- */
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -92,10 +88,6 @@ export function ConfirmDialog({
   );
 }
 
-/**
- * Small state helper so an editor can drive ConfirmDialog for a row without
- * re-declaring the same three pieces of state each time.
- */
 export function useConfirm<T>() {
   const [target, setTarget] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(false);

@@ -191,7 +191,6 @@ export default function EducationEditor() {
   const handleSave = async (educationData: EducationData) => {
     setSaving(true);
 
-    // sort_order is managed by the list, not the form.
     const dbData = { ...educationData };
     delete (dbData as Partial<EducationData>).sort_order;
     const payload = editingEducation?.id
@@ -317,7 +316,7 @@ export default function EducationEditor() {
       <PageHeader
         eyebrow="Career"
         title="Education"
-        description="Qualifications grouped by institution, newest first."
+        description="The degrees and qualifications you've earned."
         actions={
           <Button size="sm" onClick={startCreate}>
             <Plus className="h-4 w-4" />
@@ -549,8 +548,6 @@ export default function EducationEditor() {
   );
 }
 
-/* ---------------------------------------------------------------- form ---- */
-
 interface EducationFormProps {
   education: EducationData;
   onSave: (education: EducationData) => void | Promise<void>;
@@ -566,7 +563,6 @@ function EducationForm({
 }: EducationFormProps) {
   const [formData, setFormData] = useState<EducationData>(() => ({
     ...normalizeEducationData(education),
-    // A stable id up front so the logo upload has an entity to attach to.
     id: education.id || crypto.randomUUID(),
   }));
   const [committingUpload, setCommittingUpload] = useState(false);

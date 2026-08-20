@@ -148,7 +148,6 @@ export default function ProfileEditor() {
   const profileImageUploadRef = useRef<UniversalUploadHandle>(null);
   const resumeUploadRef = useRef<UniversalUploadHandle>(null);
 
-  /** Last persisted snapshot, used to drive the unsaved-changes state. */
   const [savedSnapshot, setSavedSnapshot] = useState<string>(
     JSON.stringify(initialProfileData)
   );
@@ -162,7 +161,6 @@ export default function ProfileEditor() {
         .select('*')
         .single();
 
-      // PGRST116 = no row yet; that's a first run, not a failure.
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile:', error);
         toast.error('Could not load profile');
@@ -287,7 +285,7 @@ export default function ProfileEditor() {
       <PageHeader
         eyebrow="Content"
         title="Profile"
-        description="The identity block at the top of your portfolio."
+        description="Your name, title, bio, and contact details."
         actions={
           <>
             {isDirty && (
@@ -308,8 +306,7 @@ export default function ProfileEditor() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        {/* Live summary of what the public page will show. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="lg:sticky lg:top-20 lg:self-start">
           <div className="admin-raised overflow-hidden rounded-xl border border-border bg-card">
             <div className="admin-grid relative flex flex-col items-center border-b border-border bg-surface-sunken/60 px-5 py-6 text-center">
@@ -385,7 +382,6 @@ export default function ProfileEditor() {
           </div>
         </aside>
 
-        {/* Form */}
         <div className="admin-raised space-y-8 rounded-xl border border-border bg-card p-6">
           <FormSection
             title="Identity"

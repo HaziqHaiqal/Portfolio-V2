@@ -15,13 +15,6 @@ interface ModalProps {
   className?: string;
 }
 
-/**
- * Dialog for the admin surface.
- *
- * Radix portals content to <body>, which is outside the `.admin-theme` scope,
- * so the class is re-applied on the content element — otherwise the dialog
- * would render with the public site's light tokens.
- */
 export function Modal({
   open,
   onOpenChange,
@@ -39,7 +32,13 @@ export function Modal({
           className={cn(
             'admin-theme admin-raised-hover fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col',
             'rounded-xl border border-border bg-popover text-popover-foreground',
-            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+            // tailwindcss-animate's enter/exit keyframes own `transform` outright
+            // and compose it purely from --tw-enter-*, so the static
+            // -translate-x/y-1/2 centering above is dropped for the animation's
+            // duration unless matching slide-from values seed those same
+            // custom properties — without this the dialog visibly flies in
+            // from a corner instead of scaling from center.
+            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-1/2 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-1/2',
             className
           )}
         >

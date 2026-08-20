@@ -10,22 +10,14 @@ import { rise } from '@constants/motion';
 interface EditorPanelProps {
   title: string;
   description?: string;
-  /** Returns to the collection view. */
   onBack: () => void;
   backLabel?: string;
-  /** Micro-label above the title. */
   eyebrow?: string;
   children: React.ReactNode;
-  /** Sticky footer buttons; use FormActions inside a <form> instead when possible. */
   footer?: React.ReactNode;
   className?: string;
 }
 
-/**
- * Full-page create/edit surface. Editors swap their collection view for this
- * panel, so the form gets the whole viewport instead of being squeezed into a
- * card beside the list.
- */
 export function EditorPanel({
   title,
   description,
@@ -38,10 +30,6 @@ export function EditorPanel({
 }: EditorPanelProps) {
   return (
     <motion.div {...rise} className={cn('space-y-6', className)}>
-      {/*
-        Back control and title sit in one block so the bloom sits behind both
-        and the spacing between them stays tight.
-      */}
       <div className="admin-bloom relative isolate space-y-5">
         <div className="relative z-10 space-y-5">
           <Button

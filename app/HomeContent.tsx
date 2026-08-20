@@ -91,7 +91,7 @@ export default function HomeContent({
               <Linkedin size={20} />
             </motion.a>
             <motion.a
-              href={`mailto:${profile?.email || 'woodyz.dev@gmail.com'}`}
+              href={`mailto:${profile?.display_name || 'woodyz.dev@gmail.com'}`}
               className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800 transition-colors duration-300 hover:bg-purple-600"
               whileHover={{ scale: 1.1, rotate: 5 }}
             >

@@ -12,12 +12,6 @@ interface SearchInputProps {
   className?: string;
 }
 
-/**
- * Search field with a leading icon and an inline clear affordance.
- *
- * Lives apart from Toolbar because several editors use it on its own — it is
- * its own concept, not part of the toolbar's grammar.
- */
 export function SearchInput({
   value,
   onChange,

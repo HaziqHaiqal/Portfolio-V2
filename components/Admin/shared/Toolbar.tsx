@@ -5,12 +5,10 @@ import { cn } from '@lib/utils';
 
 interface ToolbarProps {
   children: React.ReactNode;
-  /** Right-aligned result count or summary text. */
   meta?: React.ReactNode;
   className?: string;
 }
 
-/** Filter row that sits between the page header and the collection. */
 export function Toolbar({ children, meta, className }: ToolbarProps) {
   return (
     <div

@@ -494,21 +494,8 @@
   }
 }
 
-/* ============================================================
-   Admin theme — "gunmetal"
-   ------------------------------------------------------------
-   Scoped to .admin-theme so the public site keeps its light
-   palette. Surfaces are blue-tinted graphite rather than black:
-   there are four distinct elevation steps, which is what lets a
-   dark UI read as built rather than as an unlit page.
-
-   Accents: steel blue carries every interactive affordance,
-   copper marks featured/pinned records. Nothing else is tinted.
-   ============================================================ */
-
 @layer base {
   .admin-theme {
-    /* Surfaces — each step is a visible ~4% lightness apart. */
     --background: 213 30% 9%;
     --foreground: 210 20% 96%;
 
@@ -521,11 +508,9 @@
     --popover: 214 24% 14%;
     --popover-foreground: 210 20% 96%;
 
-    /* Steel blue: buttons, focus, active nav, links. */
     --primary: 212 92% 56%;
     --primary-foreground: 0 0% 100%;
 
-    /* Copper: featured records only. Warm counterweight to the blue. */
     --brand-copper: 25 85% 55%;
 
     --secondary: 214 20% 18%;
@@ -563,12 +548,6 @@
 }
 
 @layer utilities {
-  /* ---- Texture -------------------------------------------------------- */
-
-  /*
-    Blueprint grid, at the threshold of visibility. Gives the empty page
-    background a material instead of leaving it a flat void.
-  */
   .admin-grid {
     background-image:
       linear-gradient(hsl(var(--border) / 0.32) 1px, transparent 1px),
@@ -577,18 +556,11 @@
     background-position: center center;
   }
 
-  /* Fades the grid out toward the bottom so it never fights the content. */
   .admin-grid-mask {
     -webkit-mask-image: linear-gradient(to bottom, black, transparent 70%);
     mask-image: linear-gradient(to bottom, black, transparent 70%);
   }
 
-  /* ---- Depth ---------------------------------------------------------- */
-
-  /*
-    The one detail that separates a built dark surface from a flat one: a
-    1px top highlight simulating light from above, plus a real drop shadow.
-  */
   .admin-raised {
     box-shadow:
       inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
@@ -603,15 +575,6 @@
       0 12px 28px -8px hsl(213 40% 3% / 0.7);
   }
 
-  /* Soft accent bloom used behind page titles and the active nav item. */
-  /*
-    Left-weighted glow behind page titles.
-
-    The gradient reaches `transparent` at 70% of its radius, so the box must
-    extend past that point on every side or the still-coloured remainder gets
-    clipped into a hard seam. Each centre-to-edge distance below is >= 70% of
-    the matching radius: 34/45 and 45/55. Keep that ratio if you retune it.
-  */
   .admin-bloom::before {
     content: '';
     position: absolute;
@@ -626,9 +589,6 @@
     z-index: 0;
   }
 
-  /* ---- Type ----------------------------------------------------------- */
-
-  /* Space Grotesk for headings and figures — squarer, more mechanical. */
   .admin-display {
     font-family: var(--font-space-grotesk), 'Inter', sans-serif;
     letter-spacing: -0.02em;
@@ -638,8 +598,6 @@
     @apply text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
     font-family: var(--font-space-grotesk), 'Inter', sans-serif;
   }
-
-  /* ---- Controls ------------------------------------------------------- */
 
   .admin-range {
     @apply h-1.5 w-full cursor-pointer appearance-none rounded-full;

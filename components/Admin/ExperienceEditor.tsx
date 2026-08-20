@@ -63,7 +63,6 @@ interface ExperienceData {
   responsibilities: string[];
   technologies: string[];
   achievements: string[];
-  /** Joined from the companies table. */
   companies?: Company;
 }
 
@@ -124,8 +123,6 @@ export default function ExperienceEditor() {
         return;
       }
 
-      // Normalize so array fields are always arrays and text fields are never
-      // null — the rest of the component can then assume the shape.
       setExperiences(
         (data || []).map((experience) => ({
           id: experience.id,
@@ -188,8 +185,6 @@ export default function ExperienceEditor() {
       ...(forUpdate && { updated_at: new Date().toISOString() }),
     };
 
-    // Inserts omit nulls so Postgres defaults apply; updates keep them so a
-    // field can be cleared (e.g. end_date when switching to "current").
     return forUpdate
       ? dbData
       : Object.fromEntries(
@@ -323,7 +318,7 @@ export default function ExperienceEditor() {
       <PageHeader
         eyebrow="Career"
         title="Experience"
-        description="Roles grouped by employer, newest first."
+        description="The roles you've held throughout your career."
         actions={
           <Button size="sm" onClick={startCreate}>
             <Plus className="h-4 w-4" />
@@ -388,7 +383,6 @@ export default function ExperienceEditor() {
               variants={listItem}
               className="admin-raised overflow-hidden rounded-xl border border-border bg-card"
             >
-              {/* Employer header */}
               <header className="flex items-center gap-3 border-b border-border bg-surface-sunken/40 px-5 py-4">
                 <MediaTile className="h-11 w-11">
                   {group.logo ? (
@@ -426,11 +420,6 @@ export default function ExperienceEditor() {
                 </div>
               </header>
 
-              {/*
-                Roles as a timeline: a single rail runs down the group and each
-                role hangs off it, so promotions within one company read as one
-                continuous stretch rather than as unrelated cards.
-              */}
               <ol className="relative px-5 py-4">
                 <span
                   aria-hidden
@@ -494,14 +483,14 @@ export default function ExperienceEditor() {
                       </div>
 
                       {role.description && (
-                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                           {role.description}
                         </p>
                       )}
 
                       {role.technologies.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {role.technologies.slice(0, 6).map((tech, i) => (
+                          {role.technologies.map((tech, i) => (
                             <Badge
                               key={`${tech}-${i}`}
                               variant="secondary"
@@ -510,39 +499,46 @@ export default function ExperienceEditor() {
                               {tech}
                             </Badge>
                           ))}
-                          {role.technologies.length > 6 && (
-                            <Badge
-                              variant="outline"
-                              className="px-2 py-0 text-[11px] font-normal text-muted-foreground"
-                            >
-                              +{role.technologies.length - 6}
-                            </Badge>
-                          )}
                         </div>
                       )}
 
-                      {(role.responsibilities.length > 0 ||
-                        role.achievements.length > 0) && (
-                        <p className="mt-2.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                          {role.responsibilities.length > 0 && (
-                            <span>
-                              {pluralize(
-                                role.responsibilities.length,
-                                'responsibility',
-                                'responsibilities'
-                              )}
-                            </span>
-                          )}
-                          {role.achievements.length > 0 && (
-                            <span className="flex items-center gap-1 text-copper">
-                              <Award className="h-3 w-3" />
-                              {pluralize(
-                                role.achievements.length,
-                                'achievement'
-                              )}
-                            </span>
-                          )}
-                        </p>
+                      {role.responsibilities.length > 0 && (
+                        <div className="mt-3">
+                          <p className="admin-eyebrow mb-1.5">
+                            Responsibilities
+                          </p>
+                          <ul className="space-y-1">
+                            {role.responsibilities.map((item, i) => (
+                              <li
+                                key={i}
+                                className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
+                              >
+                                <span
+                                  aria-hidden
+                                  className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary"
+                                />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {role.achievements.length > 0 && (
+                        <div className="mt-3">
+                          <p className="admin-eyebrow mb-1.5">Achievements</p>
+                          <ul className="space-y-1">
+                            {role.achievements.map((item, i) => (
+                              <li
+                                key={i}
+                                className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
+                              >
+                                <Award className="mt-0.5 h-3 w-3 shrink-0 text-copper" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
                   </li>
@@ -571,8 +567,6 @@ export default function ExperienceEditor() {
     </div>
   );
 }
-
-/* ---------------------------------------------------------------- form ---- */
 
 interface ExperienceFormProps {
   experience: ExperienceData;

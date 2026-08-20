@@ -3,11 +3,6 @@
 import * as React from 'react';
 import { cn } from '@lib/utils';
 
-/**
- * Progress readout for a percentage. The figure is the hero — a 1px bar alone
- * was unreadable against the card surface, especially when the stored gradient
- * colours were dark.
- */
 export function ProficiencyBar({
   value,
   from,
@@ -16,7 +11,6 @@ export function ProficiencyBar({
   className,
 }: {
   value: number;
-  /** Optional stored gradient. Falls back to the steel accent. */
   from?: string;
   to?: string;
   label?: string;
@@ -49,14 +43,6 @@ export function ProficiencyBar({
   );
 }
 
-/**
- * Segmented meter for ordinal levels (Beginner → Expert).
- *
- * One colour for every level on purpose. The number of filled segments already
- * encodes the level, so tinting the top one adds a second encoding that reads
- * as an error next to its neighbours — and copper is spoken for elsewhere as
- * the featured/current marker.
- */
 export function LevelMeter({
   level,
   levels,

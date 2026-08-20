@@ -28,7 +28,6 @@ import {
   EditorPanel,
   EmptyState,
   EntityCard,
-  FeaturedMark,
   Field,
   FormActions,
   FormGrid,
@@ -215,7 +214,7 @@ export default function InterestsEditor() {
       <PageHeader
         eyebrow="Content"
         title="Interests"
-        description="Hobbies and pursuits shown alongside your professional work."
+        description="Hobbies and pursuits you want to share alongside your work."
         actions={
           <Button size="sm" onClick={startCreate}>
             <Plus className="h-4 w-4" />
@@ -311,7 +310,6 @@ export default function InterestsEditor() {
                   .filter(Boolean)
                   .join(' · ') || undefined
               }
-              adornment={interest.is_featured ? <FeaturedMark /> : null}
               actions={
                 <EditDeleteActions
                   onEdit={() => {
@@ -370,8 +368,6 @@ export default function InterestsEditor() {
     </div>
   );
 }
-
-/* ---------------------------------------------------------------- form ---- */
 
 interface InterestFormProps {
   interest: InterestData;

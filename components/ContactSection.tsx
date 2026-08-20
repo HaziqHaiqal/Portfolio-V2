@@ -99,7 +99,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         entryError: 'text-amber-600',
       };
 
-  const email = profile?.email || 'woodyz.dev@gmail.com';
+  const email = profile?.display_name || 'woodyz.dev@gmail.com';
   const linkedinUrl =
     profile?.linkedin_url || 'https://linkedin.com/in/mhaziqhaiqal';
   const githubUrl = profile?.github_url || 'https://github.com/haziqhaiqal';

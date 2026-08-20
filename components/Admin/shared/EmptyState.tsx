@@ -12,11 +12,6 @@ interface EmptyStateProps {
   className?: string;
 }
 
-/**
- * Shown when a collection is empty or filtered to nothing. Sits on the sunken
- * surface with the blueprint grid showing through, so an empty page still has
- * something to look at.
- */
 export function EmptyState({
   icon: Icon,
   title,

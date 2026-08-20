@@ -26,6 +26,8 @@ export { ProficiencyBar, LevelMeter } from './Meter';
 export {
   CardGridSkeleton,
   ListSkeleton,
+  TableSkeleton,
   FormSkeleton,
   PageSkeleton,
 } from './LoadingState';
+export { DataTable } from './DataTable';

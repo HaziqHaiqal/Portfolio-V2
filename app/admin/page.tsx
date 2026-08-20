@@ -39,7 +39,6 @@ interface ActivityItem {
   id: string;
   label: string;
   target: string;
-  /** Raw ISO timestamp — kept unformatted so the list can be sorted correctly. */
   updatedAt: string;
   icon: LucideIcon;
   href: string;
@@ -87,12 +86,19 @@ export default function AdminPage() {
     skills: 0,
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createBrowserSupabase();
 
+  const loadProfile = useCallback(async () => {
+    const { data } = await supabase
+      .from('profile')
+      .select('display_name, full_name')
+      .single();
+    setDisplayName(data?.display_name || data?.full_name || null);
+  }, [supabase]);
+
   const loadStats = useCallback(async () => {
-    // `head: true` with an exact count avoids pulling every row back just to
-    // measure the length of the array.
     const [projects, experience, education, skills] = await Promise.all([
       supabase.from('projects').select('id', { count: 'exact', head: true }),
       supabase.from('experience').select('id', { count: 'exact', head: true }),
@@ -112,7 +118,7 @@ export default function AdminPage() {
     const [projects, skills, experience, education] = await Promise.all([
       supabase
         .from('projects')
-        .select('id, name, updated_at')
+        .select('id, title, updated_at')
         .order('updated_at', { ascending: false })
         .limit(3),
       supabase
@@ -136,7 +142,7 @@ export default function AdminPage() {
       ...(projects.data ?? []).map((row) => ({
         id: `project-${row.id}`,
         label: 'Project',
-        target: row.name,
+        target: row.title,
         updatedAt: row.updated_at,
         icon: FolderKanban,
         href: '/admin/projects',
@@ -187,7 +193,7 @@ export default function AdminPage() {
         }
 
         setUser(user);
-        await Promise.all([loadStats(), loadActivities()]);
+        await Promise.all([loadProfile(), loadStats(), loadActivities()]);
       } catch (error) {
         console.error('Error loading dashboard:', error);
         router.push('/login');
@@ -197,7 +203,7 @@ export default function AdminPage() {
     };
 
     bootstrap();
-  }, [router, supabase.auth, loadStats, loadActivities]);
+  }, [router, supabase.auth, loadProfile, loadStats, loadActivities]);
 
   if (loading || !user) {
     return (
@@ -214,19 +220,16 @@ export default function AdminPage() {
     );
   }
 
-  const name = user.email?.split('@')[0] ?? 'there';
-
   return (
     <div className="space-y-8">
       <motion.div {...rise}>
         <PageHeader
           eyebrow="Overview"
-          title={`Welcome back, ${name}`}
+          title={`Welcome back, ${displayName || user.email?.split('@')[0]}`}
           description="Everything currently published on your portfolio, at a glance."
         />
       </motion.div>
 
-      {/* Counts */}
       <motion.div
         variants={listContainer}
         initial="hidden"
@@ -261,8 +264,7 @@ export default function AdminPage() {
         />
       </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        {/* Recent activity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
@@ -310,7 +312,6 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* Quick actions */}
         <section className="lg:col-span-2">
           <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="border-b border-border px-5 py-3.5">

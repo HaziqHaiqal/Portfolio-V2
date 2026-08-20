@@ -14,11 +14,22 @@ export async function upsertCompany(
   db: DB,
   row: NullableWritable<Company> & { id?: string }
 ): Promise<Company> {
-  const { data, error } = await db
-    .from('companies')
-    .upsert({ ...row, updated_at: new Date().toISOString() })
-    .select('*')
-    .single();
+  const { id, ...patch } = row;
+  const payload = { ...patch, updated_at: new Date().toISOString() };
+
+  // A patch with `id` targets an existing row: a genuine UPDATE, so only
+  // the given columns are validated. Routing this through `.upsert()`
+  // instead makes Postgres construct a full candidate row for the insert
+  // path it never takes, which trips NOT NULL on every omitted column.
+  const { data, error } = id
+    ? await db
+        .from('companies')
+        .update(payload)
+        .eq('id', id)
+        .select('*')
+        .single()
+    : await db.from('companies').insert(payload).select('*').single();
+
   if (error) throw error;
   return data as Company;
 }

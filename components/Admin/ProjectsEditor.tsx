@@ -117,7 +117,6 @@ const initialProjectData: ProjectData = {
   gradient_to: '#7C3AED',
 };
 
-/** Rows come back from Postgres with nulls; the UI assumes strings and arrays. */
 const normalizeProjectData = (
   project: Partial<ProjectData> | null | undefined
 ): ProjectData => ({
@@ -170,7 +169,6 @@ const statusOptions = [
   'Archived',
 ];
 
-/** Status carries the only semantic colour on a project card. */
 const statusStyles: Record<string, string> = {
   Completed: 'border-success/40 bg-success/10 text-success',
   'In Progress': 'border-primary/40 bg-primary/10 text-primary',
@@ -317,7 +315,7 @@ export default function ProjectsEditor() {
       <PageHeader
         eyebrow="Content"
         title="Projects"
-        description="The work shown on your portfolio, newest ordering first."
+        description="The work you've built, shown on your portfolio."
         actions={
           <Button size="sm" onClick={startCreate}>
             <Plus className="h-4 w-4" />
@@ -403,11 +401,6 @@ export default function ProjectsEditor() {
           {filteredProjects.map((project) => (
             <EntityCard
               key={project.id}
-              /*
-                The screenshot is what a project is judged on, so it leads the
-                card. Status rides on the image rather than adding another
-                badge row underneath it.
-              */
               cover={
                 <CardCover>
                   {project.thumbnail_url ? (
@@ -506,7 +499,6 @@ export default function ProjectsEditor() {
                 )}
 
                 {project.tech_stack.length > 0 && (
-                  /* Capped at three so the row never wraps to a stray "+2". */
                   <div className="flex flex-wrap items-center gap-1.5">
                     {project.tech_stack.slice(0, 3).map((tech, i) => (
                       <Badge
@@ -547,8 +539,6 @@ export default function ProjectsEditor() {
   );
 }
 
-/* ---------------------------------------------------------------- form ---- */
-
 interface ProjectFormProps {
   project: ProjectData;
   onSave: (project: ProjectData) => void | Promise<void>;
@@ -559,8 +549,6 @@ interface ProjectFormProps {
 function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectData>(() => ({
     ...normalizeProjectData(project),
-    // Stable id up front so thumbnail and gallery uploads have somewhere to go
-    // before the row exists.
     id: project.id || crypto.randomUUID(),
   }));
   const [projectImages, setProjectImages] = useState<UploadedFile[]>([]);

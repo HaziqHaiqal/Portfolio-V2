@@ -4,21 +4,14 @@ import * as React from 'react';
 import { cn } from '@lib/utils';
 
 interface PageHeaderProps {
-  /** Micro-label above the title. */
   eyebrow?: string;
   title: string;
   description?: string;
   actions?: React.ReactNode;
-  /** Adds the steel-blue bloom behind the title. On by default. */
   bloom?: boolean;
   className?: string;
 }
 
-/**
- * The single header treatment for every admin page. A copper rule anchors the
- * title block; a soft accent bloom sits behind it so the top of the page has
- * some light in it rather than starting cold.
- */
 export function PageHeader({
   eyebrow,
   title,

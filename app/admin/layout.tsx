@@ -74,11 +74,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="admin-theme min-h-screen bg-background font-inter text-foreground antialiased">
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-background">
-          {/*
-            Sticky, hairline-bordered header. Kept at 56px so it reads as chrome
-            rather than as a second page title.
-          */}
+        <SidebarInset className="min-w-0 bg-background">
           <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
             <SidebarTrigger className="-ml-1 h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground" />
             <Separator orientation="vertical" className="h-4 bg-border" />
@@ -97,12 +93,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          {/*
-            The blueprint grid lives on a fixed layer behind the content and
-            fades out downward, so it gives the page a material without
-            tiling visibly behind dense forms.
-          */}
-          <main className="relative flex-1">
+          <main className="relative flex-1 overflow-x-clip">
             <div
               aria-hidden
               className="admin-grid admin-grid-mask pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-70"

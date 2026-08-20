@@ -4,13 +4,6 @@ import * as React from 'react';
 import { Label } from '@components/ui/label';
 import { cn } from '@lib/utils';
 
-/**
- * Form building blocks shared by every editor.
- *
- * Forms are grouped into titled sections on a single card surface rather than
- * one flat wall of inputs, so a long record stays scannable.
- */
-
 interface FormSectionProps {
   title: string;
   description?: string;
@@ -47,7 +40,6 @@ export function FormSection({
   );
 }
 
-/** Responsive two-column field grid. Pass `columns={1}` for full-width rows. */
 export function FormGrid({
   children,
   columns = 2,
@@ -75,9 +67,7 @@ export function FormGrid({
 interface FieldProps {
   label: string;
   htmlFor?: string;
-  /** Renders a subtle marker next to the label. */
   required?: boolean;
-  /** Helper copy under the control. */
   hint?: string;
   error?: string;
   children: React.ReactNode;
@@ -112,10 +102,6 @@ export function Field({
   );
 }
 
-/**
- * A labelled switch/checkbox row. Keeps toggles from being mistaken for
- * ordinary fields by giving them their own inset surface.
- */
 export function ToggleRow({
   label,
   description,
@@ -145,7 +131,6 @@ export function ToggleRow({
   );
 }
 
-/** Sticky action bar pinned to the bottom of an editor form. */
 export function FormActions({
   children,
   className,

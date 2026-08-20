@@ -88,14 +88,8 @@ export interface Skill {
   id: string;
   name: string;
   category: string;
-  proficiency_level: number;
-  proficiency_percentage: number;
-  icon_emoji?: string;
-  color_from?: string;
-  color_to?: string;
   years_experience?: number;
   is_featured: boolean;
-  sort_order: number;
   created_at?: string;
   updated_at?: string;
 }
