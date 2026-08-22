@@ -15,11 +15,8 @@ import {
   SiGithub,
   SiPython,
 } from 'react-icons/si';
-import { useTheme } from '@components/Provider/ThemeProvider';
 
 const TechStackSection = () => {
-  const { isDarkMode } = useTheme();
-
   const stacks = [
     { name: 'Next.js', icon: SiNextdotjs },
     { name: 'React', icon: SiReact },
@@ -52,11 +49,7 @@ const TechStackSection = () => {
 
         {/* Icon grid displaying tech stacks */}
         <m.div
-          className={`mx-auto max-w-5xl rounded-3xl p-10 shadow-2xl ${
-            isDarkMode
-              ? 'border border-gray-700 bg-gray-800/70'
-              : 'border border-gray-200 bg-white/70'
-          }`}
+          className="mx-auto max-w-5xl rounded-3xl border border-gray-200 bg-white/70 p-10 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -71,15 +64,11 @@ const TechStackSection = () => {
                 {/* Icon */}
                 <stack.icon
                   size={40}
-                  className={`absolute inset-0 m-auto transition-all duration-300 ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  } group-hover:scale-0 group-hover:opacity-0`}
+                  className="absolute inset-0 m-auto text-gray-700 transition-all duration-300 group-hover:scale-0 group-hover:opacity-0 dark:text-gray-300"
                 />
                 {/* Text replaces icon on hover */}
                 <span
-                  className={`absolute inset-0 m-auto flex items-center justify-center text-xs font-semibold opacity-0 transition-all duration-300 group-hover:opacity-100 ${
-                    isDarkMode ? 'text-blue-400' : 'text-blue-600'
-                  }`}
+                  className="absolute inset-0 m-auto flex items-center justify-center text-xs font-semibold text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:text-blue-400"
                 >
                   {stack.name}
                 </span>

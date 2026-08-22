@@ -3,7 +3,8 @@
 import dynamic from 'next/dynamic';
 import { m } from 'framer-motion';
 import { Github, Linkedin, Mail } from 'lucide-react';
-import { useTheme, useThemeClasses } from '@components/Provider/ThemeProvider';
+import { useTheme } from '@components/Provider/ThemeProvider';
+import { themeClasses as classes } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { getCurrentYear } from '@lib/format';
 import { useKeyboardShortcuts } from '@hooks/useCommon';
@@ -67,7 +68,6 @@ export default function HomeContent({
   projects,
 }: Props) {
   const { isDarkMode } = useTheme();
-  const classes = useThemeClasses();
   const {
     selectedProject,
     isProjectModalOpen,

@@ -1,6 +1,7 @@
 import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
-import { useTheme, useThemeClasses } from '@components/Provider/ThemeProvider';
+import { useTheme } from '@components/Provider/ThemeProvider';
+import { themeClasses as classes } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { useCurrentTime } from '@hooks/useCommon';
 
@@ -9,7 +10,6 @@ import { useCurrentTime } from '@hooks/useCommon';
  */
 const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const classes = useThemeClasses();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, openContact } =
     useUIStore();
 

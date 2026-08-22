@@ -1553,3 +1553,23 @@
     background: transparent;
   }
 }
+
+/*
+ * Dark-mode-only decorative glow on education cards. Previously an inline
+ * `style={{ backgroundImage: isDarkMode ? ... : 'none' }}`, which forced the
+ * section to read the theme context. Driving it from the `.dark` class keeps
+ * the component free of theme state.
+ */
+.dark .education-card {
+  background-image:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(251, 191, 36, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(251, 191, 36, 0.05) 0%,
+      transparent 50%
+    );
+}
