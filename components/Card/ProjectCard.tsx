@@ -5,18 +5,14 @@ import { m } from 'framer-motion';
 import Image from 'next/image';
 import { ExternalLink, Github, GitBranch, Calendar } from 'lucide-react';
 import type { ProjectProps } from 'types/portfolio';
+import { useUIStore } from '@lib/stores';
 
 interface ProjectCardProps {
   project: ProjectProps;
-  onClick: () => void;
   index: number;
 }
 
-export default function ProjectCard({
-  project,
-  onClick,
-  index,
-}: ProjectCardProps) {
+export default function ProjectCard({ project, index }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [touchStart, setTouchStart] = useState<{
     x: number;
@@ -24,8 +20,10 @@ export default function ProjectCard({
     time: number;
   } | null>(null);
 
+  const openProjectModal = useUIStore((state) => state.openProjectModal);
+
   const handleClick = () => {
-    onClick();
+    openProjectModal(project);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -58,7 +56,7 @@ export default function ProjectCard({
       deltaY < maxMovement
     ) {
       e.preventDefault();
-      onClick();
+      handleClick();
     }
 
     setTouchStart(null);

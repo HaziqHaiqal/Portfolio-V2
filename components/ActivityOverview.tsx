@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { m } from 'framer-motion';
@@ -10,7 +12,6 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import SectionHeader from '@components/Common/SectionHeader';
-import { COLORS } from '@constants/colors';
 import { getCurrentYear } from '@lib/format';
 import { Week, GitHubData, GitHubStats, ContributionDay } from 'types/github';
 

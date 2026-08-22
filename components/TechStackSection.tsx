@@ -1,5 +1,5 @@
 import React from 'react';
-import { m } from 'framer-motion';
+import Reveal from '@components/Common/Reveal';
 import { Code2 } from 'lucide-react';
 import SectionHeader from '@components/Common/SectionHeader';
 import {
@@ -48,12 +48,11 @@ const TechStackSection = () => {
         />
 
         {/* Icon grid displaying tech stacks */}
-        <m.div
+        <Reveal
           className="mx-auto max-w-5xl rounded-3xl border border-gray-200 bg-white/70 p-10 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
+          y={50}
+          duration={0.8}
+          delay={0.2}
         >
           <div className="grid grid-cols-4 place-items-center gap-8 sm:grid-cols-6 md:grid-cols-8">
             {stacks.map((stack) => (
@@ -73,7 +72,7 @@ const TechStackSection = () => {
               </div>
             ))}
           </div>
-        </m.div>
+        </Reveal>
       </div>
     </section>
   );

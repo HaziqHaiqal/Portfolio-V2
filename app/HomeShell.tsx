@@ -3,76 +3,31 @@
 import dynamic from 'next/dynamic';
 import { m } from 'framer-motion';
 import { Github, Linkedin, Mail } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { themeClasses as classes } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { getCurrentYear } from '@lib/format';
 import { useKeyboardShortcuts } from '@hooks/useCommon';
 import FloatingElements from '@components/Layout/FloatingElements';
 import NavBar from '@components/Layout/NavBar';
-import HeroSection from '@components/HeroSection';
-import SectionHeader from '@components/Common/SectionHeader';
 import ContactModal from '@components/Modal/ContactModal';
-
-import type { ProjectProps } from 'types/portfolio';
-import type { PortfolioData } from '@lib/data';
-
-const TechStackSection = dynamic(() => import('@components/TechStackSection'));
-const ExperienceSection = dynamic(
-  () => import('@components/ExperienceSection')
-);
-const EducationSection = dynamic(() => import('@components/EducationSection'));
-const ProjectSection = dynamic(() => import('@components/ProjectSection'));
-
-const ActivityOverview = dynamic(() => import('@components/ActivityOverview'), {
-  ssr: false,
-  loading: () => <ActivityFallback />,
-});
+import type { Profile } from '@lib/supabase';
 
 const ProjectModal = dynamic(() => import('@components/Modal/ProjectModal'), {
   ssr: false,
 });
 
-function ActivityFallback() {
-  return (
-    <section className="relative px-4 py-16 md:px-6 md:py-32">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeader
-          icon={Github}
-          label="github.activity()"
-          title="GitHub Activity"
-          accentClass="text-cyan-500"
-          gradientClass="from-cyan-600 to-cyan-400"
-        />
-        <div className="flex justify-center">
-          <div
-            className={`min-h-[240px] w-full max-w-[920px] rounded-2xl border border-white/50 bg-white/90 shadow-2xl backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/90 md:min-h-[344px] md:rounded-3xl`}
-          />
-        </div>
-      </div>
-    </section>
-  );
+interface HomeShellProps {
+  profile: Profile | null;
+  children: ReactNode;
 }
 
-type Props = PortfolioData;
-
-export default function HomeContent({
-  profile,
-  experience,
-  education,
-  projects,
-}: Props) {
-  const {
-    selectedProject,
-    isProjectModalOpen,
-    openProjectModal,
-    closeProjectModal,
-  } = useUIStore();
+export default function HomeShell({ profile, children }: HomeShellProps) {
+  const { selectedProject, isProjectModalOpen, closeProjectModal } =
+    useUIStore();
 
   useKeyboardShortcuts();
 
-  const handleProjectClick = (project: ProjectProps) =>
-    openProjectModal(project);
-  const handleCloseModal = () => closeProjectModal();
   const currentYear = getCurrentYear();
 
   return (
@@ -94,15 +49,7 @@ export default function HomeContent({
 
         <FloatingElements />
         <NavBar />
-        <HeroSection profile={profile} />
-        <ActivityOverview />
-        <TechStackSection />
-        <ExperienceSection experience={experience} />
-        <EducationSection education={education} />
-        <ProjectSection
-          projects={projects}
-          handleProjectClick={handleProjectClick}
-        />
+        {children}
       </div>
 
       <footer className="relative z-10 bg-gray-900 px-6 py-12 text-white">
@@ -145,7 +92,7 @@ export default function HomeContent({
         <ProjectModal
           project={selectedProject}
           isOpen={isProjectModalOpen}
-          onClose={handleCloseModal}
+          onClose={closeProjectModal}
         />
       )}
     </div>

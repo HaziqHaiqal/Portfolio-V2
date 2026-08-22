@@ -1,4 +1,4 @@
-import { m } from 'framer-motion';
+import Reveal from '@components/Common/Reveal';
 import { GraduationCap, Calendar } from 'lucide-react';
 import { Education } from '@lib/supabase';
 import SectionHeader from '@components/Common/SectionHeader';
@@ -30,13 +30,11 @@ const EducationSection = ({ education }: EducationSectionProps) => {
         {/* Certificate Cards */}
         <div className="mx-auto max-w-4xl space-y-8">
           {sortedEducation.map((edu, idx) => (
-            <m.div
+            <Reveal
               key={idx}
               className="education-card relative rounded-3xl border border-gray-200 bg-white/70 p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70 md:p-10"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
+              scale={0.95}
+              delay={idx * 0.1}
             >
               {/* Decorative corners */}
               <div className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-amber-300 dark:border-amber-600/50" />
@@ -111,7 +109,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                   </div>
                 )}
               </div>
-            </m.div>
+            </Reveal>
           ))}
         </div>
       </div>

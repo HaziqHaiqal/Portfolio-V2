@@ -1,6 +1,4 @@
-'use client';
-
-import { m } from 'framer-motion';
+import Reveal from '@components/Common/Reveal';
 import type { LucideIcon } from 'lucide-react';
 
 interface SectionHeaderProps {
@@ -21,12 +19,10 @@ export default function SectionHeader({
   className = '',
 }: SectionHeaderProps) {
   return (
-    <m.div
+    <Reveal
       className={`mb-10 text-center md:mb-12 ${className}`}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
+      y={30}
+      duration={0.6}
     >
       <div className="mb-3 inline-flex items-center gap-2 font-mono text-sm">
         <Icon size={16} className={accentClass} />
@@ -38,6 +34,6 @@ export default function SectionHeader({
       <div
         className={`mx-auto h-[3px] w-11 rounded-full bg-gradient-to-r ${gradientClass}`}
       />
-    </m.div>
+    </Reveal>
   );
 }

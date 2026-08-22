@@ -9,7 +9,6 @@ import ProjectCard from '@components/Card/ProjectCard';
 
 interface ProjectsGridProps {
   projects: ProjectProps[];
-  onProjectClick: (project: ProjectProps) => void;
   showFeaturedOnly?: boolean;
 }
 
@@ -17,7 +16,6 @@ const ITEMS_PER_PAGE = 6;
 
 export default function ProjectsGrid({
   projects,
-  onProjectClick,
   showFeaturedOnly = false,
 }: ProjectsGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -172,12 +170,7 @@ export default function ProjectsGrid({
           transition={{ duration: 0.5 }}
         >
           {paginatedProjects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onClick={() => onProjectClick(project)}
-              index={index}
-            />
+            <ProjectCard key={project.id} project={project} index={index} />
           ))}
         </m.div>
       </AnimatePresence>

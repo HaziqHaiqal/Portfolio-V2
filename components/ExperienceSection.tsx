@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Briefcase, ChevronDown } from 'lucide-react';
