@@ -1,6 +1,12 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { THEME_CANVAS, THEME_COOKIE } from '@constants/theme';
 
 interface ThemeContextType {
@@ -28,11 +34,18 @@ function syncDocumentTheme(isDark: boolean) {
   document.body.style.backgroundColor = canvas;
 
   document
-    .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    ?.setAttribute('content', canvas);
+    .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+    .forEach((meta) => meta.setAttribute('content', canvas));
   document
-    .querySelector<HTMLMetaElement>('meta[name="color-scheme"]')
-    ?.setAttribute('content', colorScheme);
+    .querySelectorAll<HTMLMetaElement>('meta[name="color-scheme"]')
+    .forEach((meta) => meta.setAttribute('content', colorScheme));
+
+  document.querySelector('meta[data-portfolio-theme-color]')?.remove();
+  const themeColorMeta = document.createElement('meta');
+  themeColorMeta.name = 'theme-color';
+  themeColorMeta.content = canvas;
+  themeColorMeta.dataset.portfolioThemeColor = '';
+  document.head.appendChild(themeColorMeta);
 }
 
 export function ThemeProvider({
@@ -44,8 +57,11 @@ export function ThemeProvider({
 }) {
   const [isDarkMode, setIsDarkMode] = useState(initialIsDarkMode);
 
+  useEffect(() => {
+    syncDocumentTheme(isDarkMode);
+  }, [isDarkMode]);
+
   const setTheme = (isDark: boolean) => {
-    syncDocumentTheme(isDark);
     setIsDarkMode(isDark);
     persistTheme(isDark);
   };
