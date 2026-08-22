@@ -9,8 +9,6 @@ import ProjectCard from '@components/Card/ProjectCard';
 
 interface ProjectsGridProps {
   projects: ProjectProps[];
-  onProjectClick: (project: ProjectProps) => void;
-  isDarkMode: boolean;
   showFeaturedOnly?: boolean;
 }
 
@@ -18,8 +16,6 @@ const ITEMS_PER_PAGE = 6;
 
 export default function ProjectsGrid({
   projects,
-  onProjectClick,
-  isDarkMode,
   showFeaturedOnly = false,
 }: ProjectsGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,20 +100,14 @@ export default function ProjectsGrid({
         <div className="relative mx-auto max-w-md">
           <Search
             size={20}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-500'
-            }`}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
           />
           <input
             type="text"
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full rounded-2xl border-2 py-3 pl-12 pr-4 transition-all duration-300 focus:border-transparent focus:ring-2 focus:ring-blue-500 ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800/50 text-gray-200 placeholder-gray-400'
-                : 'border-gray-300 bg-white/50 text-gray-900 placeholder-gray-500'
-            }`}
+            className="w-full rounded-2xl border-2 border-gray-300 bg-white/50 py-3 pl-12 pr-4 text-gray-900 placeholder-gray-500 transition-all duration-300 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-200 dark:placeholder-gray-400"
           />
         </div>
 
@@ -134,18 +124,14 @@ export default function ProjectsGrid({
                 className={`flex items-center gap-2 rounded-full px-6 py-3 font-medium shadow-lg backdrop-blur-sm transition-all duration-300 ${
                   isActive
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-blue-500/25'
-                    : isDarkMode
-                      ? 'border border-gray-600/50 bg-gray-800/70 text-gray-300 hover:border-blue-400/50 hover:bg-gray-700/70'
-                      : 'border border-gray-300/50 bg-white/70 text-gray-700 hover:border-blue-400/50 hover:bg-white/90'
+                    : 'border border-gray-300/50 bg-white/70 text-gray-700 hover:border-blue-400/50 hover:bg-white/90 hover:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] dark:border-gray-600/50 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:border-blue-400/50 dark:hover:bg-gray-700/70 dark:hover:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.3)]'
                 }`}
                 whileHover={{
                   scale: 1.05,
                   y: -2,
-                  boxShadow: isActive
-                    ? '0 10px 25px -5px rgba(59, 130, 246, 0.5)'
-                    : isDarkMode
-                      ? '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-                      : '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  ...(isActive
+                    ? { boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.5)' }
+                    : {}),
                 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
@@ -159,9 +145,7 @@ export default function ProjectsGrid({
 
         {/* Results Count */}
         <div className="text-center">
-          <p
-            className={`font-mono text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
-          >
+          <p className="font-mono text-sm text-gray-600 dark:text-gray-400">
             <span className="text-blue-500">const</span> results = [
             <span className="text-green-500">{filteredProjects.length}</span>{' '}
             projects]
@@ -186,13 +170,7 @@ export default function ProjectsGrid({
           transition={{ duration: 0.5 }}
         >
           {paginatedProjects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onClick={() => onProjectClick(project)}
-              isDarkMode={isDarkMode}
-              index={index}
-            />
+            <ProjectCard key={project.id} project={project} index={index} />
           ))}
         </m.div>
       </AnimatePresence>
@@ -212,9 +190,7 @@ export default function ProjectsGrid({
               className={`h-10 w-10 rounded-xl font-medium transition-all duration-300 ${
                 currentPage === page
                   ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                  : isDarkMode
-                    ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-                    : 'bg-white/50 text-gray-700 hover:bg-gray-100/50'
+                  : 'bg-white/50 text-gray-700 hover:bg-gray-100/50 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/50'
               }`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}

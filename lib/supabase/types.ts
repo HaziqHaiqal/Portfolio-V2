@@ -23,6 +23,7 @@ export interface Profile {
   resume_url?: string;
   linkedin_url?: string;
   github_url?: string;
+  whatsapp_url?: string;
   website_url?: string;
   status?: string;
   response_time?: string;

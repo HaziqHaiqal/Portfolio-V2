@@ -3,22 +3,17 @@
 import { useState } from 'react';
 import { m } from 'framer-motion';
 import Image from 'next/image';
-import { ExternalLink, Github, GitBranch, Calendar } from 'lucide-react';
+import { ExternalLink, GitBranch, Calendar } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import type { ProjectProps } from 'types/portfolio';
+import { useUIStore } from '@lib/stores';
 
 interface ProjectCardProps {
   project: ProjectProps;
-  onClick: () => void;
-  isDarkMode: boolean;
   index: number;
 }
 
-export default function ProjectCard({
-  project,
-  onClick,
-  isDarkMode,
-  index,
-}: ProjectCardProps) {
+export default function ProjectCard({ project, index }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [touchStart, setTouchStart] = useState<{
     x: number;
@@ -26,8 +21,10 @@ export default function ProjectCard({
     time: number;
   } | null>(null);
 
+  const openProjectModal = useUIStore((state) => state.openProjectModal);
+
   const handleClick = () => {
-    onClick();
+    openProjectModal(project);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -60,7 +57,7 @@ export default function ProjectCard({
       deltaY < maxMovement
     ) {
       e.preventDefault();
-      onClick();
+      handleClick();
     }
 
     setTouchStart(null);
@@ -74,9 +71,7 @@ export default function ProjectCard({
 
   return (
     <m.div
-      className={`group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br p-0.5 ${
-        isDarkMode ? 'from-gray-800 to-gray-700' : 'from-gray-200 to-gray-100'
-      } group-hover:from-blue-500 group-hover:to-purple-600`}
+      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-gray-200 to-gray-100 p-0.5 group-hover:from-blue-500 group-hover:to-purple-600 dark:from-gray-800 dark:to-gray-700"
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       whileInView={{
         opacity: 1,
@@ -99,11 +94,7 @@ export default function ProjectCard({
       onTouchMove={handleTouchMove}
     >
       {/* Inner card content */}
-      <div
-        className={`relative h-full overflow-hidden rounded-2xl p-6 ${
-          isDarkMode ? 'bg-gray-900/90' : 'bg-white/90'
-        }`}
-      >
+      <div className="relative h-full overflow-hidden rounded-2xl bg-white/90 p-6 dark:bg-gray-900/90">
         {project.thumbnail_url && (
           <div className="relative mb-4 h-40 w-full overflow-hidden rounded-lg">
             <Image
@@ -137,14 +128,10 @@ export default function ProjectCard({
         <div className="space-y-4">
           {/* Header */}
           <div>
-            <h3
-              className={`mb-2 text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-            >
+            <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">
               {project.title}
             </h3>
-            <p
-              className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
-            >
+            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
               {project.description}
             </p>
           </div>
@@ -154,19 +141,13 @@ export default function ProjectCard({
             {project.languages.slice(0, 3).map((tech, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2 py-1 font-mono text-xs ${
-                  isDarkMode
-                    ? 'bg-gray-800 text-gray-300'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
+                className="rounded-lg bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
               >
                 {tech}
               </span>
             ))}
             {project.languages.length > 3 && (
-              <span
-                className={`rounded-lg px-2 py-1 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
-              >
+              <span className="rounded-lg px-2 py-1 text-xs text-gray-500 dark:text-gray-400">
                 +{project.languages.length - 3} more
               </span>
             )}
@@ -178,11 +159,9 @@ export default function ProjectCard({
               <div className="flex items-center gap-1">
                 <Calendar
                   size={12}
-                  className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+                  className="text-gray-500 dark:text-gray-400"
                 />
-                <span
-                  className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                >
+                <span className="text-gray-500 dark:text-gray-400">
                   {project.year}
                 </span>
               </div>
@@ -190,11 +169,9 @@ export default function ProjectCard({
                 <div className="flex items-center gap-1">
                   <GitBranch
                     size={12}
-                    className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+                    className="text-gray-500 dark:text-gray-400"
                   />
-                  <span
-                    className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                  >
+                  <span className="text-gray-500 dark:text-gray-400">
                     {project.commits}
                   </span>
                 </div>
@@ -212,7 +189,7 @@ export default function ProjectCard({
                   whileHover={{ scale: 1.1 }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Github size={12} />
+                  <SiGithub size={12} />
                 </m.a>
               )}
               {project.projectUrl && (

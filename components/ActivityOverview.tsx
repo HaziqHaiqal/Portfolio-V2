@@ -1,7 +1,10 @@
+'use client';
+
 import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { m } from 'framer-motion';
-import { Github, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import {
   Select,
   SelectContent,
@@ -9,9 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@components/ui/select';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import SectionHeader from '@components/Common/SectionHeader';
-import { COLORS } from '@constants/colors';
 import { getCurrentYear } from '@lib/format';
 import { Week, GitHubData, GitHubStats, ContributionDay } from 'types/github';
 
@@ -47,8 +48,6 @@ const formatTooltip = (day: ContributionDay) => {
 };
 
 const ActivityOverview = () => {
-  const { isDarkMode } = useTheme();
-
   const [weeksData, setWeeksData] = useState<Week[]>([]);
   const [maxCount, setMaxCount] = useState(1);
   const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
@@ -136,9 +135,12 @@ const ActivityOverview = () => {
     setSelectedYear(year);
   };
 
-  const palette = isDarkMode
-    ? COLORS.contribution.dark
-    : COLORS.contribution.light;
+  const palette = [
+    'var(--contrib-0)',
+    'var(--contrib-1)',
+    'var(--contrib-2)',
+    'var(--contrib-3)',
+  ];
 
   const intensityColor = (count: number) => {
     const frac = count / maxCount;
@@ -194,7 +196,7 @@ const ActivityOverview = () => {
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeader
-          icon={Github}
+          icon={SiGithub}
           label="github.activity()"
           title="GitHub Activity"
           accentClass="text-cyan-500"
@@ -211,7 +213,7 @@ const ActivityOverview = () => {
           >
             {loading ? (
               <div
-                className={`min-h-[240px] w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:min-h-[344px] md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
+                className={`min-h-[240px] w-full rounded-2xl border border-white/50 bg-white/90 p-4 shadow-2xl backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/90 md:min-h-[344px] md:rounded-3xl md:p-8`}
               >
                 <div className="flex items-center justify-center py-12">
                   <m.div
@@ -223,9 +225,7 @@ const ActivityOverview = () => {
                       ease: 'linear',
                     }}
                   />
-                  <span
-                    className={`ml-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                  >
+                  <span className={`ml-3 text-gray-700 dark:text-gray-300`}>
                     Loading GitHub data...
                   </span>
                 </div>
@@ -233,13 +233,13 @@ const ActivityOverview = () => {
             ) : (
               <>
                 <div
-                  className={`min-h-[240px] w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:min-h-[344px] md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
+                  className={`min-h-[240px] w-full rounded-2xl border border-white/50 bg-white/90 p-4 shadow-2xl backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/90 md:min-h-[344px] md:rounded-3xl md:p-8`}
                 >
                   <div className="mb-4 flex items-center justify-between gap-2 sm:gap-4 md:mb-6">
                     <h3
-                      className={`flex min-w-0 items-center gap-2 text-sm font-bold md:text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
+                      className={`flex min-w-0 items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-200 md:text-base`}
                     >
-                      <Github size={16} className="shrink-0 md:h-5 md:w-5" />
+                      <SiGithub size={16} className="shrink-0 md:h-5 md:w-5" />
                       <span className="truncate">
                         {githubStats?.totalContributions ?? 0} contributions in{' '}
                         {selectedYear}
@@ -250,29 +250,23 @@ const ActivityOverview = () => {
                       <div className="flex items-center gap-2">
                         <Calendar
                           size={14}
-                          className={`hidden sm:block ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                          className={`hidden text-gray-600 dark:text-gray-400 sm:block`}
                         />
                         <Select
                           value={selectedYear}
                           onValueChange={handleYearChange}
                         >
                           <SelectTrigger
-                            className={`h-8 w-20 text-xs ${isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white'}`}
+                            className={`h-8 w-20 border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200`}
                           >
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent
-                            className={
-                              isDarkMode
-                                ? 'border-gray-700 bg-gray-800'
-                                : 'border-gray-200 bg-white'
-                            }
-                          >
+                          <SelectContent className="border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                             {availableYears.map((year) => (
                               <SelectItem
                                 key={year}
                                 value={year.toString()}
-                                className={`text-xs ${isDarkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-900 hover:bg-gray-100'}`}
+                                className={`text-xs text-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700`}
                               >
                                 {year}
                               </SelectItem>
@@ -292,7 +286,7 @@ const ActivityOverview = () => {
                               <div key={wIdx} className="relative w-2 md:w-3">
                                 {monthLabelAt[wIdx] && (
                                   <span
-                                    className={`absolute left-0 top-0 whitespace-nowrap text-[9px] leading-none md:text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                                    className={`absolute left-0 top-0 whitespace-nowrap text-[9px] leading-none text-gray-500 dark:text-gray-400 md:text-[10px]`}
                                   >
                                     {monthLabelAt[wIdx]}
                                   </span>
@@ -334,7 +328,7 @@ const ActivityOverview = () => {
                       </div>
 
                       <div
-                        className={`mt-2 flex items-center justify-end gap-1 text-[10px] md:text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                        className={`mt-2 flex items-center justify-end gap-1 text-[10px] text-gray-500 dark:text-gray-400 md:text-xs`}
                       >
                         <span className="mr-1">Less</span>
                         {palette.map((color, i) => (
@@ -351,11 +345,7 @@ const ActivityOverview = () => {
 
                   <div className="space-y-2 text-xs md:space-y-3 md:text-sm">
                     <div className="flex items-center justify-between">
-                      <span
-                        className={
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }
-                      >
+                      <span className="text-gray-600 dark:text-gray-400">
                         Total commits
                       </span>
                       <span className="font-bold text-orange-600">
@@ -363,11 +353,7 @@ const ActivityOverview = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span
-                        className={
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }
-                      >
+                      <span className="text-gray-600 dark:text-gray-400">
                         Longest streak
                       </span>
                       <span className="font-bold text-blue-600">

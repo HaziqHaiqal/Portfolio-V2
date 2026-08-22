@@ -1,10 +1,11 @@
+'use client';
+
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Briefcase, ChevronDown } from 'lucide-react';
 import { Experience } from '@lib/supabase';
 import UniversalImage from '@components/Media/UniversalImage';
 import SectionHeader from '@components/Common/SectionHeader';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import { generateHash } from '@lib/utils';
 
 interface ExperienceSectionProps {
@@ -12,7 +13,6 @@ interface ExperienceSectionProps {
 }
 
 const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
-  const { isDarkMode } = useTheme();
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
     new Set()
   );
@@ -90,11 +90,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
         {/* Git-style Timeline */}
         <div className="mx-auto max-w-4xl">
           <m.div
-            className={`rounded-3xl border p-8 shadow-2xl ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800/70'
-                : 'border-gray-200 bg-white/70'
-            }`}
+            className={`rounded-3xl border border-gray-200 bg-white/70 p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -119,7 +115,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                     >
                       {/* Gray Background Line - Per Item */}
                       <div
-                        className={`absolute left-6 top-0 w-0.5 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}
+                        className={`absolute left-6 top-0 w-0.5 bg-gray-300 dark:bg-gray-600`}
                         style={{
                           height: isLast && !isExpanded ? '24px' : '100%',
                         }}
@@ -157,24 +153,16 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                           >
                             {/* Logo with animated border */}
                             <m.div
-                              className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-lg ${
-                                isDarkMode
-                                  ? 'border-blue-500/40 bg-gray-700 shadow-blue-900/30'
-                                  : 'border-blue-500/40 bg-white shadow-blue-900/30'
-                              }`}
+                              className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-blue-500/40 bg-white shadow-lg shadow-blue-900/30 dark:border-blue-500/40 dark:bg-gray-700 dark:shadow-blue-900/30`}
                               style={{
                                 boxShadow: isExpanded
                                   ? '0 0 0 4px #3b82f6'
-                                  : isDarkMode
-                                    ? '0 0 0 4px #374151'
-                                    : '0 0 0 4px #d1d5db',
+                                  : '0 0 0 4px var(--company-ring)',
                               }}
                               animate={{
                                 boxShadow: isExpanded
                                   ? '0 0 0 4px #3b82f6'
-                                  : isDarkMode
-                                    ? '0 0 0 4px #374151'
-                                    : '0 0 0 4px #d1d5db',
+                                  : '0 0 0 4px var(--company-ring)',
                               }}
                               transition={{
                                 duration: 0.3,
@@ -192,11 +180,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                               ) : (
                                 <Briefcase
                                   size={24}
-                                  className={
-                                    isDarkMode
-                                      ? 'text-gray-300'
-                                      : 'text-gray-600'
-                                  }
+                                  className="text-gray-600 dark:text-gray-300"
                                 />
                               )}
                             </m.div>
@@ -211,7 +195,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                           >
                             <div className="flex items-center gap-3">
                               <h4
-                                className={`text-lg font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} transition-colors group-hover:text-blue-500`}
+                                className={`text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-500 dark:text-gray-100`}
                               >
                                 {company}
                               </h4>
@@ -221,11 +205,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                               >
                                 <ChevronDown
                                   size={16}
-                                  className={
-                                    isDarkMode
-                                      ? 'text-gray-400'
-                                      : 'text-gray-600'
-                                  }
+                                  className="text-gray-600 dark:text-gray-400"
                                 />
                               </m.div>
                             </div>
@@ -269,11 +249,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                       >
                                         {/* Role commit dot - outline only, centered on timeline */}
                                         <div
-                                          className={`absolute -left-[53px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 ${
-                                            isDarkMode
-                                              ? 'bg-gray-800'
-                                              : 'bg-white'
-                                          }`}
+                                          className={`absolute -left-[53px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 bg-white dark:bg-gray-800`}
                                         />
 
                                         {/* Role content - closer to dot */}
@@ -281,12 +257,12 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                           {/* Commit Hash & Date */}
                                           <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
                                             <span
-                                              className={`whitespace-nowrap rounded px-1.5 py-0.5 font-mono text-[12px] sm:px-2 sm:py-1 sm:text-xs ${isDarkMode ? 'bg-blue-800 text-blue-300' : 'bg-blue-100 text-blue-700'}`}
+                                              className={`whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[12px] text-blue-700 dark:bg-blue-800 dark:text-blue-300 sm:px-2 sm:py-1 sm:text-xs`}
                                             >
                                               {roleHash}
                                             </span>
                                             <span
-                                              className={`whitespace-nowrap text-[12px] sm:text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                                              className={`whitespace-nowrap text-[12px] text-gray-500 dark:text-gray-400 sm:text-xs`}
                                             >
                                               {startDate.toLocaleDateString(
                                                 'en-US',
@@ -320,7 +296,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
                                           {/* Commit Message (Role Title) */}
                                           <h5
-                                            className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-4`}
+                                            className={`mb-4 font-semibold text-gray-800 dark:text-gray-200`}
                                           >
                                             <span
                                               className={
@@ -349,7 +325,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
                                             return (
                                               <ul
-                                                className={`mb-4 list-disc space-y-2 pl-5 text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                                                className={`mb-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300`}
                                               >
                                                 {points.map((point, idx) => (
                                                   <li
@@ -374,11 +350,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                                   ) => (
                                                     <span
                                                       key={techIndex}
-                                                      className={`rounded-full px-2 py-1 text-xs ${
-                                                        isDarkMode
-                                                          ? 'border border-gray-600 bg-gray-700 text-gray-300'
-                                                          : 'border border-gray-300 bg-gray-100 text-gray-700'
-                                                      }`}
+                                                      className={`rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:border dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300`}
                                                     >
                                                       {tech}
                                                     </span>

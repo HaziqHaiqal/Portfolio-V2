@@ -1,11 +1,10 @@
-import React from 'react';
-import { useTheme } from '@components/Provider/ThemeProvider';
+import { CSSProperties } from 'react';
 
 const glyphs = [
   {
     content: '{',
     className: 'absolute left-10 top-20 text-6xl',
-    tone: ['text-blue-300', 'text-blue-200'],
+    tone: 'text-blue-200 dark:text-blue-300',
     style: {
       '--glyph-duration': '20s',
       '--glyph-y': '-20px',
@@ -16,7 +15,7 @@ const glyphs = [
   {
     content: '</>',
     className: 'absolute right-20 top-40 text-4xl',
-    tone: ['text-purple-300', 'text-purple-200'],
+    tone: 'text-purple-200 dark:text-purple-300',
     style: {
       '--glyph-duration': '15s',
       '--glyph-y': '20px',
@@ -27,7 +26,7 @@ const glyphs = [
   {
     content: '\u{1F680}',
     className: 'absolute bottom-20 right-10 text-3xl opacity-30',
-    tone: ['text-green-300', 'text-green-200'],
+    tone: 'text-green-200 dark:text-green-300',
     style: {
       '--glyph-duration': '25s',
       '--glyph-y': '-15px',
@@ -38,16 +37,13 @@ const glyphs = [
 ] as const;
 
 const FloatingElements = () => {
-  const { isDarkMode } = useTheme();
   return (
     <div className="pointer-events-none fixed inset-0">
       {glyphs.map((glyph) => (
         <div
           key={glyph.content}
-          className={`float-glyph ${glyph.className} ${
-            isDarkMode ? glyph.tone[0] : glyph.tone[1]
-          }`}
-          style={glyph.style as React.CSSProperties}
+          className={`float-glyph ${glyph.className} ${glyph.tone}`}
+          style={glyph.style as CSSProperties}
         >
           {glyph.content}
         </div>

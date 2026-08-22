@@ -7,7 +7,6 @@ import UniversalImage from '@components/Media/UniversalImage';
 import {
   ExternalLink,
   FolderKanban,
-  Github,
   ImageIcon,
   Lightbulb,
   Loader2,
@@ -16,6 +15,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
@@ -450,7 +450,7 @@ export default function ProjectsEditor() {
                         )
                       }
                     >
-                      <Github className="h-3.5 w-3.5" />
+                      <SiGithub className="h-3.5 w-3.5" />
                     </IconAction>
                   )}
                   {project.project_url && (

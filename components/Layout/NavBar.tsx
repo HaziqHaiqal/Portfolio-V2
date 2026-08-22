@@ -1,6 +1,10 @@
+'use client';
+
+import Link from 'next/link';
 import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
-import { useTheme, useThemeClasses } from '@components/Provider/ThemeProvider';
+import { useTheme } from '@components/Provider/ThemeProvider';
+import { themeClasses } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { useCurrentTime } from '@hooks/useCommon';
 
@@ -9,9 +13,7 @@ import { useCurrentTime } from '@hooks/useCommon';
  */
 const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const classes = useThemeClasses();
-  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, openContact } =
-    useUIStore();
+  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
 
   const { currentTime, mounted } = useCurrentTime();
 
@@ -41,8 +43,8 @@ const NavBar = () => {
       underlineClass: 'bg-purple-600',
     },
     {
-      href: '#contact',
-      label: 'Contact',
+      href: '/service',
+      label: 'Service',
       hoverTextClass: 'hover:text-green-600',
       underlineClass: 'bg-green-600',
     },
@@ -53,48 +55,54 @@ const NavBar = () => {
       {/* Desktop Navigation */}
       <nav className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 transform md:block">
         <div
-          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
+          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center gap-8">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Contact lives in the floating terminal modal, not on the page.
-                  if (item.href === '#contact') {
-                    openContact();
-                    return;
-                  }
-                  const targetId = item.href.replace('#', '');
-                  const element = document.getElementById(targetId);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className={`${item.hoverTextClass} group relative font-medium transition-all duration-300 ${classes.text.secondary}`}
-              >
-                {item.label}
+            {navItems.map((item) => {
+              const linkClass = `${item.hoverTextClass} group relative font-medium transition-all duration-300 ${themeClasses.text.secondary}`;
+              const underline = (
                 <span
                   className={`absolute -bottom-1 left-0 h-0.5 w-0 ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
                 />
-              </a>
-            ))}
-            <div className={`h-6 w-px ${classes.border.muted}`} />
+              );
+
+              if (!item.href.startsWith('#')) {
+                return (
+                  <Link key={item.href} href={item.href} className={linkClass}>
+                    {item.label}
+                    {underline}
+                  </Link>
+                );
+              }
+
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const targetId = item.href.replace('#', '');
+                    document
+                      .getElementById(targetId)
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className={linkClass}
+                >
+                  {item.label}
+                  {underline}
+                </a>
+              );
+            })}
+            <div className={`h-6 w-px ${themeClasses.border.muted}`} />
             <div
-              className={`whitespace-nowrap font-mono text-xs ${classes.text.muted}`}
+              className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
             </div>
             <m.button
               onClick={toggleDarkMode}
-              className={`rounded-full p-2 transition-all duration-300 ${
-                isDarkMode
-                  ? 'text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300'
-                  : 'text-gray-700 hover:bg-orange-500/10 hover:text-orange-500'
-              }`}
+              className={`rounded-full p-2 text-gray-700 transition-all duration-300 hover:bg-orange-500/10 hover:text-orange-500 dark:text-yellow-400 dark:hover:bg-yellow-400/10 dark:hover:text-yellow-300`}
               whileHover={{ rotate: 180, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title={
@@ -110,12 +118,12 @@ const NavBar = () => {
       {/* Mobile Navigation */}
       <nav className="fixed left-4 right-4 top-4 z-50 md:hidden">
         <div
-          className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
+          className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center justify-between">
             {/* Time */}
             <div
-              className={`whitespace-nowrap font-mono text-xs ${classes.text.muted}`}
+              className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
@@ -125,11 +133,7 @@ const NavBar = () => {
             <div className="flex items-center gap-3">
               <m.button
                 onClick={toggleDarkMode}
-                className={`rounded-full p-2 transition-all duration-300 ${
-                  isDarkMode
-                    ? 'text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300'
-                    : 'text-gray-700 hover:bg-orange-500/10 hover:text-orange-500'
-                }`}
+                className={`rounded-full p-2 text-gray-700 transition-all duration-300 hover:bg-orange-500/10 hover:text-orange-500 dark:text-yellow-400 dark:hover:bg-yellow-400/10 dark:hover:text-yellow-300`}
                 whileHover={{ rotate: 180, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 title={
@@ -141,7 +145,7 @@ const NavBar = () => {
 
               <m.button
                 onClick={toggleMobileMenu}
-                className={`rounded-full p-2 transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
+                className={`rounded-full p-2 transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
                 whileTap={{ scale: 0.9 }}
               >
                 {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -160,33 +164,45 @@ const NavBar = () => {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex flex-col gap-1">
-                  {navItems.map((item, index) => (
-                    <m.a
-                      key={item.href}
-                      href={item.href}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        closeMobileMenu();
-                        if (item.href === '#contact') {
-                          openContact();
-                          return;
-                        }
-                        setTimeout(() => {
-                          const targetId = item.href.replace('#', '');
-                          const element = document.getElementById(targetId);
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }, 100);
-                      }}
-                      className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
-                      initial={{ opacity: 0, x: 0 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      {item.label}
-                    </m.a>
-                  ))}
+                  {navItems.map((item, index) => {
+                    const itemClass = `block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`;
+
+                    if (!item.href.startsWith('#')) {
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMobileMenu}
+                          className={itemClass}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <m.a
+                        key={item.href}
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          closeMobileMenu();
+                          setTimeout(() => {
+                            const targetId = item.href.replace('#', '');
+                            document
+                              .getElementById(targetId)
+                              ?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }}
+                        className={itemClass}
+                        initial={{ opacity: 0, x: 0 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        {item.label}
+                      </m.a>
+                    );
+                  })}
                 </div>
               </m.div>
             )}

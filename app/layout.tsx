@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -8,6 +8,8 @@ import { MaintenanceProvider } from '@components/Provider/MaintenanceProvider';
 import { MotionProvider } from '@components/Provider/MotionProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { ReactNode } from 'react';
+import { SITE_URL } from '@lib/site';
+import { THEME_CANVAS, THEME_COOKIE } from '@constants/theme';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,6 +23,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Haziq Haiqal | Software Developer',
   description:
     'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions and exceptional user experiences.',
@@ -42,7 +45,7 @@ export const metadata: Metadata = {
     title: 'Haziq Haiqal | Software Developer',
     description:
       'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions.',
-    url: 'https://haziqhaiqal.com',
+    url: SITE_URL,
     siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
     type: 'website',
@@ -54,21 +57,32 @@ export const metadata: Metadata = {
   },
 };
 
+export async function generateViewport(): Promise<Viewport> {
+  const cookieStore = await cookies();
+  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value === 'dark';
+  const canvas = THEME_CANVAS[isDarkMode ? 'dark' : 'light'];
+
+  return {
+    colorScheme: isDarkMode ? 'dark' : 'light',
+    themeColor: canvas,
+  };
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const isDarkMode =
-    cookieStore.get('portfolio-theme-preference')?.value === 'dark';
+  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value === 'dark';
 
   return (
     <html
       lang="en"
       className={isDarkMode ? 'dark scroll-smooth' : 'scroll-smooth'}
+      data-scroll-behavior="smooth"
       style={{
-        backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb',
+        backgroundColor: THEME_CANVAS[isDarkMode ? 'dark' : 'light'],
         colorScheme: isDarkMode ? 'dark' : 'light',
       }}
       suppressHydrationWarning

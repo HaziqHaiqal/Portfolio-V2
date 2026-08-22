@@ -12,21 +12,20 @@ import { toast } from 'sonner';
 import {
   Briefcase,
   FileText,
-  Github,
   Globe,
-  Linkedin,
   Loader2,
   Mail,
   MapPin,
   Plus,
   Save,
-  Twitter,
   User,
   X,
 } from 'lucide-react';
+import { SiGithub, SiLinkedin, SiWhatsapp, SiX } from 'react-icons/si';
 
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import { upsertProfileAction } from '@app/admin/_actions/profile';
+import type { NullableWritable, Profile } from '@lib/supabase';
 import UniversalUpload, {
   type UniversalUploadHandle,
 } from '@components/Media/UniversalUpload';
@@ -66,6 +65,7 @@ interface ProfileData {
   website_url: string;
   github_url: string;
   linkedin_url: string;
+  whatsapp_url: string;
   twitter_url: string;
   profile_image_url: string;
   resume_url: string;
@@ -92,6 +92,7 @@ const initialProfileData: ProfileData = {
   website_url: '',
   github_url: '',
   linkedin_url: '',
+  whatsapp_url: '',
   twitter_url: '',
   profile_image_url: '',
   resume_url: '',
@@ -105,12 +106,37 @@ const initialProfileData: ProfileData = {
   is_freelance_available: false,
 };
 
+// `profile` has no column yet for about, twitter_url, date_of_birth,
+// years_of_experience, availability_status, hourly_rate, preferred_contact,
+// languages, timezone, or is_freelance_available — those FormSections below
+// are edited but not yet persisted. Only send fields with a real column, or
+// PostgREST rejects the whole update on the first unknown key.
+function toProfilePatch(data: ProfileData): NullableWritable<Profile> {
+  return {
+    id: data.id,
+    full_name: data.full_name,
+    title: data.title,
+    email: data.email,
+    phone: data.phone,
+    location: data.location,
+    bio: data.bio,
+    website_url: data.website_url,
+    github_url: data.github_url,
+    linkedin_url: data.linkedin_url,
+    whatsapp_url: data.whatsapp_url,
+    profile_image_url: data.profile_image_url,
+    resume_url: data.resume_url,
+  };
+}
+
 const availabilityStyles: Record<string, string> = {
   Available: 'border-success/40 bg-success/10 text-success',
   Busy: 'border-warning/40 bg-warning/10 text-warning',
   Unavailable: 'border-border bg-muted text-muted-foreground',
 };
 
+// Website and X have no fixed domain, so they're a plain input with the
+// icon absolutely-positioned inside it.
 const socialFields = [
   {
     field: 'website_url',
@@ -119,24 +145,79 @@ const socialFields = [
     placeholder: 'https://yoursite.com',
   },
   {
+    field: 'twitter_url',
+    label: 'X / Twitter',
+    icon: SiX,
+    placeholder: 'https://x.com/username',
+  },
+] as const;
+
+// GitHub, LinkedIn and WhatsApp each have exactly one valid domain, so that
+// part of the URL is locked rather than free text — nothing to mistype, and
+// nothing to hide behind a placeholder. Each still stores a complete URL,
+// same as the two fields above; `prefix` only controls what's editable in
+// this form, not what's saved.
+const prefixedFields = [
+  {
     field: 'github_url',
     label: 'GitHub',
-    icon: Github,
-    placeholder: 'https://github.com/username',
+    icon: SiGithub,
+    prefix: 'https://github.com/',
   },
   {
     field: 'linkedin_url',
     label: 'LinkedIn',
-    icon: Linkedin,
-    placeholder: 'https://linkedin.com/in/username',
+    icon: SiLinkedin,
+    prefix: 'https://linkedin.com/in/',
   },
   {
-    field: 'twitter_url',
-    label: 'X / Twitter',
-    icon: Twitter,
-    placeholder: 'https://x.com/username',
+    field: 'whatsapp_url',
+    label: 'WhatsApp',
+    icon: SiWhatsapp,
+    prefix: 'https://wa.me/',
   },
 ] as const;
+
+function FixedPrefixInput({
+  id,
+  icon: Icon,
+  prefix,
+  value,
+  onChange,
+}: {
+  id: string;
+  icon: React.ComponentType<{ className?: string }>;
+  prefix: string;
+  value: string;
+  onChange: (nextFullValue: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suffix = value.startsWith(prefix) ? value.slice(prefix.length) : value;
+
+  return (
+    <div
+      className="flex h-9 w-full cursor-text items-center gap-1.5 rounded-md border border-input bg-transparent pl-3 pr-3 shadow-sm transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-ring"
+      onClick={() => inputRef.current?.focus()}
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <span className="shrink-0 select-none text-sm text-muted-foreground">
+        {prefix}
+      </span>
+      <input
+        ref={inputRef}
+        id={id}
+        value={suffix}
+        onChange={(e) => {
+          const typed = e.target.value;
+          // Pasting a full URL over the suffix shouldn't double the prefix.
+          onChange(typed.startsWith('http') ? typed : prefix + typed);
+        }}
+        placeholder="username"
+        className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-foreground outline-none placeholder:text-muted-foreground md:text-sm"
+      />
+    </div>
+  );
+}
 
 export default function ProfileEditor() {
   const [profileData, setProfileData] =
@@ -181,6 +262,7 @@ export default function ProfileEditor() {
           website_url: data.website_url || '',
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
+          whatsapp_url: data.whatsapp_url || '',
           twitter_url: data.twitter_url || '',
           profile_image_url: data.profile_image_url || '',
           resume_url: data.resume_url || '',
@@ -237,7 +319,7 @@ export default function ProfileEditor() {
       }
 
       setSaving(true);
-      const data = await upsertProfileAction(next);
+      const data = await upsertProfileAction(toProfilePatch(next));
       const merged = { ...next, ...data };
       setProfileData(merged);
       setSavedSnapshot(JSON.stringify(merged));
@@ -488,6 +570,17 @@ export default function ProfileEditor() {
                       className="pl-9"
                     />
                   </div>
+                </Field>
+              ))}
+              {prefixedFields.map(({ field, label, icon, prefix }) => (
+                <Field key={field} label={label} htmlFor={field}>
+                  <FixedPrefixInput
+                    id={field}
+                    icon={icon}
+                    prefix={prefix}
+                    value={profileData[field]}
+                    onChange={(next) => set(field, next)}
+                  />
                 </Field>
               ))}
             </FormGrid>

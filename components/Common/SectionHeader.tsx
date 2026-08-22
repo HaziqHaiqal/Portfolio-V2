@@ -1,11 +1,12 @@
-'use client';
+import Reveal from '@components/Common/Reveal';
+import type { ComponentType } from 'react';
 
-import { m } from 'framer-motion';
-import type { LucideIcon } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
+// Loose enough to accept both lucide-react and react-icons components —
+// SectionHeader only ever calls Icon with `size` and `className`.
+type SectionIcon = ComponentType<{ size?: number; className?: string }>;
 
 interface SectionHeaderProps {
-  icon: LucideIcon;
+  icon: SectionIcon;
   label: string;
   title: string;
   accentClass: string;
@@ -21,30 +22,22 @@ export default function SectionHeader({
   gradientClass,
   className = '',
 }: SectionHeaderProps) {
-  const { isDarkMode } = useTheme();
-
   return (
-    <m.div
+    <Reveal
       className={`mb-10 text-center md:mb-12 ${className}`}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
+      y={30}
+      duration={0.6}
     >
       <div className="mb-3 inline-flex items-center gap-2 font-mono text-sm">
         <Icon size={16} className={accentClass} />
-        <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>
-          {label}
-        </span>
+        <span className="text-gray-500 dark:text-gray-400">{label}</span>
       </div>
-      <h2
-        className={`mb-4 text-3xl font-extrabold md:text-4xl ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}
-      >
+      <h2 className="mb-4 text-3xl font-extrabold text-gray-900 dark:text-gray-100 md:text-4xl">
         {title}
       </h2>
       <div
         className={`mx-auto h-[3px] w-11 rounded-full bg-gradient-to-r ${gradientClass}`}
       />
-    </m.div>
+    </Reveal>
   );
 }

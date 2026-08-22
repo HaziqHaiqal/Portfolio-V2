@@ -1,17 +1,13 @@
-import React from 'react';
-import { m } from 'framer-motion';
+import Reveal from '@components/Common/Reveal';
 import { GraduationCap, Calendar } from 'lucide-react';
 import { Education } from '@lib/supabase';
 import SectionHeader from '@components/Common/SectionHeader';
-import { useTheme } from '@components/Provider/ThemeProvider';
 
 interface EducationSectionProps {
   education: Education[] | null | undefined;
 }
 
 const EducationSection = ({ education }: EducationSectionProps) => {
-  const { isDarkMode } = useTheme();
-
   if (!education || education.length === 0) return null;
 
   // Sort by start_date descending (most recent first)
@@ -34,76 +30,45 @@ const EducationSection = ({ education }: EducationSectionProps) => {
         {/* Certificate Cards */}
         <div className="mx-auto max-w-4xl space-y-8">
           {sortedEducation.map((edu, idx) => (
-            <m.div
+            <Reveal
               key={idx}
-              className={`relative rounded-3xl border p-8 md:p-10 ${
-                isDarkMode
-                  ? 'border-gray-700 bg-gray-800/70 shadow-2xl'
-                  : 'border-gray-200 bg-white/70 shadow-2xl'
-              }`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              style={{
-                backgroundImage: isDarkMode
-                  ? 'radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(251, 191, 36, 0.05) 0%, transparent 50%)'
-                  : 'none',
-              }}
+              className="education-card relative rounded-3xl border border-gray-200 bg-white/70 p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70 md:p-10"
+              scale={0.95}
+              delay={idx * 0.1}
             >
               {/* Decorative corners */}
-              <div
-                className={`absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 ${isDarkMode ? 'border-amber-600/50' : 'border-amber-300'}`}
-              />
-              <div
-                className={`absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 ${isDarkMode ? 'border-amber-600/50' : 'border-amber-300'}`}
-              />
-              <div
-                className={`absolute bottom-3 left-3 h-6 w-6 border-b-2 border-l-2 ${isDarkMode ? 'border-amber-600/50' : 'border-amber-300'}`}
-              />
-              <div
-                className={`absolute bottom-3 right-3 h-6 w-6 border-b-2 border-r-2 ${isDarkMode ? 'border-amber-600/50' : 'border-amber-300'}`}
-              />
+              <div className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-amber-300 dark:border-amber-600/50" />
+              <div className="absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 border-amber-300 dark:border-amber-600/50" />
+              <div className="absolute bottom-3 left-3 h-6 w-6 border-b-2 border-l-2 border-amber-300 dark:border-amber-600/50" />
+              <div className="absolute bottom-3 right-3 h-6 w-6 border-b-2 border-r-2 border-amber-300 dark:border-amber-600/50" />
 
               <div className="text-center">
                 {/* Icon */}
                 <GraduationCap
-                  className={`mx-auto mb-4 ${isDarkMode ? 'text-amber-500' : 'text-amber-600'}`}
+                  className="mx-auto mb-4 text-amber-600 dark:text-amber-500"
                   size={44}
                 />
 
                 {/* Institution */}
-                <p
-                  className={`mb-3 text-sm uppercase tracking-widest ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
-                >
+                <p className="mb-3 text-sm uppercase tracking-widest text-gray-600 dark:text-gray-400">
                   {edu.institution}
                 </p>
 
                 {/* Degree */}
-                <h3
-                  className={`mb-3 font-serif text-2xl font-bold md:text-3xl ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                >
+                <h3 className="mb-3 font-serif text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
                   {edu.degree}
                 </h3>
 
                 {/* Specialization */}
                 {edu.specialization && (
-                  <p
-                    className={`mb-4 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}
-                  >
+                  <p className="mb-4 text-sm text-gray-500">
                     Specialize in {edu.specialization}
                     {edu.minor_subject && ` • Minor in ${edu.minor_subject}`}
                   </p>
                 )}
 
                 {/* Date Badge */}
-                <div
-                  className={`mb-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium ${
-                    isDarkMode
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : 'bg-amber-100 text-amber-700'
-                  }`}
-                >
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-5 py-2 text-sm font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
                   <Calendar size={14} />
                   {new Date(edu.start_date).toLocaleDateString('en-US', {
                     month: 'short',
@@ -120,9 +85,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
 
                 {/* Grade/Honors */}
                 {edu.grade && (
-                  <p
-                    className={`text-sm font-medium ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}
-                  >
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
                     🏆 {edu.grade}
                   </p>
                 )}
@@ -130,20 +93,14 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                 {/* Activities */}
                 {edu.activities && edu.activities.length > 0 && (
                   <div className="mt-6 border-t border-dashed border-amber-300/30 pt-6">
-                    <p
-                      className={`mb-3 text-xs uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}
-                    >
+                    <p className="mb-3 text-xs uppercase tracking-wider text-gray-500">
                       Activities & Involvement
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
                       {edu.activities.map((activity, actIdx) => (
                         <span
                           key={actIdx}
-                          className={`rounded-full px-3 py-1 text-xs ${
-                            isDarkMode
-                              ? 'bg-gray-700/50 text-gray-400'
-                              : 'bg-gray-200/50 text-gray-600'
-                          }`}
+                          className="rounded-full bg-gray-200/50 px-3 py-1 text-xs text-gray-600 dark:bg-gray-700/50 dark:text-gray-400"
                         >
                           {activity}
                         </span>
@@ -152,7 +109,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                   </div>
                 )}
               </div>
-            </m.div>
+            </Reveal>
           ))}
         </div>
       </div>

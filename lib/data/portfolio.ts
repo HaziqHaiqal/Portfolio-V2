@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import type {
   Profile,
   Experience,
@@ -45,3 +46,15 @@ export async function getPortfolio(db: DB): Promise<PortfolioData> {
 
   return { profile, experience, education, skills, projects, interests };
 }
+
+export const PORTFOLIO_TAG = 'portfolio';
+
+// Builds its own client: cookies() is illegal inside a cache scope.
+export const getCachedPortfolio = unstable_cache(
+  async (): Promise<PortfolioData> => {
+    const { createPublicSupabase } = await import('@lib/supabase/public');
+    return getPortfolio(createPublicSupabase());
+  },
+  ['portfolio-data'],
+  { tags: [PORTFOLIO_TAG], revalidate: 3600 }
+);

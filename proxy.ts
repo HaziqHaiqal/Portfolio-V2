@@ -6,12 +6,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // Match everything except:
-    // - _next/static (static files)
-    // - _next/image (image optimization files)
-    // - favicon.ico (favicon)
-    // - common image extensions
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/admin/:path*', '/login'],
 };
