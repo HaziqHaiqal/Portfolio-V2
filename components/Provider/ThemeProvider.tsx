@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import { THEME_CANVAS, THEME_COOKIE } from '@constants/theme';
 
 interface ThemeContextType {
@@ -23,31 +17,6 @@ function persistTheme(isDark: boolean) {
   document.cookie = `${THEME_COOKIE}=${isDark ? 'dark' : 'light'}; path=/; max-age=${ONE_YEAR}; samesite=lax`;
 }
 
-function syncDocumentTheme(isDark: boolean) {
-  const canvas = THEME_CANVAS[isDark ? 'dark' : 'light'];
-  const colorScheme = isDark ? 'dark' : 'light';
-  const root = document.documentElement;
-
-  root.classList.toggle('dark', isDark);
-  root.style.backgroundColor = canvas;
-  root.style.colorScheme = colorScheme;
-  document.body.style.backgroundColor = canvas;
-
-  document
-    .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
-    .forEach((meta) => meta.setAttribute('content', canvas));
-  document
-    .querySelectorAll<HTMLMetaElement>('meta[name="color-scheme"]')
-    .forEach((meta) => meta.setAttribute('content', colorScheme));
-
-  document.querySelector('meta[data-portfolio-theme-color]')?.remove();
-  const themeColorMeta = document.createElement('meta');
-  themeColorMeta.name = 'theme-color';
-  themeColorMeta.content = canvas;
-  themeColorMeta.dataset.portfolioThemeColor = '';
-  document.head.appendChild(themeColorMeta);
-}
-
 export function ThemeProvider({
   children,
   initialIsDarkMode,
@@ -57,11 +26,11 @@ export function ThemeProvider({
 }) {
   const [isDarkMode, setIsDarkMode] = useState(initialIsDarkMode);
 
-  useEffect(() => {
-    syncDocumentTheme(isDarkMode);
-  }, [isDarkMode]);
-
   const setTheme = (isDark: boolean) => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', isDark);
+    root.style.backgroundColor = THEME_CANVAS[isDark ? 'dark' : 'light'];
+    root.style.colorScheme = isDark ? 'dark' : 'light';
     setIsDarkMode(isDark);
     persistTheme(isDark);
   };
