@@ -1580,14 +1580,14 @@
   --contrib-1: #86efac;
   --contrib-2: #22c55e;
   --contrib-3: #15803d;
-  --grid-line: #e7e7ea;
+  --grid-line: rgba(0, 0, 0, 0.035);
 }
 .dark {
   --contrib-0: #374151;
   --contrib-1: #16a34a;
   --contrib-2: #22c55e;
   --contrib-3: #4ade80;
-  --grid-line: rgba(255, 255, 255, 0.03);
+  --grid-line: rgba(255, 255, 255, 0.02);
 }
 
 :root {
@@ -1633,4 +1633,37 @@
 }
 .animate-spin-reverse {
   animation: spin-reverse 1.5s linear infinite;
+}
+
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.22) 0%,
+    rgba(0, 0, 0, 0.09) 18%,
+    rgba(0, 0, 0, 0.02) 38%,
+    transparent 58%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.dark .gradient-border::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.12) 18%,
+    rgba(255, 255, 255, 0.03) 38%,
+    transparent 58%
+  );
 }

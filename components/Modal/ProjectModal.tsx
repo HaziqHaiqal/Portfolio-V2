@@ -1,17 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { Fragment, ReactNode, useEffect } from 'react';
 import Image from 'next/image';
 import { m, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Globe,
-  Github,
-  Clock,
-  Calendar,
-  Users,
-  GitCommit,
-} from 'lucide-react';
+import { X, Globe, Clock, Calendar, Users, GitCommit } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import ProjectImageGallery from '@components/Media/ProjectImageGallery';
 import { getCategoryInfo } from '@constants/projects';
 
@@ -272,7 +265,7 @@ export default function ProjectModal({
                     {meta.map((m, i) => {
                       const MIcon = m.icon;
                       return (
-                        <React.Fragment key={i}>
+                        <Fragment key={i}>
                           {i > 0 && (
                             <span className={`select-none ${T.textFaint}`}>
                               ·
@@ -284,7 +277,7 @@ export default function ProjectModal({
                             <MIcon size={12} className={T.textFaint} />
                             {m.label}
                           </span>
-                        </React.Fragment>
+                        </Fragment>
                       );
                     })}
                   </div>
@@ -307,7 +300,7 @@ export default function ProjectModal({
                 />
                 <ActionButton
                   href={project.githubUrl}
-                  icon={<Github size={15} />}
+                  icon={<SiGithub size={15} />}
                   label="Source"
                   variant="secondary"
                   T={T}
@@ -338,7 +331,7 @@ export default function ProjectModal({
                 </Section>
               )}
 
-              {/* Highlights — simple prose list */}
+              {/* Highlights */}
               {project.features && project.features.length > 0 && (
                 <Section T={T}>
                   <SectionTitle T={T}>Highlights</SectionTitle>
@@ -401,7 +394,7 @@ function Section({
   T,
   first,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   T: ThemeTokens;
   first?: boolean;
 }) {
@@ -420,7 +413,7 @@ function SectionTitle({
   children,
   T,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   T: ThemeTokens;
 }) {
   return (
@@ -440,7 +433,7 @@ function ActionButton({
   T,
 }: {
   href?: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   variant: 'primary' | 'secondary';
   T: ThemeTokens;

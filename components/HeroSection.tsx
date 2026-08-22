@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { m } from 'framer-motion';
-import { Github, Linkedin, Terminal } from 'lucide-react';
+import { Terminal } from 'lucide-react';
+import { SiGithub, SiLinkedin, SiWhatsapp } from 'react-icons/si';
 import type { Profile } from '@lib/supabase';
 
 interface HeroSectionProps {
@@ -85,6 +86,7 @@ const TypedRole = () => {
 };
 
 const HeroSection = ({ profile }: HeroSectionProps) => {
+  const whatsappUrl = profile?.whatsapp_url;
   const codeSnippet = `const developer = {\n  name: '${
     profile?.display_name
   }',\n  location: '${
@@ -205,34 +207,42 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
             {[
               {
                 href: profile?.linkedin_url,
-                icon: <Linkedin size={20} className="text-white" />,
+                icon: <SiLinkedin size={20} className="text-white" />,
               },
               {
                 href: profile?.github_url,
-                icon: <Github size={20} className="text-white" />,
+                icon: <SiGithub size={20} className="text-white" />,
               },
-            ].map((link, idx) => (
-              <div
-                key={idx}
-                className="hero-bob"
-                style={{
-                  animationDuration: `${3 + idx}s`,
-                  animationDirection: idx % 2 === 0 ? 'normal' : 'reverse',
-                }}
-              >
-                <m.a
-                  href={link.href}
-                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg"
-                  whileHover={{
-                    rotate: idx % 2 === 0 ? 15 : -15,
-                    scale: 1.2,
+              {
+                href: whatsappUrl,
+                icon: <SiWhatsapp size={20} className="text-white" />,
+              },
+            ]
+              .filter((link) => link.href)
+              .map((link, idx) => (
+                <div
+                  key={idx}
+                  className="hero-bob"
+                  style={{
+                    animationDuration: `${3 + idx}s`,
+                    animationDirection: idx % 2 === 0 ? 'normal' : 'reverse',
                   }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  {link.icon}
-                </m.a>
-              </div>
-            ))}
+                  <m.a
+                    href={link.href || undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg"
+                    whileHover={{
+                      rotate: idx % 2 === 0 ? 15 : -15,
+                      scale: 1.2,
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {link.icon}
+                  </m.a>
+                </div>
+              ))}
           </div>
         </div>
 

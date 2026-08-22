@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Github } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import SectionHeader from '@components/Common/SectionHeader';
 
 function ActivityFallback() {
@@ -9,7 +9,7 @@ function ActivityFallback() {
     <section className="relative px-4 py-16 md:px-6 md:py-32">
       <div className="mx-auto max-w-6xl">
         <SectionHeader
-          icon={Github}
+          icon={SiGithub}
           label="github.activity()"
           title="GitHub Activity"
           accentClass="text-cyan-500"

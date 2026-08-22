@@ -1,8 +1,12 @@
 import Reveal from '@components/Common/Reveal';
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
+
+// Loose enough to accept both lucide-react and react-icons components —
+// SectionHeader only ever calls Icon with `size` and `className`.
+type SectionIcon = ComponentType<{ size?: number; className?: string }>;
 
 interface SectionHeaderProps {
-  icon: LucideIcon;
+  icon: SectionIcon;
   label: string;
   title: string;
   accentClass: string;

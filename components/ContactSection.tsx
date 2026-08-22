@@ -2,15 +2,11 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Mail, Linkedin, Github, Eraser, Trash2 } from 'lucide-react';
+import { Mail, Eraser, Trash2 } from 'lucide-react';
+import { SiGithub, SiLinkedin, SiWhatsapp } from 'react-icons/si';
+import { DEFAULT_CONTACT } from '@constants/contact';
 import type { Profile } from '@lib/supabase';
 
-/**
- * The terminal panel itself: window chrome, greeting, output screen and
- * prompt. It holds no dialog behaviour — no open/close state, backdrop or
- * Escape handling — so it is a plain panel that happens to be rendered inside
- * Modal/ContactModal, which owns all of that.
- */
 interface ContactSectionProps {
   profile: Partial<Profile> | null;
 }
@@ -28,8 +24,9 @@ const GUTTER = 'px-4 sm:px-6 lg:px-8';
 
 const COMMANDS = [
   { name: 'email', hint: 'open your mail app', icon: Mail },
-  { name: 'linkedin', hint: 'open my LinkedIn', icon: Linkedin },
-  { name: 'github', hint: 'open my GitHub', icon: Github },
+  { name: 'whatsapp', hint: 'chat on WhatsApp', icon: SiWhatsapp },
+  { name: 'linkedin', hint: 'open my LinkedIn', icon: SiLinkedin },
+  { name: 'github', hint: 'open my GitHub', icon: SiGithub },
   { name: 'clear', hint: 'clear the screen', icon: Eraser },
 ];
 
@@ -37,7 +34,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   const [input, setInput] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
 
-  // The greeting types itself in; everything else fades in just after.
   const [typedLen, setTypedLen] = useState(0);
   const greetingDone = typedLen >= GREETING.length;
 
@@ -81,10 +77,10 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
     entryError: 'text-amber-600 dark:text-amber-300',
   };
 
-  const email = profile?.display_name || 'woodyz.dev@gmail.com';
-  const linkedinUrl =
-    profile?.linkedin_url || 'https://linkedin.com/in/mhaziqhaiqal';
-  const githubUrl = profile?.github_url || 'https://github.com/haziqhaiqal';
+  const email = profile?.email || DEFAULT_CONTACT.email;
+  const linkedinUrl = profile?.linkedin_url || DEFAULT_CONTACT.linkedin;
+  const githubUrl = profile?.github_url || DEFAULT_CONTACT.github;
+  const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
 
   const push = useCallback((...bodies: Omit<Entry, 'id'>[]) => {
     setEntries((prev) => [
@@ -94,9 +90,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   }, []);
 
   const openEmail = useCallback(() => {
-    // Fires synchronously inside the handler so the browser keeps user
-    // activation and hands off to the OS mail app.
-    window.location.assign(`mailto:${email}`);
+    window.open(`mailto:${email}`, '_blank', 'noopener,noreferrer');
   }, [email]);
 
   const run = useCallback(
@@ -118,15 +112,22 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             { kind: 'note', text: 'Opening your mail app…' }
           );
           break;
+        case 'whatsapp':
+          window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+          push(
+            { kind: 'command', text: command },
+            { kind: 'note', text: 'Opening WhatsApp…' }
+          );
+          break;
         case 'linkedin':
-          window.open(linkedinUrl, '_blank');
+          window.open(linkedinUrl, '_blank', 'noopener,noreferrer');
           push(
             { kind: 'command', text: command },
             { kind: 'note', text: 'Opening LinkedIn…' }
           );
           break;
         case 'github':
-          window.open(githubUrl, '_blank');
+          window.open(githubUrl, '_blank', 'noopener,noreferrer');
           push(
             { kind: 'command', text: command },
             { kind: 'note', text: 'Opening GitHub…' }
@@ -145,7 +146,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           );
       }
     },
-    [push, openEmail, linkedinUrl, githubUrl]
+    [push, openEmail, whatsappUrl, linkedinUrl, githubUrl]
   );
 
   const actions = [
@@ -157,18 +158,25 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
       onClick: openEmail,
     },
     {
+      key: 'whatsapp',
+      icon: SiWhatsapp,
+      label: 'WhatsApp',
+      detail: 'Chat now',
+      onClick: () => window.open(whatsappUrl, '_blank', 'noopener,noreferrer'),
+    },
+    {
       key: 'linkedin',
-      icon: Linkedin,
+      icon: SiLinkedin,
       label: 'LinkedIn',
       detail: "Let's connect",
-      onClick: () => window.open(linkedinUrl, '_blank'),
+      onClick: () => window.open(linkedinUrl, '_blank', 'noopener,noreferrer'),
     },
     {
       key: 'github',
-      icon: Github,
+      icon: SiGithub,
       label: 'GitHub',
       detail: 'See my code',
-      onClick: () => window.open(githubUrl, '_blank'),
+      onClick: () => window.open(githubUrl, '_blank', 'noopener,noreferrer'),
     },
   ];
 

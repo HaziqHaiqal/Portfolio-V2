@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { m } from 'framer-motion';
 import Image from 'next/image';
-import { ExternalLink, Github, GitBranch, Calendar } from 'lucide-react';
+import { ExternalLink, GitBranch, Calendar } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import type { ProjectProps } from 'types/portfolio';
 import { useUIStore } from '@lib/stores';
 
@@ -188,7 +189,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                   whileHover={{ scale: 1.1 }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Github size={12} />
+                  <SiGithub size={12} />
                 </m.a>
               )}
               {project.projectUrl && (

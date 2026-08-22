@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { m } from 'framer-motion';
-import { Github, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
+import { SiGithub } from 'react-icons/si';
 import {
   Select,
   SelectContent,
@@ -195,7 +196,7 @@ const ActivityOverview = () => {
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeader
-          icon={Github}
+          icon={SiGithub}
           label="github.activity()"
           title="GitHub Activity"
           accentClass="text-cyan-500"
@@ -238,7 +239,7 @@ const ActivityOverview = () => {
                     <h3
                       className={`flex min-w-0 items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-200 md:text-base`}
                     >
-                      <Github size={16} className="shrink-0 md:h-5 md:w-5" />
+                      <SiGithub size={16} className="shrink-0 md:h-5 md:w-5" />
                       <span className="truncate">
                         {githubStats?.totalContributions ?? 0} contributions in{' '}
                         {selectedYear}

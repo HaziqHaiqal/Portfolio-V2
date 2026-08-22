@@ -1,3 +1,6 @@
+'use client';
+
+import Link from 'next/link';
 import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
@@ -10,8 +13,7 @@ import { useCurrentTime } from '@hooks/useCommon';
  */
 const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, openContact } =
-    useUIStore();
+  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
 
   const { currentTime, mounted } = useCurrentTime();
 
@@ -41,8 +43,8 @@ const NavBar = () => {
       underlineClass: 'bg-purple-600',
     },
     {
-      href: '#contact',
-      label: 'Contact',
+      href: '/service',
+      label: 'Service',
       hoverTextClass: 'hover:text-green-600',
       underlineClass: 'bg-green-600',
     },
@@ -56,31 +58,41 @@ const NavBar = () => {
           className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center gap-8">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Contact lives in the floating terminal modal, not on the page.
-                  if (item.href === '#contact') {
-                    openContact();
-                    return;
-                  }
-                  const targetId = item.href.replace('#', '');
-                  const element = document.getElementById(targetId);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className={`${item.hoverTextClass} group relative font-medium transition-all duration-300 ${themeClasses.text.secondary}`}
-              >
-                {item.label}
+            {navItems.map((item) => {
+              const linkClass = `${item.hoverTextClass} group relative font-medium transition-all duration-300 ${themeClasses.text.secondary}`;
+              const underline = (
                 <span
                   className={`absolute -bottom-1 left-0 h-0.5 w-0 ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
                 />
-              </a>
-            ))}
+              );
+
+              if (!item.href.startsWith('#')) {
+                return (
+                  <Link key={item.href} href={item.href} className={linkClass}>
+                    {item.label}
+                    {underline}
+                  </Link>
+                );
+              }
+
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const targetId = item.href.replace('#', '');
+                    document
+                      .getElementById(targetId)
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className={linkClass}
+                >
+                  {item.label}
+                  {underline}
+                </a>
+              );
+            })}
             <div className={`h-6 w-px ${themeClasses.border.muted}`} />
             <div
               className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
@@ -152,33 +164,45 @@ const NavBar = () => {
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex flex-col gap-1">
-                  {navItems.map((item, index) => (
-                    <m.a
-                      key={item.href}
-                      href={item.href}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        closeMobileMenu();
-                        if (item.href === '#contact') {
-                          openContact();
-                          return;
-                        }
-                        setTimeout(() => {
-                          const targetId = item.href.replace('#', '');
-                          const element = document.getElementById(targetId);
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }, 100);
-                      }}
-                      className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
-                      initial={{ opacity: 0, x: 0 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      {item.label}
-                    </m.a>
-                  ))}
+                  {navItems.map((item, index) => {
+                    const itemClass = `block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`;
+
+                    if (!item.href.startsWith('#')) {
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMobileMenu}
+                          className={itemClass}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <m.a
+                        key={item.href}
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          closeMobileMenu();
+                          setTimeout(() => {
+                            const targetId = item.href.replace('#', '');
+                            document
+                              .getElementById(targetId)
+                              ?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }}
+                        className={itemClass}
+                        initial={{ opacity: 0, x: 0 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        {item.label}
+                      </m.a>
+                    );
+                  })}
                 </div>
               </m.div>
             )}
