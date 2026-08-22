@@ -9,6 +9,7 @@ import { MotionProvider } from '@components/Provider/MotionProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { ReactNode } from 'react';
 import { SITE_URL } from '@lib/site';
+import { THEME_CANVAS, THEME_COOKIE } from '@constants/theme';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -63,7 +64,7 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   const isDarkMode =
-    cookieStore.get('portfolio-theme-preference')?.value === 'dark';
+    cookieStore.get(THEME_COOKIE)?.value === 'dark';
 
   return (
     <html
@@ -71,7 +72,7 @@ export default async function RootLayout({
       className={isDarkMode ? 'dark scroll-smooth' : 'scroll-smooth'}
       data-scroll-behavior="smooth"
       style={{
-        backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb',
+        backgroundColor: THEME_CANVAS[isDarkMode ? 'dark' : 'light'],
         colorScheme: isDarkMode ? 'dark' : 'light',
       }}
       suppressHydrationWarning

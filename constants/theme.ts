@@ -1,4 +1,10 @@
-// ThemeProvider keeps the `dark` class on <html> in sync with these.
+export const THEME_COOKIE = 'portfolio-theme-preference';
+
+export const THEME_CANVAS = {
+  light: '#f9fafb',
+  dark: '#1f2937',
+} as const;
+
 export const themeClasses = {
   bg: {
     primary: 'bg-gray-50 dark:bg-gray-800',

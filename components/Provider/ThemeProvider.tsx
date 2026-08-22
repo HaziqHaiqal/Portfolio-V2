@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, useContext, useState } from 'react';
+import { THEME_CANVAS, THEME_COOKIE } from '@constants/theme';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -10,7 +11,6 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_COOKIE = 'portfolio-theme-preference';
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 function persistTheme(isDark: boolean) {
@@ -27,7 +27,10 @@ export function ThemeProvider({
   const [isDarkMode, setIsDarkMode] = useState(initialIsDarkMode);
 
   const setTheme = (isDark: boolean) => {
-    document.documentElement.classList.toggle('dark', isDark);
+    const root = document.documentElement;
+    root.classList.toggle('dark', isDark);
+    root.style.backgroundColor = THEME_CANVAS[isDark ? 'dark' : 'light'];
+    root.style.colorScheme = isDark ? 'dark' : 'light';
     setIsDarkMode(isDark);
     persistTheme(isDark);
   };
