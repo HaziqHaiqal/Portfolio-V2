@@ -22,7 +22,7 @@ const ServiceSection = () => {
 
           <Link
             href="/service"
-            className="group inline-flex items-center gap-2.5 rounded-full bg-gray-900 px-8 py-4 text-base font-medium text-white shadow-[0_0_45px_rgba(17,24,39,0.25)] transition-transform hover:scale-[1.03] dark:bg-white dark:text-gray-900 dark:shadow-[0_0_45px_rgba(255,255,255,0.3)]"
+            className="group inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white/60 px-6 py-3 text-sm font-medium text-gray-800 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-blue-500/60 hover:bg-white hover:text-blue-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-200 dark:hover:border-blue-400/60 dark:hover:bg-gray-800 dark:hover:text-blue-400 sm:text-base"
           >
             View Services
             <ArrowUpRight
