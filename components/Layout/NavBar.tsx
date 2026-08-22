@@ -1,7 +1,7 @@
 import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
-import { themeClasses as classes } from '@constants/theme';
+import { themeClasses } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { useCurrentTime } from '@hooks/useCommon';
 
@@ -53,7 +53,7 @@ const NavBar = () => {
       {/* Desktop Navigation */}
       <nav className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 transform md:block">
         <div
-          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
+          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center gap-8">
             {navItems.map((item) => (
@@ -73,7 +73,7 @@ const NavBar = () => {
                     element.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className={`${item.hoverTextClass} group relative font-medium transition-all duration-300 ${classes.text.secondary}`}
+                className={`${item.hoverTextClass} group relative font-medium transition-all duration-300 ${themeClasses.text.secondary}`}
               >
                 {item.label}
                 <span
@@ -81,9 +81,9 @@ const NavBar = () => {
                 />
               </a>
             ))}
-            <div className={`h-6 w-px ${classes.border.muted}`} />
+            <div className={`h-6 w-px ${themeClasses.border.muted}`} />
             <div
-              className={`whitespace-nowrap font-mono text-xs ${classes.text.muted}`}
+              className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
@@ -110,12 +110,12 @@ const NavBar = () => {
       {/* Mobile Navigation */}
       <nav className="fixed left-4 right-4 top-4 z-50 md:hidden">
         <div
-          className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
+          className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center justify-between">
             {/* Time */}
             <div
-              className={`whitespace-nowrap font-mono text-xs ${classes.text.muted}`}
+              className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
               suppressHydrationWarning
             >
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
@@ -141,7 +141,7 @@ const NavBar = () => {
 
               <m.button
                 onClick={toggleMobileMenu}
-                className={`rounded-full p-2 transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
+                className={`rounded-full p-2 transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
                 whileTap={{ scale: 0.9 }}
               >
                 {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -179,7 +179,7 @@ const NavBar = () => {
                           }
                         }, 100);
                       }}
-                      className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
+                      className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
                       initial={{ opacity: 0, x: 0 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
