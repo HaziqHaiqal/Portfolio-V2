@@ -1,6 +1,6 @@
-import { useState, useEffect, MouseEvent } from 'react';
+import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Github, Calendar } from 'lucide-react';
 import {
   Select,
@@ -12,6 +12,7 @@ import {
 import { useTheme } from '@components/Provider/ThemeProvider';
 import SectionHeader from '@components/Common/SectionHeader';
 import { COLORS } from '@constants/colors';
+import { getCurrentYear } from '@lib/format';
 import { Week, GitHubData, GitHubStats, ContributionDay } from 'types/github';
 
 const MONTHS = [
@@ -53,7 +54,7 @@ const ActivityOverview = () => {
   const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
   const [loadedYear, setLoadedYear] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString()
+    getCurrentYear().toString()
   );
 
   const loading = loadedYear !== selectedYear;
@@ -67,7 +68,26 @@ const ActivityOverview = () => {
     y: number;
   } | null>(null);
 
-  const currentYear = new Date().getFullYear();
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const currentYear = getCurrentYear();
   const availableYears = accountCreationYear
     ? Array.from(
         { length: currentYear - accountCreationYear + 1 },
@@ -76,6 +96,7 @@ const ActivityOverview = () => {
     : [currentYear];
 
   useEffect(() => {
+    if (!inView) return;
     let cancelled = false;
     fetch(`/api/github?year=${selectedYear}`)
       .then((r) => r.json())
@@ -109,7 +130,7 @@ const ActivityOverview = () => {
     return () => {
       cancelled = true;
     };
-  }, [selectedYear]);
+  }, [selectedYear, inView]);
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
@@ -167,7 +188,10 @@ const ActivityOverview = () => {
     });
 
   return (
-    <section className={`relative px-4 py-16 md:px-6 md:py-32`}>
+    <section
+      ref={sectionRef}
+      className={`relative px-4 py-16 md:px-6 md:py-32`}
+    >
       <div className="mx-auto max-w-6xl">
         <SectionHeader
           icon={Github}
@@ -178,7 +202,7 @@ const ActivityOverview = () => {
         />
 
         <div className="flex justify-center">
-          <motion.div
+          <m.div
             className="relative w-full max-w-[920px]"
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -187,10 +211,10 @@ const ActivityOverview = () => {
           >
             {loading ? (
               <div
-                className={`w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
+                className={`min-h-[240px] w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:min-h-[344px] md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
               >
                 <div className="flex items-center justify-center py-12">
-                  <motion.div
+                  <m.div
                     className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent"
                     animate={{ rotate: 360 }}
                     transition={{
@@ -209,7 +233,7 @@ const ActivityOverview = () => {
             ) : (
               <>
                 <div
-                  className={`w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
+                  className={`min-h-[240px] w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:min-h-[344px] md:rounded-3xl md:p-8 ${isDarkMode ? 'border-gray-700/50 bg-gray-800/90' : 'border-white/50 bg-white/90'}`}
                 >
                   <div className="mb-4 flex items-center justify-between gap-2 sm:gap-4 md:mb-6">
                     <h3
@@ -287,23 +311,14 @@ const ActivityOverview = () => {
                                   (day, dIdx: number) => {
                                     const count = day.contributionCount;
                                     return (
-                                      <motion.div
+                                      <div
                                         key={dIdx}
-                                        className="h-2 w-2 cursor-pointer rounded-sm md:h-3 md:w-3"
+                                        className="activity-cell h-2 w-2 cursor-pointer rounded-sm transition-transform hover:rotate-45 hover:scale-[1.8] md:h-3 md:w-3"
                                         style={{
                                           backgroundColor:
                                             intensityColor(count),
+                                          animationDelay: `${(wIdx * 7 + dIdx) * 0.02}s`,
                                         }}
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        whileInView={{ scale: 1, opacity: 1 }}
-                                        transition={{
-                                          duration: 0.3,
-                                          delay: (wIdx * 7 + dIdx) * 0.02,
-                                          type: 'spring',
-                                          stiffness: 100,
-                                        }}
-                                        viewport={{ once: true }}
-                                        whileHover={{ scale: 1.8, rotate: 45 }}
                                         onMouseEnter={(e) =>
                                           showTooltip(e, day)
                                         }
@@ -363,7 +378,7 @@ const ActivityOverview = () => {
                 </div>
               </>
             )}
-          </motion.div>
+          </m.div>
         </div>
       </div>
 

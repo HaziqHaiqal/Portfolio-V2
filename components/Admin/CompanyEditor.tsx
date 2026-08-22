@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
 import { Building2, Plus, Loader2, Check, ExternalLink } from 'lucide-react';
@@ -220,7 +220,7 @@ export default function CompanyEditor() {
           }
         />
       ) : (
-        <motion.div
+        <m.div
           variants={listContainer}
           initial="hidden"
           animate="show"
@@ -272,7 +272,7 @@ export default function CompanyEditor() {
               }
             />
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <ConfirmDialog

@@ -19,6 +19,7 @@ import {
   BreadcrumbSeparator,
 } from '@components/ui/breadcrumb';
 import { Separator } from '@components/ui/separator';
+import { Toaster } from '@components/ui/sonner';
 
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -103,6 +104,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </main>
         </SidebarInset>
+        <Toaster />
       </SidebarProvider>
     </div>
   );

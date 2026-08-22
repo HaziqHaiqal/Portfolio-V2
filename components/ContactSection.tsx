@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Mail, Linkedin, Github, Eraser, Trash2 } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
 import type { Profile } from '@lib/supabase';
@@ -287,14 +287,14 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             </h2>
           </div>
 
-          <motion.p
+          <m.p
             className={`mt-4 max-w-xl pl-8 lg:pl-11 lg:text-lg ${t.body}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: greetingDone ? 1 : 0 }}
             transition={{ duration: 0.4 }}
           >
             Thanks for stopping by. Pick whichever way is easiest for you.
-          </motion.p>
+          </m.p>
         </div>
 
         {/* The screen: everything typed and every response lands here. */}
@@ -319,14 +319,14 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
               <div className="space-y-1.5">
                 <AnimatePresence initial={false}>
                   {entries.map((entry) => (
-                    <motion.div
+                    <m.div
                       key={entry.id}
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.18 }}
                     >
                       {renderEntry(entry)}
-                    </motion.div>
+                    </m.div>
                   ))}
                 </AnimatePresence>
               </div>

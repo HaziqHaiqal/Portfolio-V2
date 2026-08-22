@@ -1,12 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
 import { useUIStore } from '@lib/stores';
-import ContactSection from '@components/ContactSection';
 import type { Profile } from '@lib/supabase';
+
+const ContactSection = dynamic(() => import('@components/ContactSection'), {
+  ssr: false,
+});
 
 interface ContactModalProps {
   profile: Partial<Profile> | null;
@@ -46,7 +50,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
       <AnimatePresence>
         {isContactOpen && (
           <>
-            <motion.div
+            <m.div
               className={`fixed inset-0 z-[60] backdrop-blur-sm ${isDarkMode ? 'bg-black/70' : 'bg-gray-900/40'}`}
               onClick={closeContact}
               initial={{ opacity: 0 }}
@@ -59,7 +63,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 middle, but stays click-through so the backdrop below still
                 closes on an outside click and the launcher stays reachable. */}
             <div className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center px-3 pb-16 pt-20 sm:px-6 sm:pb-24">
-              <motion.div
+              <m.div
                 role="dialog"
                 aria-modal="true"
                 aria-label="Contact terminal"
@@ -74,14 +78,14 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 transition={{ type: 'spring', stiffness: 380, damping: 32 }}
               >
                 <ContactSection profile={profile} />
-              </motion.div>
+              </m.div>
             </div>
           </>
         )}
       </AnimatePresence>
 
       {/* Floating launcher */}
-      <motion.button
+      <m.button
         onClick={toggleContact}
         className={`group fixed bottom-4 right-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-colors sm:bottom-6 sm:right-6 sm:h-12 sm:w-12 ${
           isDarkMode
@@ -101,7 +105,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
       >
         <AnimatePresence mode="wait" initial={false}>
           {isContactOpen ? (
-            <motion.span
+            <m.span
               key="close"
               initial={{ opacity: 0, rotate: -90 }}
               animate={{ opacity: 1, rotate: 0 }}
@@ -109,9 +113,9 @@ const ContactModal = ({ profile }: ContactModalProps) => {
               transition={{ duration: 0.12 }}
             >
               <X size={18} />
-            </motion.span>
+            </m.span>
           ) : (
-            <motion.span
+            <m.span
               key="prompt"
               className="flex items-center font-mono text-sm font-bold"
               initial={{ opacity: 0, scale: 0.7 }}
@@ -121,10 +125,10 @@ const ContactModal = ({ profile }: ContactModalProps) => {
             >
               ❯
               <span className="ml-0.5 inline-block h-[2px] w-[7px] animate-pulse bg-emerald-400" />
-            </motion.span>
+            </m.span>
           )}
         </AnimatePresence>
-      </motion.button>
+      </m.button>
     </>
   );
 };

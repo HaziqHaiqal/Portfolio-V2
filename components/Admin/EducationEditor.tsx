@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Award,
@@ -368,14 +368,14 @@ export default function EducationEditor() {
           }
         />
       ) : (
-        <motion.div
+        <m.div
           variants={listContainer}
           initial="hidden"
           animate="show"
           className="space-y-4"
         >
           {groupedEducations.map((group) => (
-            <motion.section
+            <m.section
               key={group.institution}
               variants={listItem}
               className="admin-raised overflow-hidden rounded-xl border border-border bg-card"
@@ -524,9 +524,9 @@ export default function EducationEditor() {
                   );
                 })}
               </ol>
-            </motion.section>
+            </m.section>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <ConfirmDialog

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { Search, Folder } from 'lucide-react';
 import { getCategoryInfo } from '@constants/projects';
@@ -93,7 +93,7 @@ export default function ProjectsGrid({
   return (
     <div className="space-y-8">
       {/* Header with Search and Filters */}
-      <motion.div
+      <m.div
         className="space-y-6"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -128,7 +128,7 @@ export default function ProjectsGrid({
             const isActive = selectedCategory === category.id;
 
             return (
-              <motion.button
+              <m.button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`flex items-center gap-2 rounded-full px-6 py-3 font-medium shadow-lg backdrop-blur-sm transition-all duration-300 ${
@@ -152,7 +152,7 @@ export default function ProjectsGrid({
               >
                 <Icon size={18} />
                 {category.label}
-              </motion.button>
+              </m.button>
             );
           })}
         </div>
@@ -173,11 +173,11 @@ export default function ProjectsGrid({
             )}
           </p>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Projects Grid */}
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={`${selectedCategory}-${searchTerm}-${currentPage}`}
           className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
           initial={{ opacity: 0, y: 20 }}
@@ -194,19 +194,19 @@ export default function ProjectsGrid({
               index={index}
             />
           ))}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <motion.div
+        <m.div
           className="mt-12 flex justify-center gap-2"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <motion.button
+            <m.button
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`h-10 w-10 rounded-xl font-medium transition-all duration-300 ${
@@ -220,9 +220,9 @@ export default function ProjectsGrid({
               whileTap={{ scale: 0.95 }}
             >
               {page}
-            </motion.button>
+            </m.button>
           ))}
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

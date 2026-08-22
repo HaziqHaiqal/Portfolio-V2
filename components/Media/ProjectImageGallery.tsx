@@ -3,7 +3,7 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
 import { getProjectImages, type UploadedFile } from '@lib/fileManager';
 
@@ -203,7 +203,7 @@ export default function ProjectImageGallery({
       {/* Fullscreen Modal */}
       <AnimatePresence>
         {isFullscreen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -243,7 +243,7 @@ export default function ProjectImageGallery({
             )}
 
             {/* Fullscreen Image */}
-            <motion.div
+            <m.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
@@ -257,7 +257,7 @@ export default function ProjectImageGallery({
                 sizes="100vw"
                 className="object-contain"
               />
-            </motion.div>
+            </m.div>
 
             {/* Image Info */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-white">
@@ -272,7 +272,7 @@ export default function ProjectImageGallery({
                 </p>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

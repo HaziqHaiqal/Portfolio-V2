@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { GraduationCap, Calendar } from 'lucide-react';
 import { Education } from '@lib/supabase';
 import SectionHeader from '@components/Common/SectionHeader';
@@ -34,7 +34,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
         {/* Certificate Cards */}
         <div className="mx-auto max-w-4xl space-y-8">
           {sortedEducation.map((edu, idx) => (
-            <motion.div
+            <m.div
               key={idx}
               className={`relative rounded-3xl border p-8 md:p-10 ${
                 isDarkMode
@@ -152,7 +152,7 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

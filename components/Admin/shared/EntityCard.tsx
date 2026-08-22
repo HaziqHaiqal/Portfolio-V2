@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Pencil, Star, Trash2 } from 'lucide-react';
 import { Button } from '@components/ui/button';
 import { cn } from '@lib/utils';
@@ -33,7 +33,7 @@ export function EntityCard({
   className,
 }: EntityCardProps) {
   return (
-    <motion.div
+    <m.div
       variants={listItem}
       className={cn(
         'admin-raised hover:admin-raised-hover group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card',
@@ -70,7 +70,7 @@ export function EntityCard({
           {actions}
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 }
 

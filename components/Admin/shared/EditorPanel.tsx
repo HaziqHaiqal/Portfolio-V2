@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@components/ui/button';
 import { cn } from '@lib/utils';
@@ -29,7 +29,7 @@ export function EditorPanel({
   className,
 }: EditorPanelProps) {
   return (
-    <motion.div {...rise} className={cn('space-y-6', className)}>
+    <m.div {...rise} className={cn('space-y-6', className)}>
       <div className="admin-bloom relative isolate space-y-5">
         <div className="relative z-10 space-y-5">
           <Button
@@ -64,6 +64,6 @@ export function EditorPanel({
         <div className="space-y-8 p-6">{children}</div>
         {footer}
       </div>
-    </motion.div>
+    </m.div>
   );
 }

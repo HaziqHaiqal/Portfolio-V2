@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import Image from 'next/image';
 import { ExternalLink, Github, GitBranch, Calendar } from 'lucide-react';
 import type { ProjectProps } from 'types/portfolio';
@@ -73,7 +73,7 @@ export default function ProjectCard({
   };
 
   return (
-    <motion.div
+    <m.div
       className={`group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br p-0.5 ${
         isDarkMode ? 'from-gray-800 to-gray-700' : 'from-gray-200 to-gray-100'
       } group-hover:from-blue-500 group-hover:to-purple-600`}
@@ -112,20 +112,15 @@ export default function ProjectCard({
               fill
               className="h-full w-full object-cover group-hover:scale-105"
               sizes="(max-width: 1024px) 100vw, 33vw"
-              priority={index === 0}
             />
           </div>
         )}
         {/* Floating elements */}
         <div className="absolute right-4 top-4 flex gap-2">
           {project.featured && (
-            <motion.div
-              className="h-2 w-2 rounded-full bg-yellow-400"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <div className="pulse-dot h-2 w-2 rounded-full bg-yellow-400" />
           )}
-          <motion.div
+          <m.div
             className={`h-2 w-2 rounded-full ${
               project.status === 'completed'
                 ? 'bg-green-400'
@@ -209,7 +204,7 @@ export default function ProjectCard({
             {/* Action icons */}
             <div className="flex gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               {project.githubUrl && (
-                <motion.a
+                <m.a
                   href={project.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -218,10 +213,10 @@ export default function ProjectCard({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Github size={12} />
-                </motion.a>
+                </m.a>
               )}
               {project.projectUrl && (
-                <motion.a
+                <m.a
                   href={project.projectUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -230,19 +225,19 @@ export default function ProjectCard({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink size={12} />
-                </motion.a>
+                </m.a>
               )}
             </div>
           </div>
         </div>
 
         {/* Hover effect overlay */}
-        <motion.div
+        <m.div
           className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0"
           animate={{ opacity: isHovered ? 1 : 0 }}
           transition={{ duration: 0.3 }}
         />
       </div>
-    </motion.div>
+    </m.div>
   );
 }

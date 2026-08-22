@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Briefcase,
@@ -281,7 +281,7 @@ export default function ProfileEditor() {
   }
 
   return (
-    <motion.div {...rise} className="space-y-6">
+    <m.div {...rise} className="space-y-6">
       <PageHeader
         eyebrow="Content"
         title="Profile"
@@ -645,6 +645,6 @@ export default function ProfileEditor() {
           </FormSection>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

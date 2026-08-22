@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import UniversalImage from '@components/Media/UniversalImage';
 import {
@@ -392,7 +392,7 @@ export default function ProjectsEditor() {
           }
         />
       ) : (
-        <motion.div
+        <m.div
           variants={listContainer}
           initial="hidden"
           animate="show"
@@ -519,7 +519,7 @@ export default function ProjectsEditor() {
               </div>
             </EntityCard>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <ConfirmDialog

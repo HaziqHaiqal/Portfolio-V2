@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import {
   Upload,
   X,
@@ -365,7 +365,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
         <div className="space-y-4">
           {/* Current File Display */}
           {!isCollectionMode && value && !preview && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="group relative inline-block max-w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800/50"
@@ -416,7 +416,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                   </button>
                 </div>
               )}
-            </motion.div>
+            </m.div>
           )}
 
           {/* URL Input Mode */}
@@ -467,7 +467,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                 />
 
                 {!preview ? (
-                  <motion.label
+                  <m.label
                     htmlFor={`file-upload-${uploadType}-${entityId}`}
                     className="group relative block w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-600 p-8 transition-all hover:border-green-400/50"
                     whileHover={{ scale: 1.01 }}
@@ -484,9 +484,9 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                         {getTypeDescription()}
                       </p>
                     </div>
-                  </motion.label>
+                  </m.label>
                 ) : (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className={`relative inline-block overflow-hidden rounded-xl bg-gray-800 ${
@@ -510,7 +510,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                     {/* Action Buttons */}
                     <div className="absolute right-3 top-3 flex gap-2">
                       {enableCrop && preview && isImageUrl(preview) && (
-                        <motion.button
+                        <m.button
                           type="button"
                           onClick={handleCropImage}
                           whileHover={{ scale: 1.1 }}
@@ -519,9 +519,9 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                           title="Crop image"
                         >
                           <CropIcon className="h-4 w-4" />
-                        </motion.button>
+                        </m.button>
                       )}
-                      <motion.button
+                      <m.button
                         type="button"
                         onClick={clearPreview}
                         whileHover={{ scale: 1.1 }}
@@ -530,16 +530,16 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                         title="Remove"
                       >
                         <X className="h-4 w-4" />
-                      </motion.button>
+                      </m.button>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
 
               {/* Meta Fields for Images */}
               <AnimatePresence>
                 {showMetaFields && preview && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -576,7 +576,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                         />
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
@@ -592,7 +592,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
         {/* Status Messages */}
         <AnimatePresence>
           {uploadStatus === 'error' && errorMessage && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -600,7 +600,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
             >
               <AlertCircle className="h-5 w-5" />
               <span className="text-sm font-medium">{errorMessage}</span>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 

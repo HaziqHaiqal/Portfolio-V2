@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Briefcase, ChevronDown } from 'lucide-react';
 import { Experience } from '@lib/supabase';
 import UniversalImage from '@components/Media/UniversalImage';
@@ -89,7 +89,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
         {/* Git-style Timeline */}
         <div className="mx-auto max-w-4xl">
-          <motion.div
+          <m.div
             className={`rounded-3xl border p-8 shadow-2xl ${
               isDarkMode
                 ? 'border-gray-700 bg-gray-800/70'
@@ -126,7 +126,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                       />
 
                       {/* Animated blue line overlay */}
-                      <motion.div
+                      <m.div
                         className="absolute left-6 top-0 z-[1] w-0.5 origin-top bg-blue-500"
                         initial={{ scaleY: 0 }}
                         animate={{ scaleY: isExpanded ? 1 : 0 }}
@@ -138,7 +138,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                       />
 
                       {/* Company Branch Point */}
-                      <motion.div
+                      <m.div
                         className="flex items-start gap-4"
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -156,7 +156,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                             onClick={() => toggleCompany(company)}
                           >
                             {/* Logo with animated border */}
-                            <motion.div
+                            <m.div
                               className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-lg ${
                                 isDarkMode
                                   ? 'border-blue-500/40 bg-gray-700 shadow-blue-900/30'
@@ -199,7 +199,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                   }
                                 />
                               )}
-                            </motion.div>
+                            </m.div>
                           </div>
                         </div>
 
@@ -215,7 +215,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                               >
                                 {company}
                               </h4>
-                              <motion.div
+                              <m.div
                                 animate={{ rotate: isExpanded ? 180 : 0 }}
                                 transition={{ duration: 0.3 }}
                               >
@@ -227,14 +227,14 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                       : 'text-gray-600'
                                   }
                                 />
-                              </motion.div>
+                              </m.div>
                             </div>
                           </button>
 
                           {/* Expandable Roles Section */}
                           <AnimatePresence>
                             {isExpanded && (
-                              <motion.div
+                              <m.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
@@ -257,7 +257,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                       roleIndex === companyRoles.length - 1;
 
                                     return (
-                                      <motion.div
+                                      <m.div
                                         key={`${company}-${roleIndex}`}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -307,13 +307,13 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                                   )}
                                             </span>
                                             {role.is_current && (
-                                              <motion.span
-                                                className="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
-                                                animate={{ scale: [1, 1.3, 1] }}
-                                                transition={{
-                                                  duration: 2,
-                                                  repeat: Infinity,
-                                                }}
+                                              <span
+                                                className="pulse-dot h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
+                                                style={
+                                                  {
+                                                    '--pulse-peak': '1.3',
+                                                  } as React.CSSProperties
+                                                }
                                               />
                                             )}
                                           </div>
@@ -387,21 +387,21 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                               </div>
                                             )}
                                         </div>
-                                      </motion.div>
+                                      </m.div>
                                     );
                                   })}
                                 </div>
-                              </motion.div>
+                              </m.div>
                             )}
                           </AnimatePresence>
                         </div>
-                      </motion.div>
+                      </m.div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

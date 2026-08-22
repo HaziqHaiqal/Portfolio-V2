@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Code2 } from 'lucide-react';
 import SectionHeader from '@components/Common/SectionHeader';
 import {
@@ -51,7 +51,7 @@ const TechStackSection = () => {
         />
 
         {/* Icon grid displaying tech stacks */}
-        <motion.div
+        <m.div
           className={`mx-auto max-w-5xl rounded-3xl p-10 shadow-2xl ${
             isDarkMode
               ? 'border border-gray-700 bg-gray-800/70'
@@ -86,7 +86,7 @@ const TechStackSection = () => {
               </div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

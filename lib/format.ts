@@ -1,3 +1,14 @@
+const SITE_TIME_ZONE = 'Asia/Kuala_Lumpur';
+
+export function getCurrentYear(): number {
+  return Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: SITE_TIME_ZONE,
+      year: 'numeric',
+    }).format(new Date())
+  );
+}
+
 export function relativeTime(input: string | Date | null | undefined): string {
   if (!input) return '—';
   const date = input instanceof Date ? input : new Date(input);

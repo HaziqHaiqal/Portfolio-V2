@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
 
@@ -24,7 +24,7 @@ export default function SectionHeader({
   const { isDarkMode } = useTheme();
 
   return (
-    <motion.div
+    <m.div
       className={`mb-10 text-center md:mb-12 ${className}`}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -45,6 +45,6 @@ export default function SectionHeader({
       <div
         className={`mx-auto h-[3px] w-11 rounded-full bg-gradient-to-r ${gradientClass}`}
       />
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
 import {
@@ -371,14 +371,14 @@ export default function ExperienceEditor() {
           }
         />
       ) : (
-        <motion.div
+        <m.div
           variants={listContainer}
           initial="hidden"
           animate="show"
           className="space-y-4"
         >
           {groupedExperiences.map((group) => (
-            <motion.section
+            <m.section
               key={group.company}
               variants={listItem}
               className="admin-raised overflow-hidden rounded-xl border border-border bg-card"
@@ -544,9 +544,9 @@ export default function ExperienceEditor() {
                   </li>
                 ))}
               </ol>
-            </motion.section>
+            </m.section>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <ConfirmDialog

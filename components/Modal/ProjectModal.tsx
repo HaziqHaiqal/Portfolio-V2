@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import {
   X,
   Globe,
@@ -211,14 +211,14 @@ export default function ProjectModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-50 flex items-end justify-center md:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           {/* Backdrop */}
-          <motion.div
+          <m.div
             className={`absolute inset-0 ${T.backdropClass}`}
             onClick={onClose}
             initial={{ opacity: 0 }}
@@ -227,7 +227,7 @@ export default function ProjectModal({
           />
 
           {/* Panel */}
-          <motion.div
+          <m.div
             className={`relative flex h-[94vh] w-full flex-col overflow-hidden rounded-t-2xl shadow-2xl md:mx-4 md:h-[88vh] md:max-w-4xl md:rounded-2xl ${T.panelBg}`}
             initial={{ y: '8%', opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -251,7 +251,7 @@ export default function ProjectModal({
                 <CategoryIcon size={12} />
                 {categoryInfo.label}
               </div>
-              <motion.button
+              <m.button
                 onClick={onClose}
                 className={`rounded-full border p-2 backdrop-blur-md transition-colors ${T.glassBg} hover:${T.chipHoverBg} ${T.glassBorder} ${T.glassText}`}
                 whileHover={{ scale: 1.05 }}
@@ -259,26 +259,14 @@ export default function ProjectModal({
                 aria-label="Close"
               >
                 <X size={16} />
-              </motion.button>
+              </m.button>
             </div>
 
             {/* Scrollable */}
-            <div
-              className="relative z-10 flex-1 overflow-y-auto"
-              onWheel={(e) => {
-                const el = e.currentTarget;
-                const { scrollTop, scrollHeight, clientHeight } = el;
-                if (
-                  (e.deltaY < 0 && scrollTop === 0) ||
-                  (e.deltaY > 0 && scrollTop + clientHeight >= scrollHeight)
-                ) {
-                  e.preventDefault();
-                }
-              }}
-            >
+            <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain">
               {/* Header: cover + title */}
               <div className="flex flex-col items-end gap-6 px-6 py-7 md:flex-row md:gap-8 md:px-8">
-                <motion.div
+                <m.div
                   className={`relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl sm:w-80 md:w-80 ${T.shadowOnImage} ${
                     isDarkMode ? 'bg-gray-950/50' : 'bg-gray-100'
                   }`}
@@ -312,10 +300,10 @@ export default function ProjectModal({
                       className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`}
                     />
                   )}
-                </motion.div>
+                </m.div>
 
                 {/* Info */}
-                <motion.div
+                <m.div
                   className={`min-w-0 flex-1 ${T.textPrimary}`}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -350,11 +338,11 @@ export default function ProjectModal({
                       );
                     })}
                   </div>
-                </motion.div>
+                </m.div>
               </div>
 
               {/* Action bar */}
-              <motion.div
+              <m.div
                 className="flex flex-wrap items-center gap-3 px-6 pb-6 md:px-8"
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -374,7 +362,7 @@ export default function ProjectModal({
                   variant="secondary"
                   T={T}
                 />
-              </motion.div>
+              </m.div>
 
               {/* Gallery */}
               {project.id && (
@@ -406,7 +394,7 @@ export default function ProjectModal({
                   <SectionTitle T={T}>Highlights</SectionTitle>
                   <div>
                     {project.features.map((feature, i) => (
-                      <motion.div
+                      <m.div
                         key={i}
                         className={`border-b py-5 last:border-b-0 ${T.divider}`}
                         initial={{ opacity: 0, y: 6 }}
@@ -419,7 +407,7 @@ export default function ProjectModal({
                         >
                           {feature}
                         </p>
-                      </motion.div>
+                      </m.div>
                     ))}
                   </div>
                 </Section>
@@ -451,8 +439,8 @@ export default function ProjectModal({
                 {project.teamSize ? ` · ${project.teamSize}` : ''}
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -531,7 +519,7 @@ function ActionButton({
     );
   }
   return (
-    <motion.a
+    <m.a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
@@ -541,6 +529,6 @@ function ActionButton({
     >
       {icon}
       {label}
-    </motion.a>
+    </m.a>
   );
 }

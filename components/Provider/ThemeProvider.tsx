@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useSyncExternalStore,
-} from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -16,65 +10,34 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'portfolio-theme';
+const THEME_COOKIE = 'portfolio-theme-preference';
+const ONE_YEAR = 60 * 60 * 24 * 365;
 
-// localStorage is the source of truth for the theme, surfaced to React via
-// useSyncExternalStore. This is hydration-safe by construction — the server
-// snapshot is always light and the client swaps to the stored value after
-// hydration — so no setState-in-effect (or mounted flag) is needed.
-const themeListeners = new Set<() => void>();
+function persistTheme(isDark: boolean) {
+  document.cookie = `${THEME_COOKIE}=${isDark ? 'dark' : 'light'}; path=/; max-age=${ONE_YEAR}; samesite=lax`;
+}
 
-function subscribeToTheme(callback: () => void) {
-  themeListeners.add(callback);
-  window.addEventListener('storage', callback); // keep tabs in sync
-  return () => {
-    themeListeners.delete(callback);
-    window.removeEventListener('storage', callback);
+export function ThemeProvider({
+  children,
+  initialIsDarkMode,
+}: {
+  children: ReactNode;
+  initialIsDarkMode: boolean;
+}) {
+  const [isDarkMode, setIsDarkMode] = useState(initialIsDarkMode);
+
+  const setTheme = (isDark: boolean) => {
+    document.documentElement.classList.toggle('dark', isDark);
+    setIsDarkMode(isDark);
+    persistTheme(isDark);
   };
-}
-
-function readStoredTheme(): boolean {
-  try {
-    const raw = localStorage.getItem(THEME_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      // Handle both old and new storage formats
-      return parsed.state ? parsed.state.isDarkMode : parsed.isDarkMode;
-    }
-  } catch (error) {
-    console.warn('Error parsing saved theme:', error);
-  }
-  // No stored preference: fall back to the system setting.
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-function writeStoredTheme(isDark: boolean) {
-  localStorage.setItem(
-    THEME_STORAGE_KEY,
-    JSON.stringify({ state: { isDarkMode: isDark } })
-  );
-  // The storage event only fires in other tabs, so notify this tab directly.
-  themeListeners.forEach((listener) => listener());
-}
-
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const isDarkMode = useSyncExternalStore(
-    subscribeToTheme,
-    readStoredTheme,
-    () => false
-  );
-
-  // Reflect the current theme on the document element.
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
-    writeStoredTheme(!isDarkMode);
+    setTheme(!isDarkMode);
   };
 
   const setDarkMode = (isDark: boolean) => {
-    writeStoredTheme(isDark);
+    setTheme(isDark);
   };
 
   const value = {
@@ -91,7 +54,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    // Return fallback values instead of throwing error
     console.warn(
       'useTheme called outside ThemeProvider, using fallback values'
     );

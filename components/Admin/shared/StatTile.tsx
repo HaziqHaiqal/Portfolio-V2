@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@lib/utils';
 import { listItem } from '@constants/motion';
@@ -24,7 +24,7 @@ export function StatTile({
   className,
 }: StatTileProps) {
   return (
-    <motion.div
+    <m.div
       variants={listItem}
       onClick={onClick}
       className={cn(
@@ -50,6 +50,6 @@ export function StatTile({
         {value}
       </p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-    </motion.div>
+    </m.div>
   );
 }

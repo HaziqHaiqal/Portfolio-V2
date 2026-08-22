@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { Plus, Heart, Star, Loader2, Save } from 'lucide-react';
 
@@ -285,7 +285,7 @@ export default function InterestsEditor() {
           }
         />
       ) : (
-        <motion.div
+        <m.div
           variants={listContainer}
           initial="hidden"
           animate="show"
@@ -349,7 +349,7 @@ export default function InterestsEditor() {
               </div>
             </EntityCard>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <ConfirmDialog

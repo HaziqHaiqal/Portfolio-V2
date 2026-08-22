@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import ProjectsGrid from '@components/List/ProjectsGrid';
 import SectionHeader from '@components/Common/SectionHeader';
@@ -41,17 +41,17 @@ const ProjectSection = ({
           {/* Content */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <motion.div
+              <m.div
                 className="relative"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <motion.div
+                <m.div
                   className="h-16 w-16 rounded-full border-4 border-blue-500/30 border-t-blue-500"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
-                <motion.div
+                <m.div
                   className="absolute inset-2 h-12 w-12 rounded-full border-4 border-purple-500/30 border-b-purple-500"
                   animate={{ rotate: -360 }}
                   transition={{
@@ -60,10 +60,10 @@ const ProjectSection = ({
                     ease: 'linear',
                   }}
                 />
-              </motion.div>
+              </m.div>
             </div>
           ) : error ? (
-            <motion.div
+            <m.div
               className="py-20 text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -80,7 +80,7 @@ const ProjectSection = ({
               >
                 {error}
               </p>
-            </motion.div>
+            </m.div>
           ) : projects && projects.length > 0 ? (
             <ProjectsGrid
               projects={projects}
@@ -89,7 +89,7 @@ const ProjectSection = ({
               showFeaturedOnly={false}
             />
           ) : (
-            <motion.div
+            <m.div
               className="py-20 text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -106,7 +106,7 @@ const ProjectSection = ({
               >
                 Currently working on some exciting new projects!
               </p>
-            </motion.div>
+            </m.div>
           )}
         </div>
       </div>

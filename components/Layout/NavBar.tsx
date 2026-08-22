@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme, useThemeClasses } from '@components/Provider/ThemeProvider';
 import { useUIStore } from '@lib/stores';
@@ -52,11 +52,8 @@ const NavBar = () => {
     <>
       {/* Desktop Navigation */}
       <nav className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 transform md:block">
-        <motion.div
-          className={`rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <div
+          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
         >
           <div className="flex items-center gap-8">
             {navItems.map((item) => (
@@ -91,7 +88,7 @@ const NavBar = () => {
             >
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
             </div>
-            <motion.button
+            <m.button
               onClick={toggleDarkMode}
               className={`rounded-full p-2 transition-all duration-300 ${
                 isDarkMode
@@ -105,18 +102,15 @@ const NavBar = () => {
               }
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </motion.button>
+            </m.button>
           </div>
-        </motion.div>
+        </div>
       </nav>
 
       {/* Mobile Navigation */}
       <nav className="fixed left-4 right-4 top-4 z-50 md:hidden">
-        <motion.div
-          className={`rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <div
+          className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${classes.navbar}`}
         >
           <div className="flex items-center justify-between">
             {/* Time */}
@@ -129,7 +123,7 @@ const NavBar = () => {
 
             {/* Controls */}
             <div className="flex items-center gap-3">
-              <motion.button
+              <m.button
                 onClick={toggleDarkMode}
                 className={`rounded-full p-2 transition-all duration-300 ${
                   isDarkMode
@@ -143,37 +137,36 @@ const NavBar = () => {
                 }
               >
                 {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-              </motion.button>
+              </m.button>
 
-              <motion.button
+              <m.button
                 onClick={toggleMobileMenu}
                 className={`rounded-full p-2 transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
                 whileTap={{ scale: 0.9 }}
               >
                 {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </motion.button>
+              </m.button>
             </div>
           </div>
 
           {/* Mobile Menu */}
           <AnimatePresence>
             {isMobileMenuOpen && (
-              <motion.div
-                className="mt-4 border-t border-gray-200/20 pt-4"
+              <m.div
+                className="mt-4 border-t border-gray-200/20 pt-3"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="space-y-3">
+                <div className="flex flex-col gap-1">
                   {navItems.map((item, index) => (
-                    <motion.a
+                    <m.a
                       key={item.href}
                       href={item.href}
                       onClick={(e) => {
                         e.preventDefault();
                         closeMobileMenu();
-                        // Contact lives in the floating terminal modal.
                         if (item.href === '#contact') {
                           openContact();
                           return;
@@ -186,19 +179,19 @@ const NavBar = () => {
                           }
                         }, 100);
                       }}
-                      className={`block rounded-lg px-3 py-2 font-medium transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
+                      className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${classes.text.secondary} ${classes.hover.bg}`}
                       initial={{ opacity: 0, x: 0 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
                       {item.label}
-                    </motion.a>
+                    </m.a>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
       </nav>
     </>
   );

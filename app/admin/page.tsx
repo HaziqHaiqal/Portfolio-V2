@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
@@ -222,15 +222,15 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div {...rise}>
+      <m.div {...rise}>
         <PageHeader
           eyebrow="Overview"
           title={`Welcome back, ${displayName || user.email?.split('@')[0]}`}
           description="Everything currently published on your portfolio, at a glance."
         />
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         variants={listContainer}
         initial="hidden"
         animate="show"
@@ -262,7 +262,7 @@ export default function AdminPage() {
           icon={Sparkles}
           onClick={() => router.push('/admin/skills')}
         />
-      </motion.div>
+      </m.div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
