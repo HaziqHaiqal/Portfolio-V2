@@ -8,6 +8,32 @@ import { themeClasses } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { useCurrentTime } from '@hooks/useCommon';
 
+const mobileMenuVariants = {
+  closed: {
+    opacity: 0,
+    height: 0,
+    transition: {
+      duration: 0.3,
+      staggerChildren: 0.035,
+      staggerDirection: -1,
+    },
+  },
+  open: {
+    opacity: 1,
+    height: 'auto',
+    transition: {
+      duration: 0.3,
+      delayChildren: 0.02,
+      staggerChildren: 0.035,
+    },
+  },
+};
+
+const mobileItemVariants = {
+  closed: { opacity: 0, y: -8, transition: { duration: 0.15 } },
+  open: { opacity: 1, y: 0, transition: { duration: 0.15 } },
+};
+
 /**
  * Responsive navigation bar with mobile hamburger menu.
  */
@@ -154,53 +180,52 @@ const NavBar = () => {
           </div>
 
           {/* Mobile Menu */}
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {isMobileMenuOpen && (
               <m.div
-                className="mt-4 border-t border-gray-200/20 pt-3"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
+                className="mt-4 overflow-hidden border-t border-gray-200/20 pt-3"
+                variants={mobileMenuVariants}
+                initial="closed"
+                animate="open"
+                exit="closed"
               >
                 <div className="flex flex-col gap-1">
-                  {navItems.map((item, index) => {
+                  {navItems.map((item) => {
                     const itemClass = `block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`;
 
                     if (!item.href.startsWith('#')) {
                       return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={closeMobileMenu}
-                          className={itemClass}
-                        >
-                          {item.label}
-                        </Link>
+                        <m.div key={item.href} variants={mobileItemVariants}>
+                          <Link
+                            href={item.href}
+                            onClick={closeMobileMenu}
+                            className={itemClass}
+                          >
+                            {item.label}
+                          </Link>
+                        </m.div>
                       );
                     }
 
                     return (
-                      <m.a
-                        key={item.href}
-                        href={item.href}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          closeMobileMenu();
-                          setTimeout(() => {
-                            const targetId = item.href.replace('#', '');
-                            document
-                              .getElementById(targetId)
-                              ?.scrollIntoView({ behavior: 'smooth' });
-                          }, 100);
-                        }}
-                        className={itemClass}
-                        initial={{ opacity: 0, x: 0 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                      >
-                        {item.label}
-                      </m.a>
+                      <m.div key={item.href} variants={mobileItemVariants}>
+                        <a
+                          href={item.href}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            closeMobileMenu();
+                            setTimeout(() => {
+                              const targetId = item.href.replace('#', '');
+                              document
+                                .getElementById(targetId)
+                                ?.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          }}
+                          className={itemClass}
+                        >
+                          {item.label}
+                        </a>
+                      </m.div>
                     );
                   })}
                 </div>
