@@ -94,7 +94,7 @@ const NavBar = () => {
               whileHover={{ rotate: 180, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title={
-                'Switch to dark mode dark:Switch dark:to dark:light dark:mode'
+                isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
               }
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -125,7 +125,7 @@ const NavBar = () => {
                 whileHover={{ rotate: 180, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 title={
-                  'Switch to dark mode dark:Switch dark:to dark:light dark:mode'
+                  isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
                 }
               >
                 {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
