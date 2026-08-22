@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -56,6 +56,17 @@ export const metadata: Metadata = {
     title: 'Haziq Haiqal | Software Developer',
   },
 };
+
+export async function generateViewport(): Promise<Viewport> {
+  const cookieStore = await cookies();
+  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value === 'dark';
+  const canvas = THEME_CANVAS[isDarkMode ? 'dark' : 'light'];
+
+  return {
+    colorScheme: isDarkMode ? 'dark' : 'light',
+    themeColor: canvas,
+  };
+}
 
 export default async function RootLayout({
   children,
