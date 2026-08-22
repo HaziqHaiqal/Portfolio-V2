@@ -67,9 +67,7 @@ const TechStackSection = () => {
                   className="absolute inset-0 m-auto text-gray-700 transition-all duration-300 group-hover:scale-0 group-hover:opacity-0 dark:text-gray-300"
                 />
                 {/* Text replaces icon on hover */}
-                <span
-                  className="absolute inset-0 m-auto flex items-center justify-center text-xs font-semibold text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:text-blue-400"
-                >
+                <span className="absolute inset-0 m-auto flex items-center justify-center text-xs font-semibold text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:text-blue-400">
                   {stack.name}
                 </span>
               </div>

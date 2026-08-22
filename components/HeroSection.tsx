@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { m } from 'framer-motion';
 import { Github, Linkedin, Terminal } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import type { Profile } from '@lib/supabase';
 
 interface HeroSectionProps {
@@ -84,8 +83,6 @@ const TypedRole = () => {
 };
 
 const HeroSection = ({ profile }: HeroSectionProps) => {
-  const { isDarkMode } = useTheme();
-
   const codeSnippet = `const developer = {\n  name: '${
     profile?.display_name
   }',\n  location: '${
@@ -122,11 +119,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           style={{ animationDuration: '0.8s', animationDelay: '0.3s' }}
         >
           <div
-            className={`hero-drift-code rounded-lg border p-4 shadow-xl backdrop-blur-sm ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800/80 text-gray-300'
-                : 'border-gray-200 bg-white/80 text-gray-700'
-            }`}
+            className={`hero-drift-code rounded-lg border border-gray-200 bg-white/80 p-4 text-gray-700 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300`}
           >
             <pre className="whitespace-pre-wrap text-left font-mono text-xs">
               {codeSnippet}
@@ -146,9 +139,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                 key={ring}
                 className="hero-ring pointer-events-none absolute inset-0 rounded-full border-2"
                 style={{
-                  borderColor: isDarkMode
-                    ? `rgba(59, 130, 246, ${0.3 - ring * 0.08})`
-                    : `rgba(59, 130, 246, ${0.4 - ring * 0.1})`,
+                  borderColor: `rgb(59 130 246 / calc(var(--hero-ring-base) - ${ring} * var(--hero-ring-step)))`,
                   top: `-${ring * 12}px`,
                   left: `-${ring * 12}px`,
                   right: `-${ring * 12}px`,
@@ -164,9 +155,8 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
             <div
               className="hero-glow pointer-events-none absolute -inset-16 rounded-full"
               style={{
-                background: isDarkMode
-                  ? 'radial-gradient(circle, transparent 20%, rgba(59, 130, 246, 0.15) 40%, transparent 80%)'
-                  : 'radial-gradient(circle, transparent 20%, rgba(59, 130, 246, 0.1) 40%, transparent 80%)',
+                background:
+                  'radial-gradient(circle, transparent 20%, rgb(59 130 246 / var(--hero-glow-a)) 40%, transparent 80%)',
                 filter: 'blur(12px)',
               }}
             />
@@ -175,11 +165,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
             <div className="hero-drift-avatar absolute inset-0">
               {/* Avatar image container with scaling */}
               <div
-                className={`hero-breathe absolute inset-8 overflow-hidden rounded-full border-4 shadow-2xl ${
-                  isDarkMode
-                    ? 'border-gray-700 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700'
-                    : 'border-white bg-gradient-to-br from-blue-100 via-white to-purple-100'
-                }`}
+                className={`hero-breathe absolute inset-8 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-blue-100 via-white to-purple-100 shadow-2xl dark:border-gray-700 dark:bg-gradient-to-br dark:from-gray-700 dark:via-gray-800 dark:to-gray-700`}
               >
                 {profile?.profile_image_url ? (
                   <Image
@@ -206,7 +192,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                   className="hero-ping absolute inset-0 rounded-full bg-green-500/70"
                 />
                 <span
-                  className={`absolute inset-0 rounded-full border-4 bg-green-500 ${isDarkMode ? 'border-gray-800' : 'border-white'}`}
+                  className={`absolute inset-0 rounded-full border-4 border-white bg-green-500 dark:border-gray-800`}
                 />
               </div>
             </div>
@@ -252,9 +238,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
         <div className="enter-up relative space-y-6">
           <div className="hero-float relative">
             <h1
-              className={`mb-4 text-5xl font-black md:text-7xl ${
-                isDarkMode ? 'text-gray-100' : 'text-gray-900'
-              }`}
+              className={`mb-4 text-5xl font-black text-gray-900 dark:text-gray-100 md:text-7xl`}
             >
               Hi, I&apos;m{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -266,7 +250,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           <div className="space-y-2">
             <div className="hero-float" style={{ animationDuration: '6s' }}>
               <h2
-                className={`enter-fade text-2xl font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                className={`enter-fade text-2xl font-bold text-gray-700 dark:text-gray-300`}
                 style={{ animationDuration: '1s', animationDelay: '0.5s' }}
               >
                 <span className="inline-flex items-center justify-center gap-2">

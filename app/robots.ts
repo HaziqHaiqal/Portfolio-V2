@@ -7,7 +7,6 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      // The admin panel and its auth screen carry no public content.
       disallow: ['/admin', '/admin/', '/login', '/api/'],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Mail, Linkedin, Github, Eraser, Trash2 } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import type { Profile } from '@lib/supabase';
 
 /**
@@ -35,7 +34,6 @@ const COMMANDS = [
 ];
 
 const ContactSection = ({ profile }: ContactSectionProps) => {
-  const { isDarkMode } = useTheme();
   const [input, setInput] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
 
@@ -59,45 +57,29 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
     }
   }, [entries]);
 
-  const t = isDarkMode
-    ? {
-        panel: 'bg-gray-800',
-        border: 'border-gray-700/60',
-        chromeText: 'text-gray-400',
-        heading: 'text-gray-100',
-        body: 'text-gray-400',
-        screen: 'bg-gray-900/60 border-gray-700/60',
-        screenMuted: 'text-gray-600',
-        helpBadge: 'bg-emerald-400/10 text-emerald-300',
-        helpRow: 'hover:bg-gray-800/70',
-        clearBtn: 'text-gray-500 hover:bg-gray-700 hover:text-rose-400',
-        bubble:
-          'border-gray-700 bg-gray-700/40 text-gray-300 hover:bg-gray-700 hover:border-emerald-400/50 hover:text-emerald-300',
-        accent: 'text-emerald-400',
-        input: 'text-gray-100 placeholder:text-gray-500',
-        entryCommand: 'text-gray-200',
-        entryNote: 'text-gray-400',
-        entryError: 'text-amber-300',
-      }
-    : {
-        panel: 'bg-white',
-        border: 'border-gray-200',
-        chromeText: 'text-gray-400',
-        heading: 'text-gray-900',
-        body: 'text-gray-600',
-        screen: 'bg-gray-50 border-gray-200',
-        screenMuted: 'text-gray-400',
-        helpBadge: 'bg-emerald-500/10 text-emerald-700',
-        helpRow: 'hover:bg-gray-100',
-        clearBtn: 'text-gray-400 hover:bg-gray-100 hover:text-rose-500',
-        bubble:
-          'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-emerald-500/50 hover:text-emerald-600',
-        accent: 'text-emerald-600',
-        input: 'text-gray-900 placeholder:text-gray-400',
-        entryCommand: 'text-gray-700',
-        entryNote: 'text-gray-500',
-        entryError: 'text-amber-600',
-      };
+  const t = {
+    panel: 'bg-white dark:bg-gray-800',
+    border: 'border-gray-200 dark:border-gray-700/60',
+    chromeText: 'text-gray-400 dark:text-gray-400',
+    heading: 'text-gray-900 dark:text-gray-100',
+    body: 'text-gray-600 dark:text-gray-400',
+    screen:
+      'bg-gray-50 border-gray-200 dark:bg-gray-900/60 dark:border-gray-700/60',
+    screenMuted: 'text-gray-400 dark:text-gray-600',
+    helpBadge:
+      'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
+    helpRow: 'hover:bg-gray-100 dark:hover:bg-gray-800/70',
+    clearBtn:
+      'text-gray-400 hover:bg-gray-100 hover:text-rose-500 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-rose-400',
+    bubble:
+      'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-emerald-500/50 hover:text-emerald-600 dark:border-gray-700 dark:bg-gray-700/40 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-emerald-400/50 dark:hover:text-emerald-300',
+    accent: 'text-emerald-600 dark:text-emerald-400',
+    input:
+      'text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder:text-gray-500',
+    entryCommand: 'text-gray-700 dark:text-gray-200',
+    entryNote: 'text-gray-500 dark:text-gray-400',
+    entryError: 'text-amber-600 dark:text-amber-300',
+  };
 
   const email = profile?.display_name || 'woodyz.dev@gmail.com';
   const linkedinUrl =

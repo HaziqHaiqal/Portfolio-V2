@@ -4,7 +4,6 @@ import { Zap } from 'lucide-react';
 import ProjectsGrid from '@components/List/ProjectsGrid';
 import SectionHeader from '@components/Common/SectionHeader';
 import { ProjectProps } from 'types/portfolio';
-import { useTheme } from '@components/Provider/ThemeProvider';
 
 interface ProjectSectionProps {
   projects: ProjectProps[];
@@ -19,8 +18,6 @@ const ProjectSection = ({
   error = null,
   handleProjectClick,
 }: ProjectSectionProps) => {
-  const { isDarkMode } = useTheme();
-
   return (
     <section id="projects" className={`relative overflow-hidden px-6 py-32`}>
       {/* Standard background - no custom gradients */}
@@ -70,14 +67,10 @@ const ProjectSection = ({
               transition={{ duration: 0.5 }}
             >
               <div className="mb-4 text-6xl">⚠️</div>
-              <p
-                className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}
-              >
+              <p className="text-lg text-red-600 dark:text-red-400">
                 Oops! Something went wrong while loading projects.
               </p>
-              <p
-                className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
-              >
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 {error}
               </p>
             </m.div>
@@ -85,7 +78,6 @@ const ProjectSection = ({
             <ProjectsGrid
               projects={projects}
               onProjectClick={handleProjectClick}
-              isDarkMode={isDarkMode}
               showFeaturedOnly={false}
             />
           ) : (
@@ -96,14 +88,10 @@ const ProjectSection = ({
               transition={{ duration: 0.5 }}
             >
               <div className="mb-4 text-6xl">🚧</div>
-              <p
-                className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
-              >
+              <p className="text-lg text-gray-600 dark:text-gray-400">
                 Projects coming soon...
               </p>
-              <p
-                className={`mt-2 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}
-              >
+              <p className="mt-2 text-sm text-gray-500">
                 Currently working on some exciting new projects!
               </p>
             </m.div>

@@ -3,10 +3,6 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 
-/**
- * Route-level error boundary. Must be a Client Component so React can attach
- * it as a boundary and expose `reset()`.
- */
 export default function Error({
   error,
   reset,

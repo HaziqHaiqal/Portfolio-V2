@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 import { m } from 'framer-motion';
 import { Github, Linkedin, Mail } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import { themeClasses as classes } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
 import { getCurrentYear } from '@lib/format';
@@ -34,7 +33,6 @@ const ProjectModal = dynamic(() => import('@components/Modal/ProjectModal'), {
 });
 
 function ActivityFallback() {
-  const { isDarkMode } = useTheme();
   return (
     <section className="relative px-4 py-16 md:px-6 md:py-32">
       <div className="mx-auto max-w-6xl">
@@ -47,11 +45,7 @@ function ActivityFallback() {
         />
         <div className="flex justify-center">
           <div
-            className={`min-h-[240px] w-full max-w-[920px] rounded-2xl border shadow-2xl backdrop-blur-sm md:min-h-[344px] md:rounded-3xl ${
-              isDarkMode
-                ? 'border-gray-700/50 bg-gray-800/90'
-                : 'border-white/50 bg-white/90'
-            }`}
+            className={`min-h-[240px] w-full max-w-[920px] rounded-2xl border border-white/50 bg-white/90 shadow-2xl backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/90 md:min-h-[344px] md:rounded-3xl`}
           />
         </div>
       </div>
@@ -67,7 +61,6 @@ export default function HomeContent({
   education,
   projects,
 }: Props) {
-  const { isDarkMode } = useTheme();
   const {
     selectedProject,
     isProjectModalOpen,
@@ -92,8 +85,8 @@ export default function HomeContent({
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: `
-              linear-gradient(${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#e7e7ea'} 1px, transparent 1px),
-              linear-gradient(90deg, ${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#e7e7ea'} 1px, transparent 1px)
+              linear-gradient(var(--grid-line) 1px, transparent 1px),
+              linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px',
           }}
@@ -153,7 +146,6 @@ export default function HomeContent({
           project={selectedProject}
           isOpen={isProjectModalOpen}
           onClose={handleCloseModal}
-          isDarkMode={isDarkMode}
         />
       )}
     </div>

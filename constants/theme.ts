@@ -1,14 +1,4 @@
-/**
- * Shared theme class strings, expressed as Tailwind `dark:` variants.
- *
- * These were previously computed from the `isDarkMode` React context, which
- * forced every styled component to be a Client Component and re-rendered all
- * of them on theme toggle. `ThemeProvider` keeps the `dark` class on
- * `<html>` in sync, so the variants below resolve identically while switching
- * themes becomes a pure CSS change with no React work.
- *
- * Safe to import from Server Components — this module holds no state.
- */
+// ThemeProvider keeps the `dark` class on <html> in sync with these.
 export const themeClasses = {
   bg: {
     primary: 'bg-gray-50 dark:bg-gray-800',

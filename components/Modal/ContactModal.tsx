@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
 import { useUIStore } from '@lib/stores';
 import type { Profile } from '@lib/supabase';
 
@@ -25,7 +24,6 @@ interface ContactModalProps {
  * window itself carries no close control.
  */
 const ContactModal = ({ profile }: ContactModalProps) => {
-  const { isDarkMode } = useTheme();
   const { isContactOpen, toggleContact, closeContact } = useUIStore();
 
   useEffect(() => {
@@ -51,7 +49,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
         {isContactOpen && (
           <>
             <m.div
-              className={`fixed inset-0 z-[60] backdrop-blur-sm ${isDarkMode ? 'bg-black/70' : 'bg-gray-900/40'}`}
+              className={`fixed inset-0 z-[60] bg-gray-900/40 backdrop-blur-sm dark:bg-black/70`}
               onClick={closeContact}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -59,19 +57,12 @@ const ContactModal = ({ profile }: ContactModalProps) => {
               transition={{ duration: 0.2 }}
             />
 
-            {/* Centering frame. Spans the viewport so the console sits in the
-                middle, but stays click-through so the backdrop below still
-                closes on an outside click and the launcher stays reachable. */}
             <div className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center px-3 pb-16 pt-20 sm:px-6 sm:pb-24">
               <m.div
                 role="dialog"
                 aria-modal="true"
                 aria-label="Contact terminal"
-                className={`pointer-events-auto relative h-[680px] max-h-full w-full max-w-5xl overflow-hidden rounded-2xl border ${
-                  isDarkMode
-                    ? 'border-gray-700/60 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.75)]'
-                    : 'border-gray-200 shadow-[0_40px_120px_-20px_rgba(15,23,42,0.35)]'
-                }`}
+                className={`pointer-events-auto relative h-[680px] max-h-full w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 shadow-[0_40px_120px_-20px_rgba(15,23,42,0.35)] dark:border-gray-700/60 dark:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.75)]`}
                 initial={{ opacity: 0, scale: 0.97, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97, y: 16 }}
@@ -87,11 +78,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
       {/* Floating launcher */}
       <m.button
         onClick={toggleContact}
-        className={`group fixed bottom-4 right-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-colors sm:bottom-6 sm:right-6 sm:h-12 sm:w-12 ${
-          isDarkMode
-            ? 'border-gray-700 bg-gray-800 text-emerald-400 hover:border-emerald-400/50'
-            : 'border-gray-200 bg-white text-emerald-600 hover:border-emerald-500/50'
-        }`}
+        className={`group fixed bottom-4 right-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-emerald-600 shadow-lg transition-colors hover:border-emerald-500/50 dark:border-gray-700 dark:bg-gray-800 dark:text-emerald-400 dark:hover:border-emerald-400/50 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12`}
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 26, delay: 0.6 }}

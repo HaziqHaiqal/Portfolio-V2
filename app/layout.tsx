@@ -22,7 +22,6 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  // Resolves relative OG/Twitter image and canonical URLs to absolute ones.
   metadataBase: new URL(SITE_URL),
   title: 'Haziq Haiqal | Software Developer',
   description:
@@ -70,9 +69,6 @@ export default async function RootLayout({
     <html
       lang="en"
       className={isDarkMode ? 'dark scroll-smooth' : 'scroll-smooth'}
-      // Next.js 16 no longer overrides `scroll-behavior` during navigation.
-      // Without this, `scroll-smooth` makes route changes animate the scroll
-      // to top instead of jumping instantly.
       data-scroll-behavior="smooth"
       style={{
         backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb',

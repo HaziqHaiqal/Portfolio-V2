@@ -47,17 +47,9 @@ export async function getPortfolio(db: DB): Promise<PortfolioData> {
   return { profile, experience, education, skills, projects, interests };
 }
 
-/** Cache tag for the public portfolio dataset. */
 export const PORTFOLIO_TAG = 'portfolio';
 
-/**
- * Cached read of the public portfolio dataset, shared across all visitors.
- *
- * Builds its own cookieless client because `unstable_cache` forbids reading
- * `cookies()`/`headers()` inside the cache scope. Admin mutations invalidate
- * this via `revalidateTag(PORTFOLIO_TAG, 'max')`, so the one-hour window is
- * only a backstop against a missed invalidation.
- */
+// Builds its own client: cookies() is illegal inside a cache scope.
 export const getCachedPortfolio = unstable_cache(
   async (): Promise<PortfolioData> => {
     const { createPublicSupabase } = await import('@lib/supabase/public');

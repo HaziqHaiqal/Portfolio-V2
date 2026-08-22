@@ -1554,12 +1554,6 @@
   }
 }
 
-/*
- * Dark-mode-only decorative glow on education cards. Previously an inline
- * `style={{ backgroundImage: isDarkMode ? ... : 'none' }}`, which forced the
- * section to read the theme context. Driving it from the `.dark` class keeps
- * the component free of theme state.
- */
 .dark .education-card {
   background-image:
     radial-gradient(
@@ -1572,4 +1566,62 @@
       rgba(251, 191, 36, 0.05) 0%,
       transparent 50%
     );
+}
+
+:root {
+  --company-ring: #d1d5db;
+}
+.dark {
+  --company-ring: #374151;
+}
+
+:root {
+  --contrib-0: #e5e7eb;
+  --contrib-1: #86efac;
+  --contrib-2: #22c55e;
+  --contrib-3: #15803d;
+  --grid-line: #e7e7ea;
+}
+.dark {
+  --contrib-0: #374151;
+  --contrib-1: #16a34a;
+  --contrib-2: #22c55e;
+  --contrib-3: #4ade80;
+  --grid-line: rgba(255, 255, 255, 0.03);
+}
+
+:root {
+  --tint-web: #dbeafe;
+  --tint-mobile: #d1fae5;
+  --tint-art: #f3e8ff;
+  --tint-game: #ffe4e6;
+  --tint-api: #ffedd5;
+  --tint-ai: #fce7f3;
+  --tint-tool: #fef3c7;
+  --tint-other: #e5e7eb;
+  --modal-stop2: rgba(255, 255, 255, 0.5);
+  --modal-stop3: #ffffff;
+}
+.dark {
+  --tint-web: #1e3a8a;
+  --tint-mobile: #065f46;
+  --tint-art: #6b21a8;
+  --tint-game: #9f1239;
+  --tint-api: #9a3412;
+  --tint-ai: #9d174d;
+  --tint-tool: #854d0e;
+  --tint-other: #374151;
+  --modal-stop2: rgba(17, 24, 39, 0.65);
+  --modal-stop3: #111827;
+}
+
+:root {
+  --hero-ring-base: 0.4;
+  --hero-ring-step: 0.1;
+  --hero-glow-a: 0.1;
+}
+.dark {
+  --hero-ring-base: 0.3;
+  --hero-ring-step: 0.08;
+  --hero-glow-a: 0.15;
 }

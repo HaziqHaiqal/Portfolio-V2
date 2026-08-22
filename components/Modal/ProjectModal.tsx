@@ -37,7 +37,6 @@ interface ProjectModalProps {
     duration?: string;
     thumbnail_url?: string;
   } | null;
-  isDarkMode: boolean;
 }
 
 interface ThemeTokens {
@@ -77,7 +76,6 @@ export default function ProjectModal({
   isOpen,
   onClose,
   project,
-  isDarkMode,
 }: ProjectModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -104,100 +102,56 @@ export default function ProjectModal({
   const categoryInfo = getCategoryInfo(project.category);
   const CategoryIcon = categoryInfo.icon;
 
-  // Category-tinted header gradient stop
-  const tintDarkMap: Record<string, string> = {
-    web: '#1e3a8a',
-    mobile: '#065f46',
-    art: '#6b21a8',
-    game: '#9f1239',
-    api: '#9a3412',
-    ai: '#9d174d',
-    tool: '#854d0e',
-    other: '#374151',
-  };
-  const tintLightMap: Record<string, string> = {
-    web: '#dbeafe',
-    mobile: '#d1fae5',
-    art: '#f3e8ff',
-    game: '#ffe4e6',
-    api: '#ffedd5',
-    ai: '#fce7f3',
-    tool: '#fef3c7',
-    other: '#e5e7eb',
-  };
-  const tint = isDarkMode
-    ? tintDarkMap[categoryInfo.value] || tintDarkMap.other
-    : tintLightMap[categoryInfo.value] || tintLightMap.other;
+  const TINT_CATEGORIES = new Set([
+    'web',
+    'mobile',
+    'art',
+    'game',
+    'api',
+    'ai',
+    'tool',
+    'other',
+  ]);
+  const tintKey = TINT_CATEGORIES.has(categoryInfo.value)
+    ? categoryInfo.value
+    : 'other';
+  const tint = `var(--tint-${tintKey})`;
 
-  const gray900 = '#111827';
-
-  const T: ThemeTokens = isDarkMode
-    ? {
-        panelBg: 'bg-gray-900',
-        panelText: 'text-white',
-        textPrimary: 'text-white',
-        textSecondary: 'text-white/75',
-        textMuted: 'text-white/55',
-        textFaint: 'text-white/35',
-        divider: 'border-white/[0.06]',
-        cardBg: 'bg-white/[0.04]',
-        cardBorder: 'border-white/10',
-        chipBg: 'bg-white/[0.08]',
-        chipBorder: 'border-white/10',
-        chipText: 'text-white/90',
-        chipHoverBg: 'hover:bg-white/[0.12]',
-        glassBg: 'bg-white/10',
-        glassBorder: 'border-white/10',
-        glassText: 'text-white',
-        primaryBtnBg: 'bg-white text-black hover:bg-white/90 shadow-lg',
-        primaryBtnText: 'text-black',
-        primaryBtnDisabled:
-          'bg-white/30 text-black/40 shadow-none cursor-not-allowed',
-        secondaryBtnBg: 'bg-white/[0.08]',
-        secondaryBtnHoverBg: 'hover:bg-white/[0.15]',
-        secondaryBtnBorder: 'border-white/10',
-        secondaryBtnText: 'text-white',
-        secondaryBtnDisabled:
-          'bg-white/[0.04] border-white/5 text-white/30 cursor-not-allowed',
-        backdropClass: 'bg-black/80 backdrop-blur-md',
-        headerStop1: tint,
-        headerStop2: `rgba(17, 24, 39, 0.65)`,
-        headerStop3: gray900,
-        shadowOnImage: 'shadow-[0_20px_60px_rgba(0,0,0,0.55)]',
-      }
-    : {
-        panelBg: 'bg-white',
-        panelText: 'text-gray-900',
-        textPrimary: 'text-gray-900',
-        textSecondary: 'text-gray-700',
-        textMuted: 'text-gray-500',
-        textFaint: 'text-gray-400',
-        divider: 'border-gray-200',
-        cardBg: 'bg-gray-50',
-        cardBorder: 'border-gray-200',
-        chipBg: 'bg-gray-100',
-        chipBorder: 'border-gray-200',
-        chipText: 'text-gray-700',
-        chipHoverBg: 'hover:bg-gray-200',
-        glassBg: 'bg-white/80',
-        glassBorder: 'border-gray-200',
-        glassText: 'text-gray-900',
-        primaryBtnBg: 'bg-gray-900 text-white hover:bg-gray-800 shadow-md',
-        primaryBtnText: 'text-white',
-        primaryBtnDisabled:
-          'bg-gray-200 text-gray-400 shadow-none cursor-not-allowed',
-        secondaryBtnBg: 'bg-white',
-        secondaryBtnHoverBg: 'hover:bg-gray-50',
-        secondaryBtnBorder: 'border-gray-200',
-        secondaryBtnText: 'text-gray-900',
-        secondaryBtnDisabled:
-          'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed',
-        backdropClass: 'bg-black/40 backdrop-blur-md',
-        headerStop1: tint,
-        headerStop2: 'rgba(255,255,255,0.5)',
-        headerStop3: '#ffffff',
-        shadowOnImage: 'shadow-[0_20px_60px_rgba(0,0,0,0.15)]',
-      };
+  const T: ThemeTokens = {
+    panelBg: 'bg-white dark:bg-gray-900',
+    panelText: 'text-gray-900 dark:text-white',
+    textPrimary: 'text-gray-900 dark:text-white',
+    textSecondary: 'text-gray-700 dark:text-white/75',
+    textMuted: 'text-gray-500 dark:text-white/55',
+    textFaint: 'text-gray-400 dark:text-white/35',
+    divider: 'border-gray-200 dark:border-white/[0.06]',
+    cardBg: 'bg-gray-50 dark:bg-white/[0.04]',
+    cardBorder: 'border-gray-200 dark:border-white/10',
+    chipBg: 'bg-gray-100 dark:bg-white/[0.08]',
+    chipBorder: 'border-gray-200 dark:border-white/10',
+    chipText: 'text-gray-700 dark:text-white/90',
+    chipHoverBg: 'hover:bg-gray-200 dark:hover:bg-white/[0.12]',
+    glassBg: 'bg-white/80 dark:bg-white/10',
+    glassBorder: 'border-gray-200 dark:border-white/10',
+    glassText: 'text-gray-900 dark:text-white',
+    primaryBtnBg:
+      'bg-gray-900 text-white shadow-md hover:bg-gray-800 dark:bg-white dark:text-black dark:shadow-lg dark:hover:bg-white/90',
+    primaryBtnText: 'text-white dark:text-black',
+    primaryBtnDisabled:
+      'cursor-not-allowed bg-gray-200 text-gray-400 shadow-none dark:bg-white/30 dark:text-black/40',
+    secondaryBtnBg: 'bg-white dark:bg-white/[0.08]',
+    secondaryBtnHoverBg: 'hover:bg-gray-50 dark:hover:bg-white/[0.15]',
+    secondaryBtnBorder: 'border-gray-200 dark:border-white/10',
+    secondaryBtnText: 'text-gray-900 dark:text-white',
+    secondaryBtnDisabled:
+      'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400 dark:border-white/5 dark:bg-white/[0.04] dark:text-white/30',
+    backdropClass: 'bg-black/40 backdrop-blur-md dark:bg-black/80',
+    headerStop1: tint,
+    headerStop2: 'var(--modal-stop2)',
+    headerStop3: 'var(--modal-stop3)',
+    shadowOnImage:
+      'shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]',
+  };
 
   const meta = [
     { icon: Calendar, label: project.year },
@@ -267,9 +221,7 @@ export default function ProjectModal({
               {/* Header: cover + title */}
               <div className="flex flex-col items-end gap-6 px-6 py-7 md:flex-row md:gap-8 md:px-8">
                 <m.div
-                  className={`relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl sm:w-80 md:w-80 ${T.shadowOnImage} ${
-                    isDarkMode ? 'bg-gray-950/50' : 'bg-gray-100'
-                  }`}
+                  className={`relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl sm:w-80 md:w-80 ${T.shadowOnImage} bg-gray-100 dark:bg-gray-950/50`}
                   initial={{ y: 20, opacity: 0, scale: 0.96 }}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 }}
@@ -280,9 +232,7 @@ export default function ProjectModal({
                       alt=""
                       fill
                       sizes="320px"
-                      className={`scale-110 object-cover blur-2xl ${
-                        isDarkMode ? 'opacity-60' : 'opacity-40'
-                      }`}
+                      className={`scale-110 object-cover opacity-40 blur-2xl dark:opacity-60`}
                       aria-hidden
                     />
                   )}

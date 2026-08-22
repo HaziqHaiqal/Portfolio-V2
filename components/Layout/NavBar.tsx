@@ -90,15 +90,11 @@ const NavBar = () => {
             </div>
             <m.button
               onClick={toggleDarkMode}
-              className={`rounded-full p-2 transition-all duration-300 ${
-                isDarkMode
-                  ? 'text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300'
-                  : 'text-gray-700 hover:bg-orange-500/10 hover:text-orange-500'
-              }`}
+              className={`rounded-full p-2 text-gray-700 transition-all duration-300 hover:bg-orange-500/10 hover:text-orange-500 dark:text-yellow-400 dark:hover:bg-yellow-400/10 dark:hover:text-yellow-300`}
               whileHover={{ rotate: 180, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title={
-                isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+                'Switch to dark mode dark:Switch dark:to dark:light dark:mode'
               }
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -125,15 +121,11 @@ const NavBar = () => {
             <div className="flex items-center gap-3">
               <m.button
                 onClick={toggleDarkMode}
-                className={`rounded-full p-2 transition-all duration-300 ${
-                  isDarkMode
-                    ? 'text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300'
-                    : 'text-gray-700 hover:bg-orange-500/10 hover:text-orange-500'
-                }`}
+                className={`rounded-full p-2 text-gray-700 transition-all duration-300 hover:bg-orange-500/10 hover:text-orange-500 dark:text-yellow-400 dark:hover:bg-yellow-400/10 dark:hover:text-yellow-300`}
                 whileHover={{ rotate: 180, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 title={
-                  isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+                  'Switch to dark mode dark:Switch dark:to dark:light dark:mode'
                 }
               >
                 {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}

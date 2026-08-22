@@ -2,7 +2,6 @@
 
 import { m } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
-import { useTheme } from '@components/Provider/ThemeProvider';
 
 interface SectionHeaderProps {
   icon: LucideIcon;
@@ -21,8 +20,6 @@ export default function SectionHeader({
   gradientClass,
   className = '',
 }: SectionHeaderProps) {
-  const { isDarkMode } = useTheme();
-
   return (
     <m.div
       className={`mb-10 text-center md:mb-12 ${className}`}
@@ -33,13 +30,9 @@ export default function SectionHeader({
     >
       <div className="mb-3 inline-flex items-center gap-2 font-mono text-sm">
         <Icon size={16} className={accentClass} />
-        <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>
-          {label}
-        </span>
+        <span className="text-gray-500 dark:text-gray-400">{label}</span>
       </div>
-      <h2
-        className={`mb-4 text-3xl font-extrabold md:text-4xl ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}
-      >
+      <h2 className="mb-4 text-3xl font-extrabold text-gray-900 dark:text-gray-100 md:text-4xl">
         {title}
       </h2>
       <div
