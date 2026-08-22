@@ -90,7 +90,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
         {/* Git-style Timeline */}
         <div className="mx-auto max-w-4xl">
           <m.div
-            className={`rounded-3xl border border-gray-200 bg-white/70 p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70`}
+            className="rounded-3xl border border-gray-200 bg-white/70 p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70 sm:p-8"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -107,6 +107,15 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                   );
                   const isExpanded = expandedCompanies.has(company);
                   const isLast = companyIndex === sortedCompanies.length - 1;
+                  const lastSpaceIndex = company.lastIndexOf(' ');
+                  const companyLeadingWords =
+                    lastSpaceIndex === -1
+                      ? ''
+                      : company.slice(0, lastSpaceIndex);
+                  const companyLastWord =
+                    lastSpaceIndex === -1
+                      ? company
+                      : company.slice(lastSpaceIndex + 1);
 
                   return (
                     <div
@@ -115,7 +124,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                     >
                       {/* Gray Background Line - Per Item */}
                       <div
-                        className={`absolute left-6 top-0 w-0.5 bg-gray-300 dark:bg-gray-600`}
+                        className={`absolute left-[27px] top-0 w-0.5 bg-gray-300 dark:bg-gray-600`}
                         style={{
                           height: isLast && !isExpanded ? '24px' : '100%',
                         }}
@@ -123,7 +132,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
                       {/* Animated blue line overlay */}
                       <m.div
-                        className="absolute left-6 top-0 z-[1] w-0.5 origin-top bg-blue-500"
+                        className="absolute left-[27px] top-0 z-[1] w-0.5 origin-top bg-blue-500"
                         initial={{ scaleY: 0 }}
                         animate={{ scaleY: isExpanded ? 1 : 0 }}
                         transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -188,27 +197,30 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         </div>
 
                         {/* Company Info */}
-                        <div className="flex-1 pt-2">
+                        <div className="min-w-0 flex-1">
                           <button
                             onClick={() => toggleCompany(company)}
-                            className="group w-full text-left"
+                            aria-expanded={isExpanded}
+                            className="group flex min-h-14 w-full items-center text-left"
                           >
-                            <div className="flex items-center gap-3">
-                              <h4
-                                className={`text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-500 dark:text-gray-100`}
-                              >
-                                {company}
-                              </h4>
-                              <m.div
-                                animate={{ rotate: isExpanded ? 180 : 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <ChevronDown
-                                  size={16}
-                                  className="text-gray-600 dark:text-gray-400"
-                                />
-                              </m.div>
-                            </div>
+                            <h4 className="min-w-0 text-lg font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-500 dark:text-gray-100">
+                              {companyLeadingWords}
+                              {companyLeadingWords && ' '}
+                              <span className="whitespace-nowrap">
+                                {companyLastWord}
+                                <m.span
+                                  className="ml-2 inline-flex align-middle"
+                                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                                  transition={{ duration: 0.3 }}
+                                >
+                                  <ChevronDown
+                                    aria-hidden="true"
+                                    size={16}
+                                    className="text-gray-600 dark:text-gray-400"
+                                  />
+                                </m.span>
+                              </span>
+                            </h4>
                           </button>
 
                           {/* Expandable Roles Section */}
@@ -232,9 +244,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                         (role.companies?.name || '') +
                                         role.start_date
                                     );
-                                    // First job at company (oldest) = feat:, subsequent (newer) = update:
-                                    const isFirstJob =
-                                      roleIndex === companyRoles.length - 1;
 
                                     return (
                                       <m.div
@@ -248,14 +257,12 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                         className="relative flex items-start gap-3"
                                       >
                                         {/* Role commit dot - outline only, centered on timeline */}
-                                        <div
-                                          className={`absolute -left-[53px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 bg-white dark:bg-gray-800`}
-                                        />
+                                        <div className="absolute -left-[50px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 bg-white dark:bg-gray-800" />
 
                                         {/* Role content - closer to dot */}
                                         <div className="min-w-0 flex-1">
                                           {/* Commit Hash & Date */}
-                                          <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                                          <div className="mb-3 flex flex-wrap items-center gap-1">
                                             <span
                                               className={`whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[12px] text-blue-700 dark:bg-blue-800 dark:text-blue-300 sm:px-2 sm:py-1 sm:text-xs`}
                                             >
@@ -295,18 +302,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                           </div>
 
                                           {/* Commit Message (Role Title) */}
-                                          <h5
-                                            className={`mb-4 font-semibold text-gray-800 dark:text-gray-200`}
-                                          >
-                                            <span
-                                              className={
-                                                isFirstJob
-                                                  ? 'text-green-500'
-                                                  : 'text-yellow-500'
-                                              }
-                                            >
-                                              {isFirstJob ? 'feat' : 'update'}:
-                                            </span>{' '}
+                                          <h5 className="mb-4 font-semibold text-gray-800 dark:text-gray-200">
                                             {role.position}
                                           </h5>
 
