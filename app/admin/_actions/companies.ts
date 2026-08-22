@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { upsertCompany, deleteCompany } from '@lib/data';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { upsertCompany, deleteCompany, PORTFOLIO_TAG } from '@lib/data';
 import type { Company, NullableWritable } from '@lib/supabase';
 import { requireAdminClient } from './auth';
 
@@ -10,7 +10,7 @@ export async function upsertCompanyAction(
 ) {
   const db = await requireAdminClient();
   const result = await upsertCompany(db, row);
-  revalidatePath('/');
+  revalidateTag(PORTFOLIO_TAG, 'max');
   revalidatePath('/admin/companies');
   return result;
 }
@@ -18,6 +18,6 @@ export async function upsertCompanyAction(
 export async function deleteCompanyAction(id: string) {
   const db = await requireAdminClient();
   await deleteCompany(db, id);
-  revalidatePath('/');
+  revalidateTag(PORTFOLIO_TAG, 'max');
   revalidatePath('/admin/companies');
 }

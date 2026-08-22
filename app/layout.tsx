@@ -8,6 +8,7 @@ import { MaintenanceProvider } from '@components/Provider/MaintenanceProvider';
 import { MotionProvider } from '@components/Provider/MotionProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { ReactNode } from 'react';
+import { SITE_URL } from '@lib/site';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,6 +22,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  // Resolves relative OG/Twitter image and canonical URLs to absolute ones.
+  metadataBase: new URL(SITE_URL),
   title: 'Haziq Haiqal | Software Developer',
   description:
     'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions and exceptional user experiences.',
@@ -42,7 +45,7 @@ export const metadata: Metadata = {
     title: 'Haziq Haiqal | Software Developer',
     description:
       'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions.',
-    url: 'https://haziqhaiqal.com',
+    url: SITE_URL,
     siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
     type: 'website',
@@ -67,6 +70,10 @@ export default async function RootLayout({
     <html
       lang="en"
       className={isDarkMode ? 'dark scroll-smooth' : 'scroll-smooth'}
+      // Next.js 16 no longer overrides `scroll-behavior` during navigation.
+      // Without this, `scroll-smooth` makes route changes animate the scroll
+      // to top instead of jumping instantly.
+      data-scroll-behavior="smooth"
       style={{
         backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb',
         colorScheme: isDarkMode ? 'dark' : 'light',

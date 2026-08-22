@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { upsertInterest, deleteInterest } from '@lib/data';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { upsertInterest, deleteInterest, PORTFOLIO_TAG } from '@lib/data';
 import type { Interest, NullableWritable } from '@lib/supabase';
 import { requireAdminClient } from './auth';
 
@@ -10,7 +10,7 @@ export async function upsertInterestAction(
 ) {
   const db = await requireAdminClient();
   const result = await upsertInterest(db, row);
-  revalidatePath('/');
+  revalidateTag(PORTFOLIO_TAG, 'max');
   revalidatePath('/admin/interests');
   return result;
 }
@@ -18,6 +18,6 @@ export async function upsertInterestAction(
 export async function deleteInterestAction(id: string) {
   const db = await requireAdminClient();
   await deleteInterest(db, id);
-  revalidatePath('/');
+  revalidateTag(PORTFOLIO_TAG, 'max');
   revalidatePath('/admin/interests');
 }
