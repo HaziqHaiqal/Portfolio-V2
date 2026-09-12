@@ -6,10 +6,11 @@ import type { Company, NullableWritable } from '@lib/supabase';
 import { requireAdminClient } from './auth';
 
 export async function upsertCompanyAction(
-  row: NullableWritable<Company> & { id?: string }
+  row: NullableWritable<Company> & { id?: string },
+  mode: 'create' | 'update' = 'update'
 ) {
   const db = await requireAdminClient();
-  const result = await upsertCompany(db, row);
+  const result = await upsertCompany(db, row, mode);
   revalidateTag(PORTFOLIO_TAG, 'max');
   revalidatePath('/admin/companies');
   return result;

@@ -12,23 +12,29 @@ export async function getCompanies(db: DB): Promise<Company[]> {
 
 export async function upsertCompany(
   db: DB,
-  row: NullableWritable<Company> & { id?: string }
+  row: NullableWritable<Company> & { id?: string },
+  mode: 'create' | 'update' = 'update'
 ): Promise<Company> {
   const { id, ...patch } = row;
   const payload = { ...patch, updated_at: new Date().toISOString() };
 
-  // A patch with `id` targets an existing row: a genuine UPDATE, so only
+  // Creation preserves the ID already used by pending logo uploads.
+  // Otherwise, a patch with `id` targets an existing row: an UPDATE, so only
   // the given columns are validated. Routing this through `.upsert()`
   // instead makes Postgres construct a full candidate row for the insert
   // path it never takes, which trips NOT NULL on every omitted column.
-  const { data, error } = id
+  const { data, error } = id && mode !== 'create'
     ? await db
         .from('companies')
         .update(payload)
         .eq('id', id)
         .select('*')
         .single()
-    : await db.from('companies').insert(payload).select('*').single();
+    : await db
+        .from('companies')
+        .insert({ ...payload, ...(id ? { id } : {}) })
+        .select('*')
+        .single();
 
   if (error) throw error;
   return data as Company;

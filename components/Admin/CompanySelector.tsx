@@ -146,12 +146,15 @@ export default function CompanySelector({
         return;
       }
 
-      const saved = await upsertCompanyAction({
-        id: formData.id,
-        name: trimmedName,
-        logo_url: logoUrl || undefined,
-        website_url: formData.website_url || undefined,
-      });
+      const saved = await upsertCompanyAction(
+        {
+          id: formData.id,
+          name: trimmedName,
+          logo_url: logoUrl || undefined,
+          website_url: formData.website_url || undefined,
+        },
+        isEditing ? 'update' : 'create'
+      );
 
       toast.success(isEditing ? 'Company updated' : 'Company created');
       await loadCompanies();

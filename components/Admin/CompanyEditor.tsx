@@ -113,12 +113,15 @@ export default function CompanyEditor() {
         return;
       }
 
-      await upsertCompanyAction({
-        id,
-        name,
-        logo_url: companyData.logo_url || undefined,
-        website_url: companyData.website_url || undefined,
-      });
+      await upsertCompanyAction(
+        {
+          id,
+          name,
+          logo_url: companyData.logo_url || undefined,
+          website_url: companyData.website_url || undefined,
+        },
+        editingCompany ? 'update' : 'create'
+      );
       toast.success(editingCompany?.id ? 'Company updated' : 'Company created');
 
       setShowForm(false);
