@@ -2,18 +2,14 @@ const CTA_LABEL = 'Get Quote';
 
 export type ServiceIcon = 'web' | 'mobile';
 
-export interface Feature {
-  text: string;
-  included: boolean;
-}
-
 export interface PricingTier {
   name: string;
-  bestFor?: string;
+  subtitle?: string;
+  description: string;
+  features: string[];
+  exclusions?: string[];
   price: string;
   priceNote?: string;
-  features: Feature[];
-  note?: string;
   cta?: { label: string; href: string };
 }
 
@@ -35,6 +31,11 @@ export interface ServiceGroup {
 }
 
 export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
+  const contact = (message: string) => {
+    const url = new URL(whatsappHref);
+    url.searchParams.set('text', message);
+    return url.toString();
+  };
   return [
     {
       heading: 'Development',
@@ -42,47 +43,99 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
         {
           title: 'Mobile App Development',
           description:
-            'Native and cross-platform apps (Flutter, Kotlin, Java) from idea to store launch.',
+            'Mobile apps for Android and iPhone, designed around your business needs — from the initial idea to app store submission.',
           icon: 'mobile',
           price: 'Starting from RM3,000',
-          cta: { label: CTA_LABEL, href: whatsappHref },
+          cta: {
+            label: CTA_LABEL,
+            href: contact(
+              "Hi Haziq, I'd like a quote for a mobile app project."
+            ),
+          },
         },
         {
           title: 'Web Development',
           description:
-            'Premium landing pages to full custom web platforms — payment gateways, backend logic, and everything in between.',
+            'From your first business website to a fully custom platform. Choose a simple start or something built around your needs.',
           icon: 'web',
-          price: 'Starting from RM2,000',
-          cta: { label: CTA_LABEL, href: whatsappHref },
-          pricingLabel: 'Web development pricing',
+          price: 'Starting from RM600',
+          cta: {
+            label: CTA_LABEL,
+            href: contact(
+              "Hi Haziq, I'd like to discuss a website project. Could you help me choose a package?"
+            ),
+          },
+          pricingLabel: 'Website packages & pricing',
           tiers: [
             {
-              name: 'Landing Page',
-              price: 'RM2,000',
-              priceNote: 'one-time',
+              name: 'Rahmah',
+              description:
+                'A simple landing page to introduce your business and help customers get in touch.',
               features: [
-                { text: 'Single premium page design', included: true },
-                { text: 'Premium & modern UI/UX design', included: true },
-                { text: 'Basic SEO', included: true },
-                { text: 'No e-commerce', included: false },
-                { text: 'No SSO / login systems', included: false },
-                { text: 'No backend logic', included: false },
+                'Single-page website',
+                'Clean, simple design',
+                'Responsive design',
+                'WhatsApp or email enquiry button',
+                '1 month of free post-launch bug fixes',
               ],
-              cta: { label: 'Chat on WhatsApp', href: whatsappHref },
+              exclusions: [
+                'No e-commerce',
+                'No user authentication',
+                'No database or backend logic',
+              ],
+              subtitle: 'Business Starter',
+              price: 'RM600',
+              priceNote: 'one-time',
+              cta: {
+                label: 'Choose Rahmah',
+                href: contact(
+                  "Hi Haziq, I'm interested in the Rahmah package (RM600) for a simple landing page. Can we discuss my business website?"
+                ),
+              },
             },
             {
-              name: 'Custom Web Development',
-              bestFor: 'Projects that need more than a landing page.',
-              price: 'Custom pricing',
+              name: 'Premium',
+              description:
+                'A landing page with a distinctive design and subtle animations to showcase your brand.',
               features: [
-                { text: 'Payment gateway integration', included: true },
-                { text: 'Authentication / SSO', included: true },
-                { text: 'Custom backend & database', included: true },
-                { text: 'Multi-page or web app', included: true },
-                { text: 'Ongoing feature development', included: true },
+                'Single-page website',
+                'Custom layout and visual styling',
+                'Responsive design',
+                'Animations and interactive effects',
+                'WhatsApp or email enquiry button',
+                '2 months of free post-launch bug fixes',
               ],
-              note: 'Final pricing depends on project scope and integrations.',
-              cta: { label: 'Chat on WhatsApp', href: whatsappHref },
+              exclusions: ['Same exclusions as Rahmah'],
+              subtitle: 'Brand Showcase',
+              price: 'RM1,500',
+              priceNote: 'one-time',
+              cta: {
+                label: 'Choose Premium',
+                href: contact(
+                  "Hi Haziq, I'm interested in the Premium package (RM1,500) for a custom landing page. Can we discuss my ideas?"
+                ),
+              },
+            },
+            {
+              name: 'Exclusive',
+              description:
+                'For websites that need multiple pages, customer accounts, payments, or custom functionality.',
+              features: [
+                'Multi-page website',
+                'Responsive design',
+                'User registration and login',
+                'Payment gateway integration',
+                'Database integration and custom backend logic',
+                '3 months of free post-launch bug fixes',
+              ],
+              subtitle: 'Business Solutions',
+              price: 'Custom quote',
+              cta: {
+                label: 'Discuss Exclusive',
+                href: contact(
+                  "Hi Haziq, I'm interested in the Exclusive package. I'd like to discuss my requirements and get a custom quote."
+                ),
+              },
             },
           ],
         },
