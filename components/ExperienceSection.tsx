@@ -231,7 +231,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="relative mt-10"
+                                className="relative mt-6"
                               >
                                 <div className="space-y-8">
                                   {companyRoles.map((role, roleIndex) => {
@@ -302,7 +302,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                           </div>
 
                                           {/* Commit Message (Role Title) */}
-                                          <h5 className="mb-4 font-semibold text-gray-800 dark:text-gray-200">
+                                          <h5 className="font-semibold text-gray-800 dark:text-gray-200">
                                             {role.position}
                                           </h5>
 
