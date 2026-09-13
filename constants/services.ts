@@ -73,8 +73,7 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 'A simple landing page to introduce your business and help customers get in touch.',
               features: [
                 'Single-page website',
-                'Clean, simple design',
-                'Responsive design',
+                'Simple UI design',
                 'WhatsApp or email enquiry button',
                 '1 month of free post-launch bug fixes',
               ],
@@ -99,8 +98,7 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 'A landing page with a distinctive design and subtle animations to showcase your brand.',
               features: [
                 'Single-page website',
-                'Custom layout and visual styling',
-                'Responsive design',
+                'Detailed UI design',
                 'Animations and interactive effects',
                 'WhatsApp or email enquiry button',
                 '2 months of free post-launch bug fixes',
@@ -122,7 +120,6 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 'For websites that need multiple pages, customer accounts, payments, or custom functionality.',
               features: [
                 'Multi-page website',
-                'Responsive design',
                 'User registration and login',
                 'Payment gateway integration',
                 'Database integration and custom backend logic',

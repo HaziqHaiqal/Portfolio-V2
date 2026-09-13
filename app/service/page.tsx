@@ -19,6 +19,7 @@ import { DEFAULT_CONTACT } from '@constants/contact';
 import GridBackground from '@components/Layout/GridBackground';
 import Footer from '@components/Layout/Footer';
 import Reveal from '@components/Common/Reveal';
+import Disclosure from '@components/Common/Disclosure';
 
 export const metadata: Metadata = {
   title: 'Services | Haziq Haiqal',
@@ -140,80 +141,86 @@ export default async function ServicePage() {
                         </div>
 
                         {item.tiers && item.tiers.length > 0 && (
-                          <div className="mt-8">
-                            {item.pricingLabel && (
-                              <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
-                                {item.pricingLabel}
-                              </p>
-                            )}
-                            <div className="grid gap-5 lg:grid-cols-3 lg:gap-y-0">
-                              {item.tiers.map((tier) => (
-                                <div
-                                  key={tier.name}
-                                  className="flex min-w-0 flex-col rounded-2xl border border-gray-200 bg-white/60 p-6 dark:border-white/10 dark:bg-white/[0.03] lg:row-span-6 lg:grid lg:grid-rows-subgrid"
-                                >
-                                  <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                    {tier.name}
-                                  </h4>
-                                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                    {tier.subtitle}
-                                  </p>
-                                  <p className="mt-5 font-mono text-3xl font-bold text-gray-900 dark:text-white">
-                                    {tier.price}
-                                    {tier.priceNote && (
-                                      <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
-                                        {tier.priceNote}
-                                      </span>
+                          <Disclosure
+                            className="mt-8"
+                            showLabel="View full pricing details"
+                            hideLabel="Hide full pricing details"
+                          >
+                            <div className="mt-8">
+                              {item.pricingLabel && (
+                                <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
+                                  {item.pricingLabel}
+                                </p>
+                              )}
+                              <div className="grid gap-5 lg:grid-cols-3 lg:gap-y-0">
+                                {item.tiers.map((tier) => (
+                                  <div
+                                    key={tier.name}
+                                    className="flex min-w-0 flex-col rounded-2xl border border-gray-200 bg-white/60 p-6 dark:border-white/10 dark:bg-white/[0.03] lg:row-span-6 lg:grid lg:grid-rows-subgrid"
+                                  >
+                                    <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                      {tier.name}
+                                    </h4>
+                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                      {tier.subtitle}
+                                    </p>
+                                    <p className="mt-5 font-mono text-3xl font-bold text-gray-900 dark:text-white">
+                                      {tier.price}
+                                      {tier.priceNote && (
+                                        <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                          {tier.priceNote}
+                                        </span>
+                                      )}
+                                    </p>
+                                    <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                                      {tier.description}
+                                    </p>
+                                    <ul className="mb-8 mt-6 space-y-3 border-t border-gray-200 pt-6 dark:border-white/10">
+                                      {tier.features.map((description) => (
+                                        <li
+                                          key={description}
+                                          className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+                                        >
+                                          <Check
+                                            size={16}
+                                            aria-hidden="true"
+                                            className="mt-0.5 shrink-0 text-emerald-500"
+                                          />
+                                          {description}
+                                        </li>
+                                      ))}
+                                      {tier.exclusions?.map((description) => (
+                                        <li
+                                          key={description}
+                                          className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
+                                        >
+                                          <Minus
+                                            size={16}
+                                            aria-hidden="true"
+                                            className="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
+                                          />
+                                          {description}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                    {tier.cta && (
+                                      <a
+                                        href={tier.cta.href}
+                                        aria-label={`${tier.cta.label} on WhatsApp`}
+                                        className="mt-auto flex min-h-11 items-center justify-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-900 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-white/15 dark:text-gray-100 dark:hover:border-emerald-400 dark:hover:text-emerald-400"
+                                      >
+                                        {tier.cta.label}{' '}
+                                        <ArrowUpRight
+                                          size={15}
+                                          aria-hidden="true"
+                                        />
+                                      </a>
                                     )}
-                                  </p>
-                                  <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                                    {tier.description}
-                                  </p>
-                                  <ul className="mb-8 mt-6 space-y-3 border-t border-gray-200 pt-6 dark:border-white/10">
-                                    {tier.features.map((description) => (
-                                      <li
-                                        key={description}
-                                        className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
-                                      >
-                                        <Check
-                                          size={16}
-                                          aria-hidden="true"
-                                          className="mt-0.5 shrink-0 text-emerald-500"
-                                        />
-                                        {description}
-                                      </li>
-                                    ))}
-                                    {tier.exclusions?.map((description) => (
-                                      <li
-                                        key={description}
-                                        className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
-                                      >
-                                        <Minus
-                                          size={16}
-                                          aria-hidden="true"
-                                          className="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
-                                        />
-                                        {description}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                  {tier.cta && (
-                                    <a
-                                      href={tier.cta.href}
-                                      aria-label={`${tier.cta.label} on WhatsApp`}
-                                      className="mt-auto flex min-h-11 items-center justify-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-900 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-white/15 dark:text-gray-100 dark:hover:border-emerald-400 dark:hover:text-emerald-400"
-                                    >
-                                      {tier.cta.label}{' '}
-                                      <ArrowUpRight
-                                        size={15}
-                                        aria-hidden="true"
-                                      />
-                                    </a>
-                                  )}
-                                </div>
-                              ))}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          </Disclosure>
                         )}
                       </article>
                     </Reveal>
