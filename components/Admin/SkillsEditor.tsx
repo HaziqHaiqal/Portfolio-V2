@@ -377,8 +377,7 @@ function SkillFormModal({
 }: SkillFormModalProps) {
   const [formData, setFormData] = useState<SkillData>(skill);
 
-  // Re-seed local state whenever a different skill (or a blank one, for
-  // create) is opened — the modal instance stays mounted between opens.
+  // The modal stays mounted between opens, so re-seed when a different skill opens.
   useEffect(() => {
     if (open) setFormData(skill);
     // eslint-disable-next-line react-hooks/exhaustive-deps

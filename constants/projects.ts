@@ -78,7 +78,6 @@ export const PROJECT_CATEGORIES = [
 
 export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number]['value'];
 
-// Helper function to get category info
 export const getCategoryInfo = (categoryValue: string) => {
   return (
     PROJECT_CATEGORIES.find((cat) => cat.value === categoryValue) ||

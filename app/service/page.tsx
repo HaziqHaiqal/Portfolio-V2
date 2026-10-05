@@ -172,8 +172,7 @@ export default async function ServicePage() {
                                     <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                                       {tier.description}
                                     </p>
-                                    {/* One wrapper keeps every card at five subgrid rows, so the
-                                        examples link doesn't knock the cards out of line. */}
+                                    {/* One wrapper keeps the card at five subgrid rows. */}
                                     <div className="mb-8 mt-6 border-t border-gray-200 pt-6 dark:border-white/10">
                                       <ul className="space-y-3">
                                         {tier.features.map((description) => (

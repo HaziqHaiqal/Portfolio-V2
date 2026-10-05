@@ -106,11 +106,7 @@ const initialProfileData: ProfileData = {
   is_freelance_available: false,
 };
 
-// `profile` has no column yet for about, twitter_url, date_of_birth,
-// years_of_experience, availability_status, hourly_rate, preferred_contact,
-// languages, timezone, or is_freelance_available — those FormSections below
-// are edited but not yet persisted. Only send fields with a real column, or
-// PostgREST rejects the whole update on the first unknown key.
+// Only send columns that exist: PostgREST rejects the whole update on an unknown key.
 function toProfilePatch(data: ProfileData): NullableWritable<Profile> {
   return {
     id: data.id,
@@ -135,8 +131,6 @@ const availabilityStyles: Record<string, string> = {
   Unavailable: 'border-border bg-muted text-muted-foreground',
 };
 
-// Website and X have no fixed domain, so they're a plain input with the
-// icon absolutely-positioned inside it.
 const socialFields = [
   {
     field: 'website_url',
@@ -152,11 +146,6 @@ const socialFields = [
   },
 ] as const;
 
-// GitHub, LinkedIn and WhatsApp each have exactly one valid domain, so that
-// part of the URL is locked rather than free text — nothing to mistype, and
-// nothing to hide behind a placeholder. Each still stores a complete URL,
-// same as the two fields above; `prefix` only controls what's editable in
-// this form, not what's saved.
 const prefixedFields = [
   {
     field: 'github_url',
@@ -209,7 +198,6 @@ function FixedPrefixInput({
         value={suffix}
         onChange={(e) => {
           const typed = e.target.value;
-          // Pasting a full URL over the suffix shouldn't double the prefix.
           onChange(typed.startsWith('http') ? typed : prefix + typed);
         }}
         placeholder="username"

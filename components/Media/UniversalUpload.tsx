@@ -35,35 +35,25 @@ export interface UniversalUploadHandle {
   commitPending: () => Promise<UniversalUploadCommitResult>;
 }
 
-// ============= TYPES =============
-
 interface UniversalUploadProps {
-  // Core properties
   uploadType: keyof typeof UPLOAD_CONFIGS;
   entityId: string;
 
-  // Single file mode (like profile image, resume, thumbnails)
   value?: string;
   onChange?: (url: string) => void;
 
-  // Collection mode (like project images)
   onCollectionUpdate?: (files: UploadedFile[]) => void;
 
-  // UI customization
   label?: string;
   description?: string;
   placeholder?: string;
   required?: boolean;
 
-  // Crop functionality
   enableCrop?: boolean;
   cropAspect?: number;
 
-  // Mode selection
   allowUrlInput?: boolean;
 }
-
-// ============= COMPONENT =============
 
 const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
   function UniversalUpload(
@@ -83,8 +73,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
     },
     ref
   ) {
-    // ============= STATE =============
-
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const [altText, setAltText] = useState('');
@@ -100,15 +88,11 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ============= CONFIGURATION =============
-
     const config = UPLOAD_CONFIGS[uploadType];
-    const isCollectionMode = config.fieldName === 'project_collection'; // Project images use collection mode
+    const isCollectionMode = config.fieldName === 'project_collection';
     const isImageUpload = config.allowedTypes.some((type) =>
       type.startsWith('image/')
     );
-
-    // ============= HELPER FUNCTIONS =============
 
     const isImageFile = (file: File) => file.type.startsWith('image/');
     const isImageUrl = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
@@ -131,13 +115,10 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
       return `${types} • Max ${maxSizeMB}MB`;
     };
 
-    // ============= FILE HANDLING =============
-
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      // Validate file
       const validation = validateFile(file, config);
       if (!validation.valid) {
         setErrorMessage(validation.error || 'Invalid file');
@@ -145,17 +126,14 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
         return;
       }
 
-      // Store the selected file
       setSelectedFile(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
 
-      // Generate default alt text for images and show meta fields
       if (isImageFile(file)) {
         const defaultAlt = file.name
           .replace(/\.[^/.]+$/, '')
@@ -177,7 +155,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
         return { ok: false, error: 'Please select a file' };
       }
 
-      // Validate alt text for images
       if (isImageFile(file) && !altText.trim()) {
         setErrorMessage('Alt text is required for images');
         setUploadStatus('error');
@@ -200,7 +177,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
           clearPreview();
 
           if (isCollectionMode && onCollectionUpdate) {
-            // Refresh collection for project images
             const updatedFiles = await getFiles(
               'project',
               entityId,
@@ -209,7 +185,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
             onCollectionUpdate(updatedFiles);
             return { ok: true, files: updatedFiles };
           } else if (onChange) {
-            // Update single file reference
             onChange(result.data.url);
           }
           return { ok: true, url: result.data.url };
@@ -289,8 +264,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
       }
     };
 
-    // ============= CROP FUNCTIONALITY =============
-
     const handleCropImage = () => {
       if (preview) {
         setShowCropModal(true);
@@ -304,7 +277,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
 
       setCroppedImageFile(croppedFile);
 
-      // Update preview with cropped version
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreview(e.target?.result as string);
@@ -314,11 +286,8 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
       setShowCropModal(false);
     };
 
-    // ============= RENDER =============
-
     return (
       <div className="space-y-6">
-        {/* Header */}
         {label && (
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">
@@ -331,7 +300,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
           </div>
         )}
 
-        {/* Mode Toggle */}
         {allowUrlInput && !isCollectionMode && (
           <div className="flex w-fit items-center rounded-lg bg-gray-800/50 p-1">
             <button
@@ -361,9 +329,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
           </div>
         )}
 
-        {/* Main Content */}
         <div className="space-y-4">
-          {/* Current File Display */}
           {!isCollectionMode && value && !preview && (
             <m.div
               initial={{ opacity: 0, y: 10 }}
@@ -419,7 +385,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
             </m.div>
           )}
 
-          {/* URL Input Mode */}
           {allowUrlInput && inputMode === 'url' && !isCollectionMode ? (
             <div className="space-y-3">
               <div className="space-y-2">
@@ -452,9 +417,7 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
               )}
             </div>
           ) : (
-            /* Upload Mode */
             <div className="space-y-4">
-              {/* File Upload Area */}
               <div className="relative">
                 <input
                   ref={fileInputRef}
@@ -507,7 +470,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                       }`}
                     />
 
-                    {/* Action Buttons */}
                     <div className="absolute right-3 top-3 flex gap-2">
                       {enableCrop && preview && isImageUrl(preview) && (
                         <m.button
@@ -536,7 +498,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
                 )}
               </div>
 
-              {/* Meta Fields for Images */}
               <AnimatePresence>
                 {showMetaFields && preview && (
                   <m.div
@@ -589,7 +550,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
           )}
         </div>
 
-        {/* Status Messages */}
         <AnimatePresence>
           {uploadStatus === 'error' && errorMessage && (
             <m.div
@@ -604,7 +564,6 @@ const UniversalUpload = forwardRef<UniversalUploadHandle, UniversalUploadProps>(
           )}
         </AnimatePresence>
 
-        {/* Image Crop Modal */}
         {showCropModal && preview && (
           <ImageCropModal
             isOpen={showCropModal}

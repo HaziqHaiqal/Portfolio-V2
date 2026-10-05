@@ -99,7 +99,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
       className={`relative flex min-h-screen items-center justify-center overflow-hidden px-6 pt-20 sm:pt-24 md:pt-36`}
     >
       <div className="relative z-10 mx-auto max-w-4xl text-center">
-        {/* Terminal Window */}
         <div
           className="enter-pop absolute -left-80 -top-24 hidden lg:block"
           style={{ animationDuration: '0.8s', animationDelay: '0.5s' }}
@@ -117,7 +116,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           </div>
         </div>
 
-        {/* Code Snippet */}
         <div
           className="enter-right absolute -right-80 -top-20 hidden xl:block"
           style={{ animationDuration: '0.8s', animationDelay: '0.3s' }}
@@ -131,13 +129,11 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           </div>
         </div>
 
-        {/* Avatar & Social */}
         <div
           className="enter-pop relative mb-8 md:mb-12"
           style={{ animationDuration: '0.8s' }}
         >
           <div className="relative mx-auto mb-6 h-60 w-60 sm:h-64 sm:w-64 md:mb-8 md:h-72 md:w-72">
-            {/* Animated Rings around Avatar */}
             {[1, 2, 3].map((ring) => (
               <div
                 key={ring}
@@ -155,7 +151,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
               />
             ))}
 
-            {/* Pulsing Background Glow */}
             <div
               className="hero-glow pointer-events-none absolute -inset-16 rounded-full"
               style={{
@@ -165,9 +160,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
               }}
             />
 
-            {/* Container for Avatar and Status Dot Movement */}
             <div className="hero-drift-avatar absolute inset-0">
-              {/* Avatar image container with scaling */}
               <div
                 className={`hero-breathe absolute inset-8 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-blue-100 via-white to-purple-100 shadow-2xl dark:border-gray-700 dark:bg-gradient-to-br dark:from-gray-700 dark:via-gray-800 dark:to-gray-700`}
               >
@@ -189,7 +182,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                 )}
               </div>
 
-              {/* Glowing Status indicator */}
               <div className="absolute bottom-12 right-12 h-6 w-6">
                 <span
                   aria-hidden
@@ -202,7 +194,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
             </div>
           </div>
 
-          {/* Social Icons with Enhanced Movement */}
           <div className="mb-8 flex justify-center gap-4">
             {[
               {
@@ -246,7 +237,6 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
           </div>
         </div>
 
-        {/* Intro + stats with subtle movement */}
         <div className="enter-up relative space-y-6">
           <div className="hero-float relative">
             <h1

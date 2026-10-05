@@ -24,13 +24,7 @@ export interface PortfolioData {
   interests: Interest[];
 }
 
-/**
- * Fetches the complete public portfolio dataset.
- *
- * Two sequential batches (3 + 3) keep cold HTTP/2 stream concurrency low
- * while still running most queries in parallel. Safe for use from both
- * Server Components and client code.
- */
+/** Two batches of three keep cold HTTP/2 stream concurrency low. */
 export async function getPortfolio(db: DB): Promise<PortfolioData> {
   const [profile, experience, education] = await Promise.all([
     getProfile(db),

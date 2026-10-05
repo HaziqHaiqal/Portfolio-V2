@@ -111,7 +111,6 @@
     display: none;
   }
 
-  /* Creative developer animations */
   .code-rain {
     position: fixed;
     top: 0;
@@ -148,7 +147,6 @@
     }
   }
 
-  /* Glitch effect for developer aesthetic */
   .glitch {
     position: relative;
     overflow: hidden;
@@ -225,7 +223,6 @@
     }
   }
 
-  /* Typing animation */
   .typing-animation {
     overflow: hidden;
     border-right: 2px solid;
@@ -255,7 +252,6 @@
     }
   }
 
-  /* Matrix-style digital rain */
   .matrix-bg {
     position: fixed;
     top: 0;
@@ -267,7 +263,6 @@
     opacity: 0.1;
   }
 
-  /* Neon glow effects */
   .neon-blue {
     text-shadow:
       0 0 5px #00f,
@@ -284,7 +279,6 @@
       0 0 20px #a855f7;
   }
 
-  /* Holographic effect */
   .holographic {
     background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
     background-size: 400% 400%;
@@ -304,7 +298,6 @@
     }
   }
 
-  /* ASCII art styles */
   .ascii-art {
     font-family: 'Courier New', monospace;
     font-weight: normal;
@@ -312,7 +305,6 @@
     letter-spacing: -1px;
   }
 
-  /* Code block styling */
   .code-block {
     background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
     border: 1px solid #404040;
@@ -341,7 +333,6 @@
     font-size: 8px;
   }
 
-  /* Particle effect background */
   .particles {
     position: fixed;
     top: 0;
@@ -352,7 +343,6 @@
     z-index: -1;
   }
 
-  /* Developer-themed hover effects */
   .hover-lift {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -362,7 +352,6 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   }
 
-  /* Terminal cursor */
   .terminal-cursor {
     animation: terminal-blink 1s infinite;
   }
@@ -378,7 +367,6 @@
     }
   }
 
-  /* Cyberpunk grid overlay */
   .cyber-grid {
     background-image:
       linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
@@ -386,13 +374,11 @@
     background-size: 50px 50px;
   }
 
-  /* Handwriting font simulation */
   .font-handwriting {
     font-family: 'Comic Sans MS', cursive;
     transform: rotate(-2deg);
   }
 
-  /* 3D card effect */
   .card-3d {
     transform-style: preserve-3d;
     transition: transform 0.3s ease;
@@ -402,7 +388,6 @@
     transform: rotateX(5deg) rotateY(5deg);
   }
 
-  /* Tech icon pulse */
   .tech-pulse {
     animation: tech-pulse 2s ease-in-out infinite alternate;
   }
@@ -419,7 +404,6 @@
     }
   }
 
-  /* Floating animation */
   .float {
     animation: float 6s ease-in-out infinite;
   }
@@ -434,7 +418,6 @@
     }
   }
 
-  /* Gradient text animation */
   .gradient-text-animated {
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
     background-size: 400% 400%;
@@ -456,7 +439,6 @@
     }
   }
 
-  /* Button glow effect */
   .btn-glow {
     position: relative;
     overflow: hidden;

@@ -10,7 +10,6 @@ interface EducationSectionProps {
 const EducationSection = ({ education }: EducationSectionProps) => {
   if (!education || education.length === 0) return null;
 
-  // Sort by start_date descending (most recent first)
   const sortedEducation = [...education].sort(
     (a, b) =>
       new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
@@ -27,7 +26,6 @@ const EducationSection = ({ education }: EducationSectionProps) => {
           gradientClass="from-yellow-600 to-yellow-400"
         />
 
-        {/* Certificate Cards */}
         <div className="mx-auto max-w-4xl space-y-8">
           {sortedEducation.map((edu, idx) => (
             <Reveal
@@ -36,30 +34,25 @@ const EducationSection = ({ education }: EducationSectionProps) => {
               scale={0.95}
               delay={idx * 0.1}
             >
-              {/* Decorative corners */}
               <div className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-amber-300 dark:border-amber-600/50" />
               <div className="absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 border-amber-300 dark:border-amber-600/50" />
               <div className="absolute bottom-3 left-3 h-6 w-6 border-b-2 border-l-2 border-amber-300 dark:border-amber-600/50" />
               <div className="absolute bottom-3 right-3 h-6 w-6 border-b-2 border-r-2 border-amber-300 dark:border-amber-600/50" />
 
               <div className="text-center">
-                {/* Icon */}
                 <GraduationCap
                   className="mx-auto mb-4 text-amber-600 dark:text-amber-500"
                   size={44}
                 />
 
-                {/* Institution */}
                 <p className="mb-3 text-sm uppercase tracking-widest text-gray-600 dark:text-gray-400">
                   {edu.institution}
                 </p>
 
-                {/* Degree */}
                 <h3 className="mb-3 font-serif text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
                   {edu.degree}
                 </h3>
 
-                {/* Specialization */}
                 {edu.specialization && (
                   <p className="mb-4 text-sm text-gray-500">
                     Specialize in {edu.specialization}
@@ -67,7 +60,6 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                   </p>
                 )}
 
-                {/* Date Badge */}
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-5 py-2 text-sm font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
                   <Calendar size={14} />
                   {new Date(edu.start_date).toLocaleDateString('en-US', {
@@ -83,14 +75,12 @@ const EducationSection = ({ education }: EducationSectionProps) => {
                     : 'Present'}
                 </div>
 
-                {/* Grade/Honors */}
                 {edu.grade && (
                   <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
                     🏆 {edu.grade}
                   </p>
                 )}
 
-                {/* Activities */}
                 {edu.activities && edu.activities.length > 0 && (
                   <div className="mt-6 border-t border-dashed border-amber-300/30 pt-6">
                     <p className="mb-3 text-xs uppercase tracking-wider text-gray-500">

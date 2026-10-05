@@ -10,8 +10,7 @@ import ProjectSection from '@components/ProjectSection';
 import ServiceSection from '@components/ServiceSection';
 import Footer from '@components/Layout/Footer';
 
-// The root layout reads the theme cookie, so this route is always dynamic and
-// a route-level `revalidate` would never apply. Caching lives in the data layer.
+// Always dynamic (the layout reads the theme cookie), so caching lives in the data layer.
 export default async function Home() {
   const { profile, experience, education, projects } =
     await getCachedPortfolio();

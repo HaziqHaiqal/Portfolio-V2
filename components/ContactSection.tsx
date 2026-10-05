@@ -19,7 +19,6 @@ interface Entry {
 
 const GREETING = "Hi, I'm Haziq.";
 
-// Shared horizontal gutter — every region of the window aligns to it.
 const GUTTER = 'px-4 sm:px-6 lg:px-8';
 
 const COMMANDS = [
@@ -243,8 +242,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
 
   return (
     <div className={`flex h-full flex-col ${t.panel}`}>
-      {/* Window chrome. Closing happens via the floating button, the backdrop
-          or Escape, so there is no close control duplicated in here. */}
       <header
         className={`flex flex-shrink-0 items-center gap-3 ${GUTTER} h-12 border-b ${t.border}`}
       >
@@ -259,8 +256,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         <div className="w-[52px]" aria-hidden="true" />
       </header>
 
-      {/* Outer scroller catches the case where intro + screen exceed a short
-          window; normally nothing overflows here and only the screen scrolls. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         <div className={`flex-shrink-0 ${GUTTER} pb-6 pt-8`}>
           <div className="flex items-baseline gap-3 lg:gap-4">
@@ -287,7 +282,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           </m.p>
         </div>
 
-        {/* The screen: everything typed and every response lands here. */}
         <div
           className={`flex flex-1 flex-col ${GUTTER} pb-6`}
           style={{ minHeight: 160 }}
@@ -325,10 +319,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         </div>
       </div>
 
-      {/* Bottom bar: a thin always-there shortcut strip sitting on the prompt. */}
       <div className={`flex-shrink-0 border-t ${t.border}`}>
-        {/* One non-wrapping row that scrolls sideways once the bubbles
-            outgrow the window, so adding actions never costs extra height. */}
         <div
           className={`scrollbar-hide flex items-center gap-2 overflow-x-auto overscroll-x-contain ${GUTTER} pb-3 pt-3`}
         >
@@ -370,8 +361,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             spellCheck={false}
           />
 
-          {/* Always present so the row never shifts; dimmed when the screen
-              is already empty. */}
           <button
             type="button"
             onClick={() => {

@@ -34,11 +34,9 @@ const mobileItemVariants = {
   open: { opacity: 1, y: 0, transition: { duration: 0.15 } },
 };
 
-// Where a section's header lands after a nav jump, in px from the top of the
-// screen: just below the fixed navbar, whatever padding the section has.
 const HEADER_LANDING = { phone: 104, desktop: 128 };
 
-/** Position in the page, ignoring transforms like a header's reveal animation. */
+// offsetTop, because the header's reveal animation shifts getBoundingClientRect.
 function layoutTop(el: HTMLElement) {
   let top = 0;
   for (let n: Element | null = el; n instanceof HTMLElement; n = n.offsetParent)
@@ -60,9 +58,6 @@ function scrollToSection(id: string) {
   window.scrollTo({ top: layoutTop(header) - landing, behavior: 'smooth' });
 }
 
-/**
- * Responsive navigation bar with mobile hamburger menu.
- */
 const NavBar = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
@@ -104,7 +99,6 @@ const NavBar = () => {
 
   return (
     <>
-      {/* Desktop Navigation */}
       <nav className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 transform md:block">
         <div
           className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
@@ -164,13 +158,11 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
       <nav className="fixed left-4 right-4 top-4 z-50 md:hidden">
         <div
           className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center justify-between">
-            {/* Time */}
             <div
               className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
               suppressHydrationWarning
@@ -178,7 +170,6 @@ const NavBar = () => {
               {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
             </div>
 
-            {/* Controls */}
             <div className="flex items-center gap-3">
               <m.button
                 onClick={toggleDarkMode}
@@ -202,7 +193,6 @@ const NavBar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
           <AnimatePresence initial={false}>
             {isMobileMenuOpen && (
               <m.div

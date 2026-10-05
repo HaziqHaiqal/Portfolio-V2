@@ -7,7 +7,6 @@ import type {
 import type { ProjectProps } from 'types/portfolio';
 import type { DB } from './types';
 
-/** Public read: only projects marked visible. Admin queries its own list. */
 export async function getProjects(db: DB): Promise<Project[]> {
   const { data, error } = await db
     .from('projects')
@@ -47,10 +46,6 @@ export async function getProjectImages(
   return byProject;
 }
 
-/**
- * Returns projects in the shape the existing UI (`ProjectProps`) expects,
- * with images already attached. Single batched query for images — no N+1.
- */
 export async function getProjectsWithImages(db: DB): Promise<ProjectProps[]> {
   const projects = await getProjects(db);
   const imagesByProject = await getProjectImages(
@@ -92,7 +87,6 @@ export async function createProject(
   db: DB,
   row: NullableWritable<Project> & { id?: string }
 ): Promise<Project> {
-  // New projects join the end of the list; admin drag-and-drop moves them.
   const { data: last, error: lastError } = await db
     .from('projects')
     .select('sort_order')
@@ -116,7 +110,6 @@ export async function createProject(
   return data as Project;
 }
 
-/** Persists a full ordering: `ids[0]` gets sort_order 0, and so on. */
 export async function reorderProjects(db: DB, ids: string[]): Promise<void> {
   const { error } = await db.rpc('reorder_projects', { ids });
   if (error) throw error;
@@ -129,10 +122,7 @@ export async function upsertProject(
   const { id, ...patch } = row;
   const payload = { ...patch, updated_at: new Date().toISOString() };
 
-  // A patch with `id` targets an existing row: a genuine UPDATE, so only
-  // the given columns are validated. Routing this through `.upsert()`
-  // instead makes Postgres construct a full candidate row for the insert
-  // path it never takes, which trips NOT NULL on every omitted column.
+  // update(), not upsert(): upsert() NOT NULL-checks every omitted column.
   const { data, error } = id
     ? await db
         .from('projects')

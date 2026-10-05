@@ -56,7 +56,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
           roles: [],
         };
       }
-      // Update logo if this experience has one and previous didn't
       if (!acc[companyName].logo && exp.companies?.logo_url) {
         acc[companyName].logo = exp.companies.logo_url;
       }
@@ -87,7 +86,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
           gradientClass="from-rose-600 to-rose-400"
         />
 
-        {/* Git-style Timeline */}
         <div className="mx-auto max-w-4xl">
           <m.div
             className="rounded-3xl border border-gray-200 bg-white/70 p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70 sm:p-8"
@@ -96,7 +94,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            {/* Git Timeline */}
             <div className="relative">
               <div className="flex flex-col">
                 {sortedCompanies.map(([company, data], companyIndex) => {
@@ -122,7 +119,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                       key={company}
                       className={`relative ${isLast ? '' : 'pb-8'}`}
                     >
-                      {/* Gray Background Line - Per Item */}
                       <div
                         className={`absolute left-[27px] top-0 w-0.5 bg-gray-300 dark:bg-gray-600`}
                         style={{
@@ -130,7 +126,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         }}
                       />
 
-                      {/* Animated blue line overlay */}
                       <m.div
                         className="absolute left-[27px] top-0 z-[1] w-0.5 origin-top bg-blue-500"
                         initial={{ scaleY: 0 }}
@@ -142,7 +137,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         }}
                       />
 
-                      {/* Company Branch Point */}
                       <m.div
                         className="flex items-start gap-4"
                         initial={{ opacity: 0, x: -30 }}
@@ -153,14 +147,11 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                         }}
                         viewport={{ once: true }}
                       >
-                        {/* Company node on main timeline */}
                         <div className="relative z-10 flex flex-col items-center">
-                          {/* Logo Container */}
                           <div
                             className="relative cursor-pointer"
                             onClick={() => toggleCompany(company)}
                           >
-                            {/* Logo with animated border */}
                             <m.div
                               className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-blue-500/40 bg-white shadow-lg shadow-blue-900/30 dark:border-blue-500/40 dark:bg-gray-700 dark:shadow-blue-900/30`}
                               style={{
@@ -196,7 +187,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                           </div>
                         </div>
 
-                        {/* Company Info */}
                         <div className="min-w-0 flex-1">
                           <button
                             onClick={() => toggleCompany(company)}
@@ -223,7 +213,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                             </h4>
                           </button>
 
-                          {/* Expandable Roles Section */}
                           <AnimatePresence>
                             {isExpanded && (
                               <m.div
@@ -256,12 +245,9 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                         }}
                                         className="relative flex items-start gap-3"
                                       >
-                                        {/* Role commit dot - outline only, centered on timeline */}
                                         <div className="absolute -left-[50px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 bg-white dark:bg-gray-800" />
 
-                                        {/* Role content - closer to dot */}
                                         <div className="min-w-0 flex-1">
-                                          {/* Commit Hash & Date */}
                                           <div className="mb-3 flex flex-wrap items-center gap-1">
                                             <span
                                               className={`whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[12px] text-blue-700 dark:bg-blue-800 dark:text-blue-300 sm:px-2 sm:py-1 sm:text-xs`}
@@ -301,12 +287,10 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                             )}
                                           </div>
 
-                                          {/* Commit Message (Role Title) */}
                                           <h5 className="font-semibold text-gray-800 dark:text-gray-200">
                                             {role.position}
                                           </h5>
 
-                                          {/* Details */}
                                           {(() => {
                                             const points =
                                               role.responsibilities &&
@@ -335,7 +319,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
                                             );
                                           })()}
 
-                                          {/* Technologies */}
                                           {role.technologies &&
                                             role.technologies.length > 0 && (
                                               <div className="flex flex-wrap gap-2">

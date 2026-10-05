@@ -66,7 +66,6 @@ interface ThemeTokens {
   secondaryBtnText: string;
   secondaryBtnDisabled: string;
   backdropClass: string;
-  // Header gradient stops
   headerStop1: string;
   headerStop2: string;
   headerStop3: string;
@@ -172,7 +171,6 @@ export default function ProjectModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {/* Backdrop */}
           <m.div
             className={`absolute inset-0 ${T.backdropClass}`}
             onClick={onClose}
@@ -181,7 +179,6 @@ export default function ProjectModal({
             exit={{ opacity: 0 }}
           />
 
-          {/* Panel */}
           <m.div
             className={`relative flex h-[94vh] w-full flex-col overflow-hidden rounded-t-2xl shadow-2xl md:mx-4 md:h-[88vh] md:max-w-4xl md:rounded-2xl ${T.panelBg}`}
             initial={{ y: '8%', opacity: 0, scale: 0.96 }}
@@ -190,7 +187,6 @@ export default function ProjectModal({
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Gradient that bleeds from category color into the body */}
             <div
               className="pointer-events-none absolute inset-x-0 top-0 h-[55%]"
               style={{
@@ -198,7 +194,6 @@ export default function ProjectModal({
               }}
             />
 
-            {/* Top bar */}
             <div className="relative z-10 flex flex-shrink-0 items-center justify-between px-5 py-3">
               <div
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium backdrop-blur-md ${T.glassBg} ${T.glassBorder} ${T.glassText}`}
@@ -217,9 +212,7 @@ export default function ProjectModal({
               </m.button>
             </div>
 
-            {/* Scrollable */}
             <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain">
-              {/* Header: cover + title */}
               <div className="flex flex-col items-end gap-6 px-6 py-7 md:flex-row md:gap-8 md:px-8">
                 <m.div
                   className={`relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl sm:w-80 md:w-80 ${T.shadowOnImage} bg-gray-100 dark:bg-gray-950/50`}
@@ -253,7 +246,6 @@ export default function ProjectModal({
                   )}
                 </m.div>
 
-                {/* Info */}
                 <m.div
                   className={`min-w-0 flex-1 ${T.textPrimary}`}
                   initial={{ y: 20, opacity: 0 }}
@@ -292,7 +284,6 @@ export default function ProjectModal({
                 </m.div>
               </div>
 
-              {/* Action bar */}
               <m.div
                 className="flex flex-wrap items-center gap-3 px-6 pb-6 md:px-8"
                 initial={{ y: 10, opacity: 0 }}
@@ -306,8 +297,6 @@ export default function ProjectModal({
                   variant="primary"
                   T={T}
                 />
-                {/* Most projects have no demo, so it appears only when set
-                    rather than sitting there disabled like the other two. */}
                 {project.demoUrl && (
                   <ActionButton
                     href={project.demoUrl}
@@ -326,7 +315,6 @@ export default function ProjectModal({
                 />
               </m.div>
 
-              {/* Gallery */}
               {project.id && (
                 <Section T={T} first>
                   <SectionTitle T={T}>Gallery</SectionTitle>
@@ -338,7 +326,6 @@ export default function ProjectModal({
                 </Section>
               )}
 
-              {/* About */}
               {project.longDescription && (
                 <Section T={T}>
                   <SectionTitle T={T}>About</SectionTitle>
@@ -350,7 +337,6 @@ export default function ProjectModal({
                 </Section>
               )}
 
-              {/* Highlights */}
               {project.features && project.features.length > 0 && (
                 <Section T={T}>
                   <SectionTitle T={T}>Highlights</SectionTitle>
@@ -375,7 +361,6 @@ export default function ProjectModal({
                 </Section>
               )}
 
-              {/* Built with */}
               {project.languages.length > 0 && (
                 <Section T={T}>
                   <SectionTitle T={T}>Built with</SectionTitle>
@@ -392,7 +377,6 @@ export default function ProjectModal({
                 </Section>
               )}
 
-              {/* Footer meta */}
               <div
                 className={`mt-10 border-t px-6 pb-10 pt-6 text-xs md:px-8 ${T.divider} ${T.textFaint}`}
               >

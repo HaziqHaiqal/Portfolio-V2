@@ -1,9 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { setSupabaseDown } from '@components/Provider/MaintenanceProvider';
 
-// Transient HTTP/2 errors that Chrome retries internally for subresources but
-// surfaces through fetch(). Most common: ERR_HTTP2_SERVER_REFUSED_STREAM on
-// cold Cloudflare connections.
+// Transient HTTP/2 errors Chrome surfaces through fetch() on cold connections.
 const TRANSIENT_ERROR_PATTERNS = [
   'ERR_HTTP2_SERVER_REFUSED_STREAM',
   'ERR_HTTP2_PROTOCOL_ERROR',

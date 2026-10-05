@@ -13,11 +13,6 @@ interface InfoPopoverProps {
   note?: string;
 }
 
-/**
- * A one-line trigger that reveals a short list above it without changing the
- * layout. Mouse users get it on hover; touch and keyboard users toggle it with
- * a tap or Enter, and dismiss it by tapping elsewhere or pressing Escape.
- */
 export default function InfoPopover({
   label,
   heading,
@@ -26,7 +21,6 @@ export default function InfoPopover({
 }: InfoPopoverProps) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
-  // Open towards whichever half of the viewport has more room.
   const [below, setBelow] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId();

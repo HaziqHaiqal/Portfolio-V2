@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { Button } from '@components/ui/button';
 
-// Simple global flag that the Supabase client can set
 let globalSetDown: ((down: boolean) => void) | null = null;
 
 export function setSupabaseDown(down: boolean) {
@@ -21,7 +20,6 @@ const MaintenanceContext = createContext({ isDown: false });
 export function MaintenanceProvider({ children }: { children: ReactNode }) {
   const [isDown, setIsDown] = useState(false);
 
-  // Register the global setter
   useEffect(() => {
     globalSetDown = setIsDown;
     return () => {
@@ -38,7 +36,6 @@ export function MaintenanceProvider({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-b from-gray-950 to-gray-900 text-gray-100">
         <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
-          {/* Animated icon */}
           <div className="relative mb-8">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-orange-600/20">
               <svg

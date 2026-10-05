@@ -1,7 +1,5 @@
 import { createBrowserSupabase } from '@lib/supabase/browser';
 
-// ============= TYPES =============
-
 export interface UploadedFile {
   id: string;
   url: string;
@@ -34,90 +32,77 @@ export interface DeleteResult {
   error?: string;
 }
 
-// ============= UPLOAD CONFIGURATIONS =============
-
 export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
-  // Profile uploads
   profile_image: {
     entityType: 'profile',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'profile_image',
     bucket: 'profile-images',
     path: 'avatars',
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 5 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   },
 
   resume: {
     entityType: 'profile',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'resume',
     bucket: 'documents',
     path: 'resumes',
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 10 * 1024 * 1024,
     allowedTypes: ['application/pdf'],
   },
 
-  // Project uploads
   project_thumbnail: {
     entityType: 'project',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'project_thumbnail',
     bucket: 'project-thumbnails',
     path: 'thumbnails',
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 5 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
 
   project_image: {
     entityType: 'project',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'project_collection',
     bucket: 'project-images',
-    path: '', // Will use entityId as path
-    maxSize: 5 * 1024 * 1024, // 5MB
+    path: '',
+    maxSize: 5 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   },
 
-  // Company logos are stored on the standalone `companies` table.
   company_logo: {
     entityType: 'company',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'company_logo',
     bucket: 'profile-images',
     path: 'company-logos',
-    maxSize: 2 * 1024 * 1024, // 2MB
+    maxSize: 2 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
   },
 
-  // Education uploads
   institution_logo: {
     entityType: 'education',
-    entityId: '', // Set dynamically
+    entityId: '',
     fieldName: 'institution_logo',
     bucket: 'profile-images',
     path: 'institution-logos',
-    maxSize: 2 * 1024 * 1024, // 2MB
+    maxSize: 2 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
   },
 };
 
-// ============= CORE FUNCTIONS =============
-
-/**
- * Validate file against upload configuration
- */
 export function validateFile(
   file: File,
   config: UploadConfig
 ): { valid: boolean; error?: string } {
-  // Check file size
   if (file.size > config.maxSize) {
     const maxSizeMB = Math.round(config.maxSize / (1024 * 1024));
     return { valid: false, error: `File must be less than ${maxSizeMB}MB` };
   }
 
-  // Check file type
   if (!config.allowedTypes.includes(file.type)) {
     const typeNames = config.allowedTypes
       .map((type) => {
@@ -133,9 +118,6 @@ export function validateFile(
   return { valid: true };
 }
 
-/**
- * Upload file to Supabase Storage and save metadata
- */
 export async function uploadFile(
   file: File,
   uploadType: string,
@@ -146,7 +128,6 @@ export async function uploadFile(
   try {
     const supabase = createBrowserSupabase();
 
-    // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
     if (!config) {
       return { success: false, error: `Unknown upload type: ${uploadType}` };
@@ -154,19 +135,16 @@ export async function uploadFile(
 
     config.entityId = entityId;
 
-    // Validate file
     const validation = validateFile(file, config);
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }
 
-    // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2);
     const fileName = `${config.path ? config.path + '/' : ''}${timestamp}-${random}.${fileExt}`;
 
-    // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from(config.bucket)
       .upload(fileName, file, {
@@ -178,12 +156,10 @@ export async function uploadFile(
       return { success: false, error: `Upload failed: ${uploadError.message}` };
     }
 
-    // Get public URL
     const {
       data: { publicUrl },
     } = supabase.storage.from(config.bucket).getPublicUrl(fileName);
 
-    // Save metadata to uploads table
     const { data: dbData, error: dbError } = await supabase
       .from('uploads')
       .insert({
@@ -205,12 +181,10 @@ export async function uploadFile(
       .single();
 
     if (dbError) {
-      // Clean up uploaded file if database insert fails
       await supabase.storage.from(config.bucket).remove([fileName]);
       return { success: false, error: `Database error: ${dbError.message}` };
     }
 
-    // Update main entity table if needed (skip collections)
     if (config.fieldName !== 'project_collection') {
       await updateEntityTable(
         config.entityType,
@@ -239,9 +213,6 @@ export async function uploadFile(
   }
 }
 
-/**
- * Delete file from storage, database, and clear entity reference
- */
 export async function deleteFile(
   uploadType: string,
   entityId: string
@@ -249,7 +220,6 @@ export async function deleteFile(
   try {
     const supabase = createBrowserSupabase();
 
-    // Get upload configuration
     const config = { ...UPLOAD_CONFIGS[uploadType] };
     if (!config) {
       return { success: false, error: `Unknown upload type: ${uploadType}` };
@@ -257,7 +227,6 @@ export async function deleteFile(
 
     config.entityId = entityId;
 
-    // Find the file in uploads table
     const { data: fileData, error: fetchError } = await supabase
       .from('uploads')
       .select('id, file_url, bucket_name, file_name')
@@ -268,7 +237,6 @@ export async function deleteFile(
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
-        // No file found, just clear the entity field
         if (config.fieldName !== 'project_collection') {
           await clearEntityField(
             config.entityType,
@@ -284,7 +252,6 @@ export async function deleteFile(
       };
     }
 
-    // Delete from uploads table
     const { error: dbError } = await supabase
       .from('uploads')
       .delete()
@@ -297,7 +264,6 @@ export async function deleteFile(
       };
     }
 
-    // Delete from storage
     const { error: storageError } = await supabase.storage
       .from(fileData.bucket_name)
       .remove([fileData.file_name]);
@@ -306,7 +272,6 @@ export async function deleteFile(
       console.warn('Storage deletion failed:', storageError.message);
     }
 
-    // Clear entity field if needed
     if (config.fieldName !== 'project_collection') {
       await clearEntityField(
         config.entityType,
@@ -321,14 +286,10 @@ export async function deleteFile(
   }
 }
 
-/**
- * Delete specific file by ID (for collections like project images)
- */
 export async function deleteFileById(fileId: string): Promise<DeleteResult> {
   try {
     const supabase = createBrowserSupabase();
 
-    // Get file details
     const { data: fileData, error: fetchError } = await supabase
       .from('uploads')
       .select('file_url, bucket_name, file_name')
@@ -342,7 +303,6 @@ export async function deleteFileById(fileId: string): Promise<DeleteResult> {
       };
     }
 
-    // Delete from database
     const { error: dbError } = await supabase
       .from('uploads')
       .delete()
@@ -355,7 +315,6 @@ export async function deleteFileById(fileId: string): Promise<DeleteResult> {
       };
     }
 
-    // Delete from storage
     const { error: storageError } = await supabase.storage
       .from(fileData.bucket_name)
       .remove([fileData.file_name]);
@@ -370,9 +329,6 @@ export async function deleteFileById(fileId: string): Promise<DeleteResult> {
   }
 }
 
-/**
- * Get files for an entity
- */
 export async function getFiles(
   entityType: string,
   entityId: string,
@@ -411,11 +367,6 @@ export async function getFiles(
   }));
 }
 
-// ============= HELPER FUNCTIONS =============
-
-/**
- * Update entity table with file URL
- */
 async function updateEntityTable(
   entityType: string,
   entityId: string,
@@ -455,9 +406,6 @@ async function updateEntityTable(
   }
 }
 
-/**
- * Clear entity table field
- */
 async function clearEntityField(
   entityType: string,
   entityId: string,
@@ -496,10 +444,7 @@ async function clearEntityField(
   }
 }
 
-// ============= CONVENIENCE FUNCTIONS =============
-
 export const getProjectImages = (projectId: string) =>
   getFiles('project', projectId, 'project_collection');
 
-// Legacy compatibility - for gradual migration
 export type { UploadedFile as ProjectImage };

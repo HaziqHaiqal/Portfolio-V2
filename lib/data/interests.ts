@@ -17,10 +17,7 @@ export async function upsertInterest(
   const { id, ...patch } = row;
   const payload = { ...patch, updated_at: new Date().toISOString() };
 
-  // A patch with `id` targets an existing row: a genuine UPDATE, so only
-  // the given columns are validated. Routing this through `.upsert()`
-  // instead makes Postgres construct a full candidate row for the insert
-  // path it never takes, which trips NOT NULL on every omitted column.
+  // update(), not upsert(): upsert() NOT NULL-checks every omitted column.
   const { data, error } = id
     ? await db
         .from('interests')

@@ -9,11 +9,7 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/**
- * Returns a server-side Supabase client scoped to the current admin session,
- * throwing `UnauthorizedError` if the request is unauthenticated. Use at the
- * top of every server action that mutates data.
- */
+/** Throws UnauthorizedError unless an admin is signed in. Call first in every mutating action. */
 export async function requireAdminClient(): Promise<SupabaseClient> {
   const db = await createServerSupabase();
   const {

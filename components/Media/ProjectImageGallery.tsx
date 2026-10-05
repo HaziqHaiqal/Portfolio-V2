@@ -9,7 +9,6 @@ import { getProjectImages, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectImageGalleryProps {
   projectId: string;
-  /** Shorter hero when embedded in project modal */
   compact?: boolean;
 }
 
@@ -21,8 +20,7 @@ export default function ProjectImageGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
-  // Keys like `thumb:<url>` for images that have arrived (or failed), so each
-  // size shows a placeholder until its own file loads.
+  // Keyed per size: a loaded thumbnail doesn't mean the larger copy has loaded.
   const [loaded, setLoaded] = useState<ReadonlySet<string>>(() => new Set());
   const markLoaded = (key: string) =>
     setLoaded((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
@@ -45,8 +43,6 @@ export default function ProjectImageGallery({
     loadImages();
   }, [projectId]);
 
-  // Keep the current image's thumbnail centred in the strip, however the image
-  // was changed (arrows, fullscreen, or a thumbnail tap).
   useEffect(() => {
     const strip = thumbnailContainerRef.current;
     const thumb = strip?.children[currentIndex] as HTMLElement | undefined;
@@ -95,7 +91,6 @@ export default function ProjectImageGallery({
   return (
     <>
       <div className="space-y-4">
-        {/* Main Image */}
         <div className="relative overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
           <div className={`relative ${compact ? 'h-52 sm:h-60' : 'h-96'}`}>
             <Image
@@ -122,7 +117,6 @@ export default function ProjectImageGallery({
               </div>
             )}
 
-            {/* Navigation Arrows - Only show if multiple images */}
             {images.length > 1 && (
               <>
                 <button
@@ -140,7 +134,6 @@ export default function ProjectImageGallery({
               </>
             )}
 
-            {/* Image Counter */}
             {images.length > 1 && (
               <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-2 py-1 text-xs text-white">
                 {currentIndex + 1} / {images.length}
@@ -148,7 +141,6 @@ export default function ProjectImageGallery({
             )}
           </div>
 
-          {/* Caption */}
           {images[currentIndex].caption && (
             <div className="bg-white p-4 dark:bg-gray-900">
               <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -158,7 +150,6 @@ export default function ProjectImageGallery({
           )}
         </div>
 
-        {/* Thumbnail Strip */}
         {images.length > 1 && (
           <div
             ref={thumbnailContainerRef}
@@ -195,7 +186,6 @@ export default function ProjectImageGallery({
         )}
       </div>
 
-      {/* Fullscreen Modal */}
       <AnimatePresence>
         {isFullscreen && (
           <m.div
@@ -205,7 +195,6 @@ export default function ProjectImageGallery({
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-4"
             onClick={() => setIsFullscreen(false)}
           >
-            {/* Close Button */}
             <button
               onClick={() => setIsFullscreen(false)}
               className="absolute right-4 top-4 p-2 text-white hover:text-gray-300"
@@ -213,7 +202,6 @@ export default function ProjectImageGallery({
               <X className="h-6 w-6" />
             </button>
 
-            {/* Navigation Arrows */}
             {images.length > 1 && (
               <>
                 <button
@@ -237,7 +225,6 @@ export default function ProjectImageGallery({
               </>
             )}
 
-            {/* Fullscreen Image */}
             <m.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
@@ -268,7 +255,6 @@ export default function ProjectImageGallery({
               )}
             </m.div>
 
-            {/* Image Info */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-white">
               {images.length > 1 && (
                 <p className="mb-1 text-sm">

@@ -18,8 +18,7 @@ export default function Disclosure({
   className = '',
 }: DisclosureProps) {
   const [open, setOpen] = useState(false);
-  // Clip only while the height animates; once fully open, popovers inside
-  // (like a pricing card's examples) can extend past the edge.
+  // Clip only while animating, so popovers inside can overflow once open.
   const [settled, setSettled] = useState(false);
 
   return (

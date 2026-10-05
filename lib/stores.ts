@@ -1,10 +1,6 @@
 import { create } from 'zustand';
 import type { ProjectProps } from 'types/portfolio';
 
-/**
- * Purely UI-local state (modals, menus). All server data is fetched in
- * Server Components and passed down as props — no client-side data store.
- */
 interface UIState {
   selectedProject: ProjectProps | null;
   isProjectModalOpen: boolean;

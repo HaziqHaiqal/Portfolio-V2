@@ -33,7 +33,6 @@ const TechStackSection = () => {
 
   return (
     <section className={`relative overflow-hidden px-6 py-32`}>
-      {/* Matrix-style background */}
       <div className="absolute inset-0 opacity-20">
         <div className="matrix-rain" />
       </div>
@@ -47,7 +46,6 @@ const TechStackSection = () => {
           gradientClass="from-blue-600 to-blue-400"
         />
 
-        {/* Icon grid displaying tech stacks */}
         <Reveal
           className="mx-auto max-w-4xl rounded-3xl border border-gray-200 bg-white/70 p-10 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70"
           y={50}
@@ -60,12 +58,10 @@ const TechStackSection = () => {
                 key={stack.name}
                 className="group relative flex h-12 w-12 items-center justify-center"
               >
-                {/* Icon */}
                 <stack.icon
                   size={40}
                   className="absolute inset-0 m-auto text-gray-700 transition-all duration-300 group-hover:scale-0 group-hover:opacity-0 dark:text-gray-300"
                 />
-                {/* Text replaces icon on hover */}
                 <span className="absolute inset-0 m-auto flex items-center justify-center text-xs font-semibold text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:text-blue-400">
                   {stack.name}
                 </span>

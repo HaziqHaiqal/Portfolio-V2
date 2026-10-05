@@ -20,15 +20,10 @@ import { cn } from '@lib/utils';
 import type { ProjectProps } from 'types/portfolio';
 
 const SWIPE_THRESHOLD = 50;
-// Movement before a press counts as a drag rather than a tap on the card.
 const DRAG_SLOP = 8;
-// Quiet time after the last wheel event that ends a trackpad gesture.
 const WHEEL_SETTLE_MS = 160;
-// Distance between neighbouring card slots, as a share of the rail's width.
 const SLOT_SHARE = 0.76;
 
-// Where a card sits at slot offsets -2, -1, 0, 1, 2. Between slots the values are
-// interpolated, so a card being dragged travels its real path instead of sliding.
 const TILT = {
   x: [-120, -74, 0, 74, 120], // % of card width
   z: [-560, -280, 0, -280, -560], // px
@@ -45,31 +40,23 @@ const OPACITY = [0, 1, 1, 1, 0];
 const clamp = (v: number, limit: number) =>
   Math.max(-limit, Math.min(limit, v));
 
-/** Signed distance from the active card, wrapped so the shorter way round wins. */
 function offsetFrom(k: number, active: number, total: number) {
   const off = (k - active + total) % total;
   return off > total / 2 ? off - total : off;
 }
 
-/** Linear lookup into a five-stop table for a fractional slot offset. */
 function at(stops: number[], f: number) {
   const x = Math.max(-2, Math.min(2, f)) + 2;
   const i = Math.min(3, Math.floor(x));
   return stops[i] + (stops[i + 1] - stops[i]) * (x - i);
 }
 
-/**
- * Both layouts ship as CSS variables and the breakpoint picks one in CSS, so the
- * server render already matches the screen. Phones get the "sunken shelf"
- * (neighbours drop lower and shrink); wider screens tilt them away at the sides.
- * `f` is the card's slot offset, fractional while a drag or scroll is under way.
- */
+// Both layouts ship as CSS variables so the server render already matches the screen.
 function cardStyle(f: number): CSSProperties {
   return {
     '--card-shelf': `translateX(${at(SHELF.x, f)}%) translateY(${at(SHELF.y, f)}px) rotateY(${at(SHELF.rotateY, f)}deg) scale(${at(SHELF.scale, f)})`,
     '--card-tilt': `translateX(${at(TILT.x, f)}%) translateZ(${at(TILT.z, f)}px) rotateY(${at(TILT.rotateY, f)}deg)`,
     opacity: at(OPACITY, f),
-    // Whichever card is nearer the centre stays on top as two of them cross.
     zIndex: Math.round(10 - Math.min(Math.abs(f), 2) * 3),
   } as CSSProperties;
 }
@@ -109,7 +96,6 @@ export default function ProjectsCoverflow({
 }) {
   const [category, setCategory] = useState('all');
   const [active, setActive] = useState(0);
-  // Live drag or scroll distance in px, and the slot width it's measured against.
   const [scrub, setScrub] = useState({ dx: 0, slot: 1 });
   const openProjectModal = useUIStore((state) => state.openProjectModal);
   const regionRef = useRef<HTMLDivElement>(null);
@@ -120,7 +106,6 @@ export default function ProjectsCoverflow({
   } | null>(null);
   const suppressClick = useRef(false);
 
-  // "All" plus only the categories that visible projects actually use.
   const filters = useMemo(() => {
     const countOf = (value: string) =>
       projects.filter((p) => getCategoryInfo(p.category).value === value)
@@ -148,10 +133,7 @@ export default function ProjectsCoverflow({
 
   const total = shown.length;
 
-  // Horizontal trackpad or mouse scrolling moves the cards exactly like a drag,
-  // then settles once the gesture (momentum included) goes quiet: at most one
-  // project per gesture, past the same threshold. A native listener, because
-  // React's wheel handler is passive and can't stop the browser's back swipe.
+  // Native listener: React's wheel handler is passive and can't block the back swipe.
   useEffect(() => {
     const el = regionRef.current;
     if (!el || total < 2) return;
@@ -196,8 +178,6 @@ export default function ProjectsCoverflow({
   const currentFilter = filters.find((f) => f.value === category) ?? filters[0];
   const CurrentIcon = currentFilter.icon;
 
-  // Cards follow the drag 1:1 along their own paths; a whole slot is the most
-  // one gesture can move.
   const scrubbing = scrub.dx !== 0;
   const progress = scrub.dx / scrub.slot;
 
@@ -260,7 +240,6 @@ export default function ProjectsCoverflow({
 
   return (
     <div className="space-y-8">
-      {/* Phones get a dropdown, since the chips would wrap onto several rows. */}
       <div className="flex justify-center sm:hidden">
         <SelectPrimitive.Root value={category} onValueChange={pickCategory}>
           <div className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-[1.5px] shadow-lg shadow-purple-500/25">
@@ -379,7 +358,6 @@ export default function ProjectsCoverflow({
               onPointerCancel={onPointerCancel}
               className="relative mx-auto w-[min(600px,86vw)] touch-pan-y select-none [perspective:1600px]"
             >
-              {/* Sizes the rail: an image band plus the fixed-height footer. */}
               <div aria-hidden className="invisible">
                 <div className="aspect-[20/9]" />
                 <div className="h-[76px]" />
@@ -398,7 +376,6 @@ export default function ProjectsCoverflow({
                     style={cardStyle(f)}
                     className={cn(
                       'absolute inset-0 flex flex-col overflow-hidden rounded-2xl border bg-white [transform:var(--card-shelf)] motion-reduce:transition-none dark:bg-gray-900 md:[transform:var(--card-tilt)]',
-                      // Follow the pointer instantly; ease into place once it lets go.
                       scrubbing
                         ? 'transition-none'
                         : 'transition-[transform,opacity,box-shadow] duration-700 [transition-timing-function:cubic-bezier(0.2,0.8,0.2,1)]',
@@ -408,7 +385,6 @@ export default function ProjectsCoverflow({
                       parked && 'pointer-events-none'
                     )}
                   >
-                    {/* Underlay: the whole card is the click target; footer actions sit above it. */}
                     <button
                       type="button"
                       onClick={() => onCardClick(k)}

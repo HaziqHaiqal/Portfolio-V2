@@ -18,11 +18,7 @@ export async function upsertCompany(
   const { id, ...patch } = row;
   const payload = { ...patch, updated_at: new Date().toISOString() };
 
-  // Creation preserves the ID already used by pending logo uploads.
-  // Otherwise, a patch with `id` targets an existing row: an UPDATE, so only
-  // the given columns are validated. Routing this through `.upsert()`
-  // instead makes Postgres construct a full candidate row for the insert
-  // path it never takes, which trips NOT NULL on every omitted column.
+  // Create keeps the ID pending logo uploads use; otherwise update(), since upsert() NOT NULL-checks omitted columns.
   const { data, error } =
     id && mode !== 'create'
       ? await db

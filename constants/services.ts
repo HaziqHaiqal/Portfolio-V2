@@ -7,7 +7,6 @@ export interface PricingTier {
   description: string;
   features: string[];
   exclusions?: string[];
-  /** Examples of what this tier can include, shown in a popover on the card. */
   examples?: string[];
   price: string;
   priceNote?: string;

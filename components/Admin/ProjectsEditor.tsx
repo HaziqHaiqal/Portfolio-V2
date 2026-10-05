@@ -262,13 +262,11 @@ export default function ProjectsEditor() {
     }
   };
 
-  // Only reachable unfiltered, so `projects` is exactly what's on screen.
   const handleReorder = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
     const from = projects.findIndex((p) => p.id === active.id);
     const to = projects.findIndex((p) => p.id === over.id);
-    // Keep each sort_order in step so a later form save can't write back a
-    // stale position.
+    // Keep sort_order in step so a later form save can't write a stale position.
     const next = arrayMove(projects, from, to).map((p, i) => ({
       ...p,
       sort_order: i,
@@ -565,10 +563,6 @@ export default function ProjectsEditor() {
   );
 }
 
-/**
- * Makes a grid item draggable by a grip handle only, so clicks on the card's
- * other actions never start a drag. The handle is omitted while `disabled`.
- */
 function SortableCard({
   id,
   disabled,

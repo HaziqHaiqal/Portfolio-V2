@@ -3,9 +3,6 @@ import { graphql } from '@octokit/graphql';
 import { z } from 'zod';
 import type { GitHubData as LocalGitHubData } from 'types/github';
 
-// This route is dynamic because it reads `request.url` for the `year` query
-// parameter. Cache the response at the edge / browser via the Cache-Control
-// header below.
 export const dynamic = 'force-dynamic';
 
 const github = graphql.defaults({

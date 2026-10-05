@@ -31,7 +31,6 @@ const ProjectSection = ({
             gradientClass="from-purple-600 to-purple-400"
           />
 
-          {/* Content */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="relative">

@@ -15,14 +15,6 @@ interface ContactModalProps {
   profile: Partial<Profile> | null;
 }
 
-/**
- * Floating launcher that opens the contact terminal as a centered modal.
- * Replaces the old "Let's Connect" section — the NavBar "Contact" link opens
- * this too, via the UI store.
- *
- * Closing is handled here — by this button, the backdrop or Escape — so the
- * window itself carries no close control.
- */
 const ContactModal = ({ profile }: ContactModalProps) => {
   const { isContactOpen, toggleContact, closeContact } = useUIStore();
 
@@ -75,7 +67,6 @@ const ContactModal = ({ profile }: ContactModalProps) => {
         )}
       </AnimatePresence>
 
-      {/* Floating launcher */}
       <m.button
         onClick={toggleContact}
         className="group fixed bottom-4 right-4 z-[70] flex h-10 w-10 items-center justify-center overflow-visible rounded-full border-2 border-emerald-500/60 bg-white text-emerald-600 shadow-[0_8px_24px_-10px_rgba(16,185,129,0.7)] outline-none transition-colors duration-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-4 focus-visible:ring-emerald-400/30 dark:border-emerald-400/60 dark:bg-gray-900 dark:text-emerald-300 dark:hover:bg-gray-800 dark:hover:text-emerald-200 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"

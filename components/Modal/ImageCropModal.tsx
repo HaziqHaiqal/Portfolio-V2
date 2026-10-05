@@ -26,7 +26,6 @@ export default function ImageCropModal({
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Function to generate the cropped image
   const getCroppedImg = useCallback(
     (image: HTMLImageElement, crop: Crop): Promise<Blob | null> => {
       const canvas = document.createElement('canvas');

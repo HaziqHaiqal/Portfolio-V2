@@ -19,8 +19,7 @@ export async function createServerSupabase() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Called from a read-only Server Component. Cookies get refreshed
-            // by the session middleware on the next request; safe to ignore.
+            // Read-only Server Component: the middleware refreshes cookies next request.
           }
         },
       },

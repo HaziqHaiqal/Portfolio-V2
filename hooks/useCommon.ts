@@ -12,7 +12,6 @@ export function useHydrated() {
   );
 }
 
-// Hook for current time with automatic updates
 export function useCurrentTime(updateInterval = 1000) {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const mounted = useHydrated();
@@ -27,21 +26,17 @@ export function useCurrentTime(updateInterval = 1000) {
   return { currentTime, mounted };
 }
 
-// Hook for keyboard shortcuts
 export function useKeyboardShortcuts() {
   const { toggleDarkMode } = useTheme();
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      // Ctrl/Cmd + D for dark mode toggle
       if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
         event.preventDefault();
         toggleDarkMode();
       }
 
-      // Escape to close modals (handled by UI store in components)
       if (event.key === 'Escape') {
-        // Components should listen for this
         window.dispatchEvent(new CustomEvent('closeModal'));
       }
     };
