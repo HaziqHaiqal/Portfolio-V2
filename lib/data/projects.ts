@@ -78,6 +78,7 @@ export function toProjectProps(
     languages: project.tech_stack ?? [],
     category: project.category,
     projectUrl: project.project_url,
+    demoUrl: project.demo_url,
     githubUrl: project.github_url,
     features: project.features,
     teamSize: project.team_size,

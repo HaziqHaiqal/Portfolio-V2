@@ -3,7 +3,15 @@
 import React, { Fragment, ReactNode, useEffect } from 'react';
 import Image from 'next/image';
 import { m, AnimatePresence } from 'framer-motion';
-import { X, Globe, Clock, Calendar, Users, GitCommit } from 'lucide-react';
+import {
+  X,
+  Globe,
+  Clock,
+  Calendar,
+  Users,
+  GitCommit,
+  CirclePlay,
+} from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
 import ProjectImageGallery from '@components/Media/ProjectImageGallery';
 import { getCategoryInfo } from '@constants/projects';
@@ -23,6 +31,7 @@ interface ProjectModalProps {
     languages: string[];
     category: string;
     projectUrl?: string;
+    demoUrl?: string;
     githubUrl?: string;
     features?: string[];
     teamSize?: string;
@@ -297,6 +306,17 @@ export default function ProjectModal({
                   variant="primary"
                   T={T}
                 />
+                {/* Most projects have no demo, so it appears only when set
+                    rather than sitting there disabled like the other two. */}
+                {project.demoUrl && (
+                  <ActionButton
+                    href={project.demoUrl}
+                    icon={<CirclePlay size={15} />}
+                    label="Demo"
+                    variant="secondary"
+                    T={T}
+                  />
+                )}
                 <ActionButton
                   href={project.githubUrl}
                   icon={<SiGithub size={15} />}

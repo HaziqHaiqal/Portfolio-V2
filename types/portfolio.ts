@@ -10,6 +10,7 @@ export interface ProjectProps {
   languages: string[];
   category: string;
   projectUrl?: string;
+  demoUrl?: string;
   githubUrl?: string;
   features?: string[];
   teamSize?: string;

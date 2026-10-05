@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react';
 import Image from 'next/image';
 import { AnimatePresence, m } from 'framer-motion';
-import { ArrowUpRight, ChevronLeft, ChevronRight, Folder } from 'lucide-react';
+import {
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  CirclePlay,
+  Folder,
+} from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
 import { PROJECT_CATEGORIES, getCategoryInfo } from '@constants/projects';
 import { useUIStore } from '@lib/stores';
@@ -401,10 +407,24 @@ export default function ProjectsCoverflow({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`${project.title} live site`}
+                            title="Live site"
                             tabIndex={isActive ? 0 : -1}
                             className={footerLinkClass}
                           >
                             <ArrowUpRight size={16} aria-hidden />
+                          </a>
+                        )}
+                        {project.demoUrl && (
+                          <a
+                            href={project.demoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${project.title} demo`}
+                            title="Demo"
+                            tabIndex={isActive ? 0 : -1}
+                            className={footerLinkClass}
+                          >
+                            <CirclePlay size={16} aria-hidden />
                           </a>
                         )}
                         {project.githubUrl && (
@@ -413,6 +433,7 @@ export default function ProjectsCoverflow({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`${project.title} source code`}
+                            title="Source code"
                             tabIndex={isActive ? 0 : -1}
                             className={footerLinkClass}
                           >
