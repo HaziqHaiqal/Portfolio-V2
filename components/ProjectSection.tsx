@@ -1,5 +1,5 @@
 import { Zap } from 'lucide-react';
-import ProjectsGrid from '@components/List/ProjectsGrid';
+import ProjectsCoverflow from '@components/List/ProjectsCoverflow';
 import SectionHeader from '@components/Common/SectionHeader';
 import Reveal from '@components/Common/Reveal';
 import { ProjectProps } from 'types/portfolio';
@@ -16,7 +16,7 @@ const ProjectSection = ({
   error = null,
 }: ProjectSectionProps) => {
   return (
-    <section id="projects" className="relative overflow-hidden px-6 py-32">
+    <section id="projects" className="relative overflow-hidden px-6 py-20">
       <div className="absolute inset-0 opacity-20">
         <div className="matrix-rain" />
       </div>
@@ -50,7 +50,7 @@ const ProjectSection = ({
               </p>
             </Reveal>
           ) : projects && projects.length > 0 ? (
-            <ProjectsGrid projects={projects} />
+            <ProjectsCoverflow projects={projects} />
           ) : (
             <Reveal className="py-20 text-center" scale={0.9} duration={0.5}>
               <div className="mb-4 text-6xl">🚧</div>

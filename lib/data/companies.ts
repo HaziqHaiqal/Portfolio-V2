@@ -23,18 +23,19 @@ export async function upsertCompany(
   // the given columns are validated. Routing this through `.upsert()`
   // instead makes Postgres construct a full candidate row for the insert
   // path it never takes, which trips NOT NULL on every omitted column.
-  const { data, error } = id && mode !== 'create'
-    ? await db
-        .from('companies')
-        .update(payload)
-        .eq('id', id)
-        .select('*')
-        .single()
-    : await db
-        .from('companies')
-        .insert({ ...payload, ...(id ? { id } : {}) })
-        .select('*')
-        .single();
+  const { data, error } =
+    id && mode !== 'create'
+      ? await db
+          .from('companies')
+          .update(payload)
+          .eq('id', id)
+          .select('*')
+          .single()
+      : await db
+          .from('companies')
+          .insert({ ...payload, ...(id ? { id } : {}) })
+          .select('*')
+          .single();
 
   if (error) throw error;
   return data as Company;
