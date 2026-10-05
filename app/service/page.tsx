@@ -156,14 +156,11 @@ export default async function ServicePage() {
                                 {item.tiers.map((tier) => (
                                   <div
                                     key={tier.name}
-                                    className="flex min-w-0 flex-col rounded-2xl border border-gray-200 bg-white/60 p-6 dark:border-white/10 dark:bg-white/[0.03] lg:row-span-6 lg:grid lg:grid-rows-subgrid"
+                                    className="flex min-w-0 flex-col rounded-2xl border border-gray-200 bg-white/60 p-6 dark:border-white/10 dark:bg-white/[0.03] lg:row-span-5 lg:grid lg:grid-rows-subgrid"
                                   >
                                     <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                                       {tier.name}
                                     </h4>
-                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                      {tier.subtitle}
-                                    </p>
                                     <p className="mt-5 font-mono text-3xl font-bold text-gray-900 dark:text-white">
                                       {tier.price}
                                       {tier.priceNote && (

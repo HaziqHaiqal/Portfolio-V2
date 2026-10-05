@@ -16,7 +16,12 @@ const ProjectSection = ({
   error = null,
 }: ProjectSectionProps) => {
   return (
-    <section id="projects" className="relative overflow-hidden px-6 py-20">
+    // scroll-mt makes up for the slimmer py-20, so nav jumps land the header clear
+    // of the fixed navbar at the same height as the py-32 sections.
+    <section
+      id="projects"
+      className="relative scroll-mt-12 overflow-hidden px-6 py-20"
+    >
       <div className="absolute inset-0 opacity-20">
         <div className="matrix-rain" />
       </div>

@@ -4,7 +4,6 @@ export type ServiceIcon = 'web' | 'mobile';
 
 export interface PricingTier {
   name: string;
-  subtitle?: string;
   description: string;
   features: string[];
   exclusions?: string[];
@@ -82,7 +81,6 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 'No user authentication',
                 'No database or backend logic',
               ],
-              subtitle: 'Business Starter',
               price: 'RM600',
               priceNote: 'one-time',
               cta: {
@@ -104,7 +102,6 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 '2 months of free post-launch bug fixes',
               ],
               exclusions: ['Same exclusions as Rahmah'],
-              subtitle: 'Brand Showcase',
               price: 'RM1,500',
               priceNote: 'one-time',
               cta: {
@@ -125,7 +122,6 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
                 'Database integration and custom backend logic',
                 '3 months of free post-launch bug fixes',
               ],
-              subtitle: 'Business Solutions',
               price: 'Custom quote',
               cta: {
                 label: 'Discuss Exclusive',
