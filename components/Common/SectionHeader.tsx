@@ -28,7 +28,10 @@ export default function SectionHeader({
       y={30}
       duration={0.6}
     >
-      <div className="mb-3 inline-flex items-center gap-2 font-mono text-sm">
+      <div
+        data-section-header
+        className="mb-3 inline-flex items-center gap-2 font-mono text-sm"
+      >
         <Icon size={16} className={accentClass} />
         <span className="text-gray-500 dark:text-gray-400">{label}</span>
       </div>

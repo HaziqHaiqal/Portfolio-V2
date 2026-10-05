@@ -34,6 +34,32 @@ const mobileItemVariants = {
   open: { opacity: 1, y: 0, transition: { duration: 0.15 } },
 };
 
+// Where a section's header lands after a nav jump, in px from the top of the
+// screen: just below the fixed navbar, whatever padding the section has.
+const HEADER_LANDING = { phone: 104, desktop: 128 };
+
+/** Position in the page, ignoring transforms like a header's reveal animation. */
+function layoutTop(el: HTMLElement) {
+  let top = 0;
+  for (let n: Element | null = el; n instanceof HTMLElement; n = n.offsetParent)
+    top += n.offsetTop;
+  return top;
+}
+
+function scrollToSection(id: string) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  const header = section.querySelector<HTMLElement>('[data-section-header]');
+  if (!header) {
+    section.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  const landing = window.matchMedia('(min-width: 768px)').matches
+    ? HEADER_LANDING.desktop
+    : HEADER_LANDING.phone;
+  window.scrollTo({ top: layoutTop(header) - landing, behavior: 'smooth' });
+}
+
 /**
  * Responsive navigation bar with mobile hamburger menu.
  */
@@ -107,10 +133,7 @@ const NavBar = () => {
                   href={item.href}
                   onClick={(e) => {
                     e.preventDefault();
-                    const targetId = item.href.replace('#', '');
-                    document
-                      .getElementById(targetId)
-                      ?.scrollIntoView({ behavior: 'smooth' });
+                    scrollToSection(item.href.slice(1));
                   }}
                   className={linkClass}
                 >
@@ -214,12 +237,10 @@ const NavBar = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             closeMobileMenu();
-                            setTimeout(() => {
-                              const targetId = item.href.replace('#', '');
-                              document
-                                .getElementById(targetId)
-                                ?.scrollIntoView({ behavior: 'smooth' });
-                            }, 100);
+                            setTimeout(
+                              () => scrollToSection(item.href.slice(1)),
+                              100
+                            );
                           }}
                           className={itemClass}
                         >
