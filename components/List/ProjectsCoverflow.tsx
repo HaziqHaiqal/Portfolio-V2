@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react';
 import Image from 'next/image';
 import { AnimatePresence, m } from 'framer-motion';
+import * as SelectPrimitive from '@radix-ui/react-select';
 import {
   ArrowUpRight,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CirclePlay,
@@ -40,7 +42,6 @@ const SHELF = {
 };
 const OPACITY = [0, 1, 1, 1, 0];
 
-const pad = (n: number) => String(n).padStart(2, '0');
 const clamp = (v: number, limit: number) =>
   Math.max(-limit, Math.min(limit, v));
 
@@ -192,6 +193,9 @@ export default function ProjectsCoverflow({
     setActive(0);
   };
 
+  const currentFilter = filters.find((f) => f.value === category) ?? filters[0];
+  const CurrentIcon = currentFilter.icon;
+
   // Cards follow the drag 1:1 along their own paths; a whole slot is the most
   // one gesture can move.
   const scrubbing = scrub.dx !== 0;
@@ -256,10 +260,65 @@ export default function ProjectsCoverflow({
 
   return (
     <div className="space-y-8">
+      {/* Phones get a dropdown, since the chips would wrap onto several rows. */}
+      <div className="flex justify-center sm:hidden">
+        <SelectPrimitive.Root value={category} onValueChange={pickCategory}>
+          <div className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-[1.5px] shadow-lg shadow-purple-500/25">
+            <SelectPrimitive.Trigger
+              aria-label={`Filter projects by category: ${currentFilter.label}`}
+              className="group flex h-12 w-60 items-center gap-2.5 rounded-full bg-white pl-1.5 pr-2 text-sm font-semibold text-gray-900 outline-none focus-visible:ring-4 focus-visible:ring-purple-500/25 dark:bg-gray-900 dark:text-white"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                <CurrentIcon size={16} aria-hidden />
+              </span>
+              <SelectPrimitive.Value>
+                {currentFilter.label}
+              </SelectPrimitive.Value>
+              <span className="font-mono text-xs font-normal text-gray-500 dark:text-gray-400">
+                {currentFilter.count}
+              </span>
+              <SelectPrimitive.Icon className="ml-auto grid h-8 w-8 place-items-center rounded-full bg-black/5 text-gray-600 dark:bg-white/[0.06] dark:text-gray-300">
+                <ChevronDown
+                  size={15}
+                  aria-hidden
+                  className="transition-transform duration-200 group-data-[state=open]:rotate-180"
+                />
+              </SelectPrimitive.Icon>
+            </SelectPrimitive.Trigger>
+          </div>
+          <SelectPrimitive.Portal>
+            <SelectPrimitive.Content
+              position="popper"
+              align="center"
+              sideOffset={8}
+              className="z-50 max-h-[min(22rem,var(--radix-select-content-available-height))] w-[calc(var(--radix-select-trigger-width)+2.5rem)] overflow-hidden rounded-3xl border border-black/5 bg-white/85 shadow-2xl shadow-black/20 backdrop-blur-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:border-white/10 dark:bg-gray-900/80 dark:shadow-black/60"
+            >
+              <SelectPrimitive.Viewport className="p-1.5">
+                {filters.map(({ value, label, icon: Icon, count }) => (
+                  <SelectPrimitive.Item
+                    key={value}
+                    value={value}
+                    className="group flex min-h-12 cursor-pointer select-none items-center gap-2.5 rounded-[1.125rem] py-1.5 pl-1.5 pr-2.5 text-sm font-medium text-gray-700 outline-none data-[highlighted]:bg-gray-50 data-[state=checked]:bg-gray-100 data-[state=checked]:text-gray-900 dark:text-gray-300 dark:data-[highlighted]:bg-white/5 dark:data-[state=checked]:bg-white/[0.07] dark:data-[state=checked]:text-white"
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-500 group-data-[state=checked]:bg-gradient-to-br group-data-[state=checked]:from-blue-500 group-data-[state=checked]:to-purple-600 group-data-[state=checked]:text-white dark:bg-white/[0.06] dark:text-gray-400">
+                      <Icon size={16} aria-hidden />
+                    </span>
+                    <SelectPrimitive.ItemText>{label}</SelectPrimitive.ItemText>
+                    <span className="ml-auto min-w-[1.375rem] rounded-full bg-black/5 px-[7px] py-0.5 text-center font-mono text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
+                      {count}
+                    </span>
+                  </SelectPrimitive.Item>
+                ))}
+              </SelectPrimitive.Viewport>
+            </SelectPrimitive.Content>
+          </SelectPrimitive.Portal>
+        </SelectPrimitive.Root>
+      </div>
+
       <div
         role="group"
         aria-label="Filter projects by category"
-        className="flex flex-wrap justify-center gap-3"
+        className="hidden flex-wrap justify-center gap-3 sm:flex"
       >
         {filters.map(({ value, label, icon: Icon, count }) => {
           const on = value === category;
@@ -385,10 +444,7 @@ export default function ProjectsCoverflow({
                           {project.title}
                         </h3>
                         <p className="truncate font-mono text-xs text-gray-500 dark:text-gray-400">
-                          <span className="text-purple-600 dark:text-purple-400">
-                            {pad(k + 1)}/{pad(total)}
-                          </span>
-                          {` · ${info.label}`}
+                          {info.label}
                           {project.year && ` · ${project.year}`}
                         </p>
                       </div>
