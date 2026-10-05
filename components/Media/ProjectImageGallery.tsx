@@ -4,7 +4,7 @@ import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { m, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Loader2, Monitor } from 'lucide-react';
 import { getProjectImages, type UploadedFile } from '@lib/fileManager';
 
 interface ProjectImageGalleryProps {
@@ -21,10 +21,15 @@ export default function ProjectImageGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Keys like `thumb:<url>` for images that have arrived (or failed), so each
+  // size shows a placeholder until its own file loads.
+  const [loaded, setLoaded] = useState<ReadonlySet<string>>(() => new Set());
+  const markLoaded = (key: string) =>
+    setLoaded((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
+  const fadeIn = (key: string) =>
+    `transition-opacity duration-300 ${loaded.has(key) ? 'opacity-100' : 'opacity-0'}`;
 
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     const loadImages = async () => {
@@ -40,37 +45,24 @@ export default function ProjectImageGallery({
     loadImages();
   }, [projectId]);
 
-  const checkScrollability = () => {
-    const el = thumbnailContainerRef.current;
-    if (el) {
-      setCanScrollLeft(el.scrollLeft > 0);
-      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth);
-    }
-  };
-
+  // Keep the current image's thumbnail centred in the strip, however the image
+  // was changed (arrows, fullscreen, or a thumbnail tap).
   useEffect(() => {
-    const el = thumbnailContainerRef.current;
-    if (!el) return;
-
-    checkScrollability();
-    const resizeObserver = new ResizeObserver(checkScrollability);
-    resizeObserver.observe(el);
-
-    return () => resizeObserver.disconnect();
-  }, [images]);
+    const strip = thumbnailContainerRef.current;
+    const thumb = strip?.children[currentIndex] as HTMLElement | undefined;
+    if (!strip || !thumb) return;
+    const offset =
+      thumb.getBoundingClientRect().left - strip.getBoundingClientRect().left;
+    strip.scrollTo({
+      left:
+        strip.scrollLeft + offset - (strip.clientWidth - thumb.offsetWidth) / 2,
+      behavior: 'smooth',
+    });
+  }, [currentIndex]);
 
   const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
   const prevImage = () =>
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-
-  const scrollThumbnails = (direction: 'left' | 'right') => {
-    const el = thumbnailContainerRef.current;
-    if (el) {
-      const scrollAmount =
-        direction === 'right' ? el.clientWidth * 0.8 : -el.clientWidth * 0.8;
-      el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
 
   if (loading) {
     return (
@@ -111,10 +103,24 @@ export default function ProjectImageGallery({
               alt={images[currentIndex].alt}
               fill
               sizes="(max-width: 768px) 100vw, 768px"
-              className="object-contain"
+              className={`object-contain ${fadeIn(`main:${images[currentIndex].url}`)}`}
               onClick={() => setIsFullscreen(true)}
+              onLoad={() => markLoaded(`main:${images[currentIndex].url}`)}
+              onError={() => markLoaded(`main:${images[currentIndex].url}`)}
               priority={true}
             />
+            {!loaded.has(`main:${images[currentIndex].url}`) && (
+              <div
+                role="status"
+                className="pointer-events-none absolute inset-0 grid place-items-center"
+              >
+                <Loader2
+                  aria-hidden
+                  className="h-6 w-6 animate-spin text-gray-400 dark:text-gray-500"
+                />
+                <span className="sr-only">Loading image</span>
+              </div>
+            )}
 
             {/* Navigation Arrows - Only show if multiple images */}
             {images.length > 1 && (
@@ -154,48 +160,37 @@ export default function ProjectImageGallery({
 
         {/* Thumbnail Strip */}
         {images.length > 1 && (
-          <div className="relative">
-            {canScrollLeft && (
+          <div
+            ref={thumbnailContainerRef}
+            className="scrollbar-hide flex gap-2 overflow-x-auto px-1 pb-2 pt-1"
+          >
+            {images.map((image, index) => (
               <button
-                onClick={() => scrollThumbnails('left')}
-                className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 shadow-md transition-all hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900"
+                key={image.id}
+                onClick={() => setCurrentIndex(index)}
+                className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                  index === currentIndex
+                    ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
+                    : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                }`}
               >
-                <ChevronLeft className="h-5 w-5 text-gray-800 dark:text-gray-200" />
-              </button>
-            )}
-            <div
-              ref={thumbnailContainerRef}
-              onScroll={checkScrollability}
-              className="scrollbar-hide flex gap-2 overflow-x-auto pb-2"
-            >
-              {images.map((image, index) => (
-                <button
-                  key={image.id}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                    index === currentIndex
-                      ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                  }`}
-                >
-                  <Image
-                    src={image.url}
-                    alt={image.alt}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
+                {!loaded.has(`thumb:${image.url}`) && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700"
                   />
-                </button>
-              ))}
-            </div>
-            {canScrollRight && (
-              <button
-                onClick={() => scrollThumbnails('right')}
-                className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 shadow-md transition-all hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+                )}
+                <Image
+                  src={image.url}
+                  alt={image.alt}
+                  fill
+                  sizes="80px"
+                  className={`object-cover ${fadeIn(`thumb:${image.url}`)}`}
+                  onLoad={() => markLoaded(`thumb:${image.url}`)}
+                  onError={() => markLoaded(`thumb:${image.url}`)}
+                />
               </button>
-            )}
+            ))}
           </div>
         )}
       </div>
@@ -255,8 +250,22 @@ export default function ProjectImageGallery({
                 alt={images[currentIndex].alt}
                 fill
                 sizes="100vw"
-                className="object-contain"
+                className={`object-contain ${fadeIn(`full:${images[currentIndex].url}`)}`}
+                onLoad={() => markLoaded(`full:${images[currentIndex].url}`)}
+                onError={() => markLoaded(`full:${images[currentIndex].url}`)}
               />
+              {!loaded.has(`full:${images[currentIndex].url}`) && (
+                <div
+                  role="status"
+                  className="pointer-events-none absolute inset-0 grid place-items-center"
+                >
+                  <Loader2
+                    aria-hidden
+                    className="h-8 w-8 animate-spin text-white/70"
+                  />
+                  <span className="sr-only">Loading image</span>
+                </div>
+              )}
             </m.div>
 
             {/* Image Info */}
