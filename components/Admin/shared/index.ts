@@ -7,7 +7,6 @@ export { StatTile } from './StatTile';
 export {
   EntityCard,
   CardCover,
-  FeaturedMark,
   MediaTile,
   IconAction,
   EditDeleteActions,

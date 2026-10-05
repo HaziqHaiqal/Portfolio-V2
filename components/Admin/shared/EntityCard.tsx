@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { m } from 'framer-motion';
-import { Pencil, Star, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@components/ui/button';
 import { cn } from '@lib/utils';
 import { listItem } from '@constants/motion';
@@ -147,20 +147,6 @@ export function EditDeleteActions({
         <Trash2 className="h-3.5 w-3.5" />
       </IconAction>
     </>
-  );
-}
-
-export function FeaturedMark({ onCover }: { onCover?: boolean }) {
-  return (
-    <span
-      title="Featured"
-      className={cn(
-        'flex h-6 w-6 items-center justify-center rounded-md',
-        onCover ? 'bg-background/70 backdrop-blur' : 'bg-transparent'
-      )}
-    >
-      <Star className="h-3.5 w-3.5 fill-copper text-copper" />
-    </span>
   );
 }
 

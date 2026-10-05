@@ -50,7 +50,7 @@ const ProjectSection = ({
               </p>
             </Reveal>
           ) : projects && projects.length > 0 ? (
-            <ProjectsGrid projects={projects} showFeaturedOnly={false} />
+            <ProjectsGrid projects={projects} />
           ) : (
             <Reveal className="py-20 text-center" scale={0.9} duration={0.5}>
               <div className="mb-4 text-6xl">🚧</div>

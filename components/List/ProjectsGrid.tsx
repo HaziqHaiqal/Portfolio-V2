@@ -9,15 +9,11 @@ import ProjectCard from '@components/Card/ProjectCard';
 
 interface ProjectsGridProps {
   projects: ProjectProps[];
-  showFeaturedOnly?: boolean;
 }
 
 const ITEMS_PER_PAGE = 6;
 
-export default function ProjectsGrid({
-  projects,
-  showFeaturedOnly = false,
-}: ProjectsGridProps) {
+export default function ProjectsGrid({ projects }: ProjectsGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -49,10 +45,6 @@ export default function ProjectsGrid({
   const filteredProjects = useMemo(() => {
     let filtered = projects;
 
-    if (showFeaturedOnly) {
-      filtered = filtered.filter((p) => p.featured);
-    }
-
     if (searchTerm) {
       filtered = filtered.filter(
         (p) =>
@@ -71,7 +63,7 @@ export default function ProjectsGrid({
     }
 
     return filtered;
-  }, [projects, searchTerm, selectedCategory, showFeaturedOnly]);
+  }, [projects, searchTerm, selectedCategory]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);

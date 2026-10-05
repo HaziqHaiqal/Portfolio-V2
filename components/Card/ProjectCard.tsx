@@ -106,24 +106,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
             />
           </div>
         )}
-        {/* Floating elements */}
-        <div className="absolute right-4 top-4 flex gap-2">
-          {project.featured && (
-            <div className="pulse-dot h-2 w-2 rounded-full bg-yellow-400" />
-          )}
-          <m.div
-            className={`h-2 w-2 rounded-full ${
-              project.status === 'completed'
-                ? 'bg-green-400'
-                : project.status === 'in-progress'
-                  ? 'bg-yellow-400'
-                  : 'bg-gray-400'
-            }`}
-            animate={isHovered ? { scale: [1, 1.5, 1] } : {}}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-
         {/* Project content */}
         <div className="space-y-4">
           {/* Header */}

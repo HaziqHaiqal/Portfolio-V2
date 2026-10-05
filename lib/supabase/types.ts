@@ -101,11 +101,11 @@ export interface Project {
   description: string;
   long_description?: string;
   category: string;
-  status: string;
   start_date?: string;
   end_date?: string;
   year: number;
-  featured: boolean;
+  // Hidden projects stay editable in admin but never reach the public site.
+  is_visible: boolean;
   project_url?: string;
   github_url?: string;
   demo_url?: string;

@@ -3,24 +3,45 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import UniversalImage from '@components/Media/UniversalImage';
 import {
   ExternalLink,
+  Eye,
+  EyeOff,
   FolderKanban,
+  GripVertical,
   ImageIcon,
   Lightbulb,
   Loader2,
   Plus,
   Save,
-  Star,
   Trash2,
 } from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
 
 import { createBrowserSupabase } from '@lib/supabase/browser';
 import {
+  createProjectAction,
   upsertProjectAction,
   deleteProjectAction,
+  reorderProjectsAction,
 } from '@app/admin/_actions/projects';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
@@ -47,7 +68,6 @@ import {
   EditorPanel,
   EmptyState,
   EntityCard,
-  FeaturedMark,
   Field,
   FormActions,
   FormGrid,
@@ -61,6 +81,7 @@ import {
   useConfirm,
 } from '@components/Admin/shared';
 import { listContainer } from '@constants/motion';
+import { PROJECT_CATEGORIES, getCategoryInfo } from '@constants/projects';
 import { pluralize } from '@lib/format';
 import { cn } from '@lib/utils';
 
@@ -79,13 +100,12 @@ interface ProjectData {
   start_date: string;
   end_date: string;
   year: number;
-  status: string;
   category: string;
   primary_tech: string;
   team_size: string;
   duration: string;
   commits_count: string;
-  featured: boolean;
+  is_visible: boolean;
   sort_order: number;
   gradient_from: string;
   gradient_to: string;
@@ -105,13 +125,12 @@ const initialProjectData: ProjectData = {
   start_date: '',
   end_date: '',
   year: new Date().getFullYear(),
-  status: 'Completed',
-  category: 'Web Development',
+  category: 'web',
   primary_tech: '',
   team_size: '1',
   duration: '',
   commits_count: '',
-  featured: false,
+  is_visible: true,
   sort_order: 0,
   gradient_from: '#2563EB',
   gradient_to: '#7C3AED',
@@ -131,8 +150,7 @@ const normalizeProjectData = (
   thumbnail_url: project?.thumbnail_url || '',
   start_date: project?.start_date || '',
   end_date: project?.end_date || '',
-  status: project?.status || 'Completed',
-  category: project?.category || 'Web Development',
+  category: project?.category || 'web',
   primary_tech: project?.primary_tech || '',
   team_size: project?.team_size || '1',
   duration: project?.duration || '',
@@ -146,36 +164,8 @@ const normalizeProjectData = (
     : [],
   year: project?.year || new Date().getFullYear(),
   sort_order: project?.sort_order || 0,
-  featured: Boolean(project?.featured),
+  is_visible: project?.is_visible !== false,
 });
-
-const projectCategories = [
-  'Web Development',
-  'Mobile App',
-  'Desktop App',
-  'API/Backend',
-  'Data Science',
-  'Machine Learning',
-  'DevOps',
-  'Design',
-  'Other',
-];
-
-const statusOptions = [
-  'Completed',
-  'In Progress',
-  'Planned',
-  'On Hold',
-  'Archived',
-];
-
-const statusStyles: Record<string, string> = {
-  Completed: 'border-success/40 bg-success/10 text-success',
-  'In Progress': 'border-primary/40 bg-primary/10 text-primary',
-  Planned: 'border-border bg-muted text-muted-foreground',
-  'On Hold': 'border-warning/40 bg-warning/10 text-warning',
-  Archived: 'border-border bg-muted text-muted-foreground',
-};
 
 export default function ProjectsEditor() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -187,9 +177,14 @@ export default function ProjectsEditor() {
   const [showForm, setShowForm] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<ProjectData>();
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const loadProjects = useCallback(async () => {
     try {
@@ -231,10 +226,11 @@ export default function ProjectsEditor() {
   const handleSave = async (projectData: ProjectData) => {
     setSaving(true);
     try {
-      const payload = editingProject?.id
-        ? { ...projectData, id: editingProject.id }
-        : projectData;
-      await upsertProjectAction(payload);
+      if (editingProject?.id) {
+        await upsertProjectAction({ ...projectData, id: editingProject.id });
+      } else {
+        await createProjectAction(projectData);
+      }
       toast.success(editingProject?.id ? 'Project updated' : 'Project created');
       setShowForm(false);
       setEditingProject(null);
@@ -247,21 +243,42 @@ export default function ProjectsEditor() {
     }
   };
 
-  const toggleFeatured = async (project: ProjectData) => {
+  const toggleVisible = async (project: ProjectData) => {
     setProjects((prev) =>
       prev.map((p) =>
-        p.id === project.id ? { ...p, featured: !p.featured } : p
+        p.id === project.id ? { ...p, is_visible: !p.is_visible } : p
       )
     );
     try {
       await upsertProjectAction({
         id: project.id,
-        featured: !project.featured,
+        is_visible: !project.is_visible,
       });
       await loadProjects();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not update project');
+      await loadProjects();
+    }
+  };
+
+  // Only reachable unfiltered, so `projects` is exactly what's on screen.
+  const handleReorder = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = projects.findIndex((p) => p.id === active.id);
+    const to = projects.findIndex((p) => p.id === over.id);
+    // Keep each sort_order in step so a later form save can't write back a
+    // stale position.
+    const next = arrayMove(projects, from, to).map((p, i) => ({
+      ...p,
+      sort_order: i,
+    }));
+    setProjects(next);
+    try {
+      await reorderProjectsAction(next.map((p) => p.id!));
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Could not save the new order');
       await loadProjects();
     }
   };
@@ -272,23 +289,19 @@ export default function ProjectsEditor() {
       const matchesSearch =
         !q ||
         project.title.toLowerCase().includes(q) ||
-        project.category.toLowerCase().includes(q) ||
+        getCategoryInfo(project.category).label.toLowerCase().includes(q) ||
         project.tech_stack.some((tech) => tech.toLowerCase().includes(q));
       const matchesCategory =
         categoryFilter === 'all' || project.category === categoryFilter;
-      const matchesStatus =
-        statusFilter === 'all' || project.status === statusFilter;
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesCategory;
     });
-  }, [projects, query, categoryFilter, statusFilter]);
+  }, [projects, query, categoryFilter]);
 
-  const isFiltered =
-    query.trim() !== '' || categoryFilter !== 'all' || statusFilter !== 'all';
+  const isFiltered = query.trim() !== '' || categoryFilter !== 'all';
 
   const clearFilters = () => {
     setQuery('');
     setCategoryFilter('all');
-    setStatusFilter('all');
   };
 
   const startCreate = () => {
@@ -329,7 +342,9 @@ export default function ProjectsEditor() {
           loading
             ? undefined
             : `${pluralize(filteredProjects.length, 'project')}${
-                isFiltered ? ` of ${projects.length}` : ''
+                isFiltered
+                  ? ` of ${projects.length} · clear filters to reorder`
+                  : ''
               }`
         }
       >
@@ -345,22 +360,9 @@ export default function ProjectsEditor() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
-            {projectCategories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9 bg-card sm:w-36">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {statusOptions.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status}
+            {PROJECT_CATEGORIES.map((category) => (
+              <SelectItem key={category.value} value={category.value}>
+                {category.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -375,7 +377,7 @@ export default function ProjectsEditor() {
           title={isFiltered ? 'No matching projects' : 'No projects yet'}
           description={
             isFiltered
-              ? 'Try a different search term, category or status.'
+              ? 'Try a different search term or category.'
               : 'Add your first project to start filling out the portfolio.'
           }
           action={
@@ -392,134 +394,158 @@ export default function ProjectsEditor() {
           }
         />
       ) : (
-        <m.div
-          variants={listContainer}
-          initial="hidden"
-          animate="show"
-          className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+        <DndContext
+          id="projects-order"
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleReorder}
         >
-          {filteredProjects.map((project) => (
-            <EntityCard
-              key={project.id}
-              cover={
-                <CardCover>
-                  {project.thumbnail_url ? (
-                    <UniversalImage
-                      src={project.thumbnail_url}
-                      alt={project.title}
-                      width={0}
-                      height={0}
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center"
-                      style={{
-                        background: `linear-gradient(135deg, ${project.gradient_from}33, ${project.gradient_to}33)`,
-                      }}
-                    >
-                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  )}
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'absolute left-3 top-3 z-10 font-normal backdrop-blur',
-                      statusStyles[project.status] ?? statusStyles.Planned
-                    )}
-                  >
-                    {project.status}
-                  </Badge>
-                </CardCover>
-              }
-              title={project.title}
-              subtitle={[project.category, project.year || null]
-                .filter(Boolean)
-                .join(' · ')}
-              adornment={project.featured ? <FeaturedMark onCover /> : null}
-              actions={
-                <>
-                  {project.github_url && (
-                    <IconAction
-                      label="Open repository"
-                      onClick={() =>
-                        window.open(
-                          project.github_url,
-                          '_blank',
-                          'noopener,noreferrer'
-                        )
-                      }
-                    >
-                      <SiGithub className="h-3.5 w-3.5" />
-                    </IconAction>
-                  )}
-                  {project.project_url && (
-                    <IconAction
-                      label="Open project"
-                      onClick={() =>
-                        window.open(
-                          project.project_url,
-                          '_blank',
-                          'noopener,noreferrer'
-                        )
-                      }
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </IconAction>
-                  )}
-                  <EditDeleteActions
-                    onEdit={() => {
-                      setEditingProject(normalizeProjectData(project));
-                      setShowForm(true);
-                    }}
-                    onDelete={() => confirmDelete.ask(project)}
-                    extra={
-                      <IconAction
-                        label={project.featured ? 'Unfeature' : 'Feature'}
-                        onClick={() => toggleFeatured(project)}
-                        className={cn(project.featured && 'text-copper')}
-                      >
-                        <Star
-                          className={cn(
-                            'h-3.5 w-3.5',
-                            project.featured && 'fill-current'
-                          )}
-                        />
-                      </IconAction>
-                    }
-                  />
-                </>
-              }
+          <SortableContext
+            items={filteredProjects.map((p) => p.id!)}
+            strategy={rectSortingStrategy}
+          >
+            <m.div
+              variants={listContainer}
+              initial="hidden"
+              animate="show"
+              className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
             >
-              <div className="space-y-3">
-                {project.description && (
-                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {project.description}
-                  </p>
-                )}
+              {filteredProjects.map((project) => (
+                <SortableCard
+                  key={project.id}
+                  id={project.id!}
+                  disabled={isFiltered}
+                >
+                  {(dragHandle) => (
+                    <EntityCard
+                      cover={
+                        <CardCover>
+                          {project.thumbnail_url ? (
+                            <UniversalImage
+                              src={project.thumbnail_url}
+                              alt={project.title}
+                              width={0}
+                              height={0}
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="absolute inset-0 flex items-center justify-center"
+                              style={{
+                                background: `linear-gradient(135deg, ${project.gradient_from}33, ${project.gradient_to}33)`,
+                              }}
+                            >
+                              <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          {!project.is_visible && (
+                            <Badge
+                              variant="outline"
+                              className="absolute left-3 top-3 z-10 gap-1 border-border bg-background/80 font-normal text-muted-foreground backdrop-blur"
+                            >
+                              <EyeOff className="h-3 w-3" />
+                              Hidden
+                            </Badge>
+                          )}
+                        </CardCover>
+                      }
+                      title={project.title}
+                      subtitle={[
+                        getCategoryInfo(project.category).label,
+                        project.year || null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      actions={
+                        <>
+                          {dragHandle}
+                          {project.github_url && (
+                            <IconAction
+                              label="Open repository"
+                              onClick={() =>
+                                window.open(
+                                  project.github_url,
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                )
+                              }
+                            >
+                              <SiGithub className="h-3.5 w-3.5" />
+                            </IconAction>
+                          )}
+                          {project.project_url && (
+                            <IconAction
+                              label="Open project"
+                              onClick={() =>
+                                window.open(
+                                  project.project_url,
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                )
+                              }
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </IconAction>
+                          )}
+                          <EditDeleteActions
+                            onEdit={() => {
+                              setEditingProject(normalizeProjectData(project));
+                              setShowForm(true);
+                            }}
+                            onDelete={() => confirmDelete.ask(project)}
+                            extra={
+                              <IconAction
+                                label={
+                                  project.is_visible
+                                    ? 'Hide from portfolio'
+                                    : 'Show on portfolio'
+                                }
+                                onClick={() => toggleVisible(project)}
+                              >
+                                {project.is_visible ? (
+                                  <Eye className="h-3.5 w-3.5" />
+                                ) : (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                )}
+                              </IconAction>
+                            }
+                          />
+                        </>
+                      }
+                    >
+                      <div className="space-y-3">
+                        {project.description && (
+                          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                            {project.description}
+                          </p>
+                        )}
 
-                {project.tech_stack.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {project.tech_stack.slice(0, 3).map((tech, i) => (
-                      <Badge
-                        key={`${tech}-${i}`}
-                        variant="secondary"
-                        className="px-2 py-0 text-[11px] font-normal"
-                      >
-                        {tech}
-                      </Badge>
-                    ))}
-                    {project.tech_stack.length > 3 && (
-                      <span className="text-[11px] tabular-nums text-muted-foreground">
-                        +{project.tech_stack.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </EntityCard>
-          ))}
-        </m.div>
+                        {project.tech_stack.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {project.tech_stack.slice(0, 3).map((tech, i) => (
+                              <Badge
+                                key={`${tech}-${i}`}
+                                variant="secondary"
+                                className="px-2 py-0 text-[11px] font-normal"
+                              >
+                                {tech}
+                              </Badge>
+                            ))}
+                            {project.tech_stack.length > 3 && (
+                              <span className="text-[11px] tabular-nums text-muted-foreground">
+                                +{project.tech_stack.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </EntityCard>
+                  )}
+                </SortableCard>
+              ))}
+            </m.div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <ConfirmDialog
@@ -535,6 +561,55 @@ export default function ProjectsEditor() {
         confirmLabel="Delete"
         onConfirm={() => confirmDelete.run(handleDelete)}
       />
+    </div>
+  );
+}
+
+/**
+ * Makes a grid item draggable by a grip handle only, so clicks on the card's
+ * other actions never start a drag. The handle is omitted while `disabled`.
+ */
+function SortableCard({
+  id,
+  disabled,
+  children,
+}: {
+  id: string;
+  disabled: boolean;
+  children: (dragHandle: React.ReactNode) => React.ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={cn(
+        'h-full rounded-xl',
+        isDragging && 'relative z-10 shadow-lg ring-2 ring-primary/40'
+      )}
+    >
+      {children(
+        disabled ? null : (
+          <IconAction
+            ref={setActivatorNodeRef}
+            label="Drag to reorder"
+            className="mr-auto cursor-grab touch-none active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </IconAction>
+        )
+      )}
     </div>
   );
 }
@@ -678,26 +753,9 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {projectCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Status" htmlFor="status">
-              <Select
-                value={formData.status}
-                onValueChange={(v) => set('status', v)}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
+                  {PROJECT_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -916,28 +974,15 @@ function ProjectForm({ project, onSave, onCancel, saving }: ProjectFormProps) {
 
         <FormSection title="Visibility">
           <ToggleRow
-            label="Featured project"
-            description="Pin this project to the top of the portfolio."
+            label="Show on portfolio"
+            description="Turn off to keep this project in admin only."
             control={
               <Switch
-                checked={formData.featured}
-                onCheckedChange={(checked) => set('featured', checked)}
+                checked={formData.is_visible}
+                onCheckedChange={(checked) => set('is_visible', checked)}
               />
             }
           />
-          <Field
-            label="Sort order"
-            htmlFor="sort_order"
-            hint="Lower numbers appear first."
-            className="max-w-[10rem]"
-          >
-            <Input
-              id="sort_order"
-              type="number"
-              value={formData.sort_order}
-              onChange={(e) => set('sort_order', parseInt(e.target.value) || 0)}
-            />
-          </Field>
         </FormSection>
       </EditorPanel>
 

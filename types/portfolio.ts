@@ -5,12 +5,10 @@ export interface ProjectProps {
   longDescription?: string;
   tech: string;
   year: string;
-  status: string;
   gradient: string;
   commits: string;
   languages: string[];
   category: string;
-  featured: boolean;
   projectUrl?: string;
   githubUrl?: string;
   features?: string[];

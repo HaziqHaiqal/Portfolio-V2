@@ -7,10 +7,12 @@ import type {
 import type { ProjectProps } from 'types/portfolio';
 import type { DB } from './types';
 
+/** Public read: only projects marked visible. Admin queries its own list. */
 export async function getProjects(db: DB): Promise<Project[]> {
   const { data, error } = await db
     .from('projects')
     .select('*')
+    .eq('is_visible', true)
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Project[];
@@ -71,12 +73,10 @@ export function toProjectProps(
     longDescription: project.long_description,
     tech: project.primary_tech || 'Web',
     year: String(project.year ?? ''),
-    status: project.status,
     gradient: `from-${project.gradient_from || 'blue-400'} to-${project.gradient_to || 'blue-600'}`,
     commits: project.commits_count || '0',
     languages: project.tech_stack ?? [],
     category: project.category,
-    featured: project.featured,
     projectUrl: project.project_url,
     githubUrl: project.github_url,
     features: project.features,
@@ -85,6 +85,40 @@ export function toProjectProps(
     images,
     thumbnail_url: project.thumbnail_url,
   };
+}
+
+export async function createProject(
+  db: DB,
+  row: NullableWritable<Project> & { id?: string }
+): Promise<Project> {
+  // New projects join the end of the list; admin drag-and-drop moves them.
+  const { data: last, error: lastError } = await db
+    .from('projects')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (lastError) throw lastError;
+
+  const payload = {
+    ...row,
+    sort_order: (last?.sort_order ?? -1) + 1,
+    updated_at: new Date().toISOString(),
+  };
+  const { data, error } = await db
+    .from('projects')
+    .insert(payload)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data as Project;
+}
+
+/** Persists a full ordering: `ids[0]` gets sort_order 0, and so on. */
+export async function reorderProjects(db: DB, ids: string[]): Promise<void> {
+  const { error } = await db.rpc('reorder_projects', { ids });
+  if (error) throw error;
 }
 
 export async function upsertProject(

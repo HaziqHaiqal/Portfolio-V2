@@ -18,7 +18,6 @@ interface ProjectModalProps {
     longDescription?: string;
     tech: string;
     year: string;
-    status: string;
     gradient: string;
     commits: string;
     languages: string[];
