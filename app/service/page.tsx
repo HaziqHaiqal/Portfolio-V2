@@ -7,6 +7,7 @@ import {
   Minus,
   Smartphone,
   Globe,
+  Workflow,
 } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { getCachedPortfolio } from '@lib/data';
@@ -20,15 +21,17 @@ import GridBackground from '@components/Layout/GridBackground';
 import Footer from '@components/Layout/Footer';
 import Reveal from '@components/Common/Reveal';
 import Disclosure from '@components/Common/Disclosure';
+import InfoPopover from '@components/Common/InfoPopover';
 
 export const metadata: Metadata = {
   title: 'Services | Haziq Haiqal',
-  description: 'Web and mobile app development services.',
+  description: 'Web and mobile app development and business automation.',
 };
 
 const ICONS: Record<ServiceIcon, typeof Globe> = {
   web: Globe,
   mobile: Smartphone,
+  automation: Workflow,
 };
 
 function withNumbering(groups: ServiceGroup[]) {
@@ -69,9 +72,6 @@ export default async function ServicePage() {
             </Reveal>
 
             <Reveal className="mb-20 md:mb-28" y={24} duration={0.6}>
-              <p className="mb-4 font-mono text-sm text-emerald-600 dark:text-emerald-400">
-                services.list()
-              </p>
               <h1 className="mb-6 text-5xl font-bold tracking-tight text-gray-900 dark:text-white md:text-7xl">
                 What I build.
               </h1>
@@ -172,34 +172,49 @@ export default async function ServicePage() {
                                     <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                                       {tier.description}
                                     </p>
-                                    <ul className="mb-8 mt-6 space-y-3 border-t border-gray-200 pt-6 dark:border-white/10">
-                                      {tier.features.map((description) => (
-                                        <li
-                                          key={description}
-                                          className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
-                                        >
-                                          <Check
-                                            size={16}
-                                            aria-hidden="true"
-                                            className="mt-0.5 shrink-0 text-emerald-500"
-                                          />
-                                          {description}
-                                        </li>
-                                      ))}
-                                      {tier.exclusions?.map((description) => (
-                                        <li
-                                          key={description}
-                                          className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
-                                        >
-                                          <Minus
-                                            size={16}
-                                            aria-hidden="true"
-                                            className="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
-                                          />
-                                          {description}
-                                        </li>
-                                      ))}
-                                    </ul>
+                                    {/* One wrapper keeps every card at five subgrid rows, so the
+                                        examples link doesn't knock the cards out of line. */}
+                                    <div className="mb-8 mt-6 border-t border-gray-200 pt-6 dark:border-white/10">
+                                      <ul className="space-y-3">
+                                        {tier.features.map((description) => (
+                                          <li
+                                            key={description}
+                                            className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+                                          >
+                                            <Check
+                                              size={16}
+                                              aria-hidden="true"
+                                              className="mt-0.5 shrink-0 text-emerald-500"
+                                            />
+                                            {description}
+                                          </li>
+                                        ))}
+                                        {tier.exclusions?.map((description) => (
+                                          <li
+                                            key={description}
+                                            className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
+                                          >
+                                            <Minus
+                                              size={16}
+                                              aria-hidden="true"
+                                              className="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
+                                            />
+                                            {description}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                      {tier.examples &&
+                                        tier.examples.length > 0 && (
+                                          <div className="mt-4 border-t border-dashed border-gray-200 pt-1 dark:border-white/10">
+                                            <InfoPopover
+                                              label="What it can include"
+                                              heading="Popular requests"
+                                              items={tier.examples}
+                                              note="Mix and match. Everything is covered in your custom quote."
+                                            />
+                                          </div>
+                                        )}
+                                    </div>
                                     {tier.cta && (
                                       <a
                                         href={tier.cta.href}

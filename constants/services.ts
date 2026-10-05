@@ -1,12 +1,14 @@
 const CTA_LABEL = 'Get Quote';
 
-export type ServiceIcon = 'web' | 'mobile';
+export type ServiceIcon = 'web' | 'mobile' | 'automation';
 
 export interface PricingTier {
   name: string;
   description: string;
   features: string[];
   exclusions?: string[];
+  /** Examples of what this tier can include, shown in a popover on the card. */
+  examples?: string[];
   price: string;
   priceNote?: string;
   cta?: { label: string; href: string };
@@ -37,7 +39,7 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
   };
   return [
     {
-      heading: 'Development',
+      heading: 'Build',
       items: [
         {
           title: 'Mobile App Development',
@@ -114,13 +116,21 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
             {
               name: 'Exclusive',
               description:
-                'For websites that need multiple pages, customer accounts, payments, or custom functionality.',
+                'For websites that need multiple pages, customer accounts, payments, an online store, or custom functionality.',
               features: [
                 'Multi-page website',
                 'User registration and login',
                 'Payment gateway integration',
                 'Database integration and custom backend logic',
                 '3 months of free post-launch bug fixes',
+              ],
+              examples: [
+                'Online store with product catalogue, cart and checkout',
+                'Chatbot on your website, WhatsApp or Telegram, including AI assistants that answer customer questions',
+                'Booking and appointment system with automatic reminders',
+                'Customer portal for documents, invoices and progress updates',
+                'Admin dashboard to manage content, orders and customers',
+                'Multilingual website in the languages your customers use',
               ],
               price: 'Custom quote',
               cta: {
@@ -131,6 +141,23 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
               },
             },
           ],
+        },
+      ],
+    },
+    {
+      heading: 'Automate',
+      items: [
+        {
+          title: 'Business Automation',
+          description:
+            'Take repetitive work off your plate: chatbots for your website, WhatsApp or Telegram, approval flows for leave and claims, automated forms and spreadsheets, and reports that send themselves.',
+          icon: 'automation',
+          cta: {
+            label: CTA_LABEL,
+            href: contact(
+              "Hi Haziq, I'd like to automate part of my business. Can we discuss what's possible?"
+            ),
+          },
         },
       ],
     },

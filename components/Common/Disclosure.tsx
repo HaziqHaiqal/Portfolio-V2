@@ -18,12 +18,18 @@ export default function Disclosure({
   className = '',
 }: DisclosureProps) {
   const [open, setOpen] = useState(false);
+  // Clip only while the height animates; once fully open, popovers inside
+  // (like a pricing card's examples) can extend past the edge.
+  const [settled, setSettled] = useState(false);
 
   return (
     <div className={className}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setSettled(false);
+          setOpen((v) => !v);
+        }}
         aria-expanded={open}
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 font-mono text-sm text-gray-600 transition-colors hover:border-gray-400 dark:border-white/15 dark:text-gray-400 dark:hover:border-white/30"
       >
@@ -45,7 +51,8 @@ export default function Disclosure({
               height: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
               opacity: { duration: 0.25, ease: 'linear' },
             }}
-            className="overflow-hidden"
+            onAnimationComplete={() => setSettled(true)}
+            style={{ overflow: settled ? 'visible' : 'hidden' }}
           >
             {children}
           </m.div>
