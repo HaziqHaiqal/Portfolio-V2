@@ -237,7 +237,7 @@ export default function ProjectModal({
                       fill
                       sizes="320px"
                       className="object-contain"
-                      priority
+                      loading="eager"
                     />
                   ) : (
                     <div

@@ -169,7 +169,7 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
                     src={profile.profile_image_url}
                     alt={profile.display_name || 'Profile Picture'}
                     fill
-                    priority
+                    preload
                     sizes="(max-width: 640px) 192px, 256px"
                     className="object-cover"
                   />

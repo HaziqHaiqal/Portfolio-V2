@@ -102,7 +102,7 @@ export default function ProjectImageGallery({
               onClick={() => setIsFullscreen(true)}
               onLoad={() => markLoaded(`main:${images[currentIndex].url}`)}
               onError={() => markLoaded(`main:${images[currentIndex].url}`)}
-              priority={true}
+              loading="eager"
             />
             {!loaded.has(`main:${images[currentIndex].url}`) && (
               <div

@@ -404,6 +404,7 @@ export default function ProjectsCoverflow({
                           alt=""
                           fill
                           draggable={false}
+                          loading={isActive ? 'eager' : 'lazy'}
                           sizes="(max-width: 768px) 86vw, 600px"
                           className="object-cover"
                         />
