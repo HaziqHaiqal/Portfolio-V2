@@ -229,7 +229,7 @@ export default function ProjectImageGallery({
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              className="relative h-full max-h-[90vh] w-full max-w-5xl"
+              className="relative h-full max-h-[90dvh] w-full max-w-5xl"
               onClick={(e) => e.stopPropagation()}
             >
               <Image

@@ -180,7 +180,7 @@ export default function ProjectModal({
           />
 
           <m.div
-            className={`relative flex h-[94vh] w-full flex-col overflow-hidden rounded-t-2xl shadow-2xl md:mx-4 md:h-[88vh] md:max-w-4xl md:rounded-2xl ${T.panelBg}`}
+            className={`relative flex h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl shadow-2xl md:mx-4 md:h-[88dvh] md:max-w-4xl md:rounded-2xl ${T.panelBg}`}
             initial={{ y: '8%', opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: '8%', opacity: 0, scale: 0.96 }}
