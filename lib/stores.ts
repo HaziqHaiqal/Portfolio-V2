@@ -6,6 +6,7 @@ interface UIState {
   isProjectModalOpen: boolean;
   isMobileMenuOpen: boolean;
   isContactOpen: boolean;
+  isChatVisible: boolean;
 
   openProjectModal: (project: ProjectProps) => void;
   closeProjectModal: () => void;
@@ -14,6 +15,7 @@ interface UIState {
   openContact: () => void;
   closeContact: () => void;
   toggleContact: () => void;
+  setChatVisible: (visible: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -21,6 +23,7 @@ export const useUIStore = create<UIState>((set) => ({
   isProjectModalOpen: false,
   isMobileMenuOpen: false,
   isContactOpen: false,
+  isChatVisible: true,
 
   openProjectModal: (project) =>
     set({ selectedProject: project, isProjectModalOpen: true }),
@@ -33,4 +36,5 @@ export const useUIStore = create<UIState>((set) => ({
   closeContact: () => set({ isContactOpen: false }),
   toggleContact: () =>
     set((state) => ({ isContactOpen: !state.isContactOpen })),
+  setChatVisible: (visible) => set({ isChatVisible: visible }),
 }));

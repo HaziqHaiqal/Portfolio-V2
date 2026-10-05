@@ -15,6 +15,7 @@ import {
 import { SiGithub } from 'react-icons/si';
 import ProjectImageGallery from '@components/Media/ProjectImageGallery';
 import { getCategoryInfo } from '@constants/projects';
+import { useUIStore } from '@lib/stores';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -77,6 +78,14 @@ export default function ProjectModal({
   onClose,
   project,
 }: ProjectModalProps) {
+  const setChatVisible = useUIStore((state) => state.setChatVisible);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setChatVisible(false);
+    return () => setChatVisible(true);
+  }, [isOpen, setChatVisible]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
