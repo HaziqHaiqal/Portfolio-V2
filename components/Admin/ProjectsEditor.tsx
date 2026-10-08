@@ -226,10 +226,15 @@ export default function ProjectsEditor() {
   const handleSave = async (projectData: ProjectData) => {
     setSaving(true);
     try {
+      const row = {
+        ...projectData,
+        start_date: projectData.start_date || null,
+        end_date: projectData.end_date || null,
+      };
       if (editingProject?.id) {
-        await upsertProjectAction({ ...projectData, id: editingProject.id });
+        await upsertProjectAction({ ...row, id: editingProject.id });
       } else {
-        await createProjectAction(projectData);
+        await createProjectAction(row);
       }
       toast.success(editingProject?.id ? 'Project updated' : 'Project created');
       setShowForm(false);
