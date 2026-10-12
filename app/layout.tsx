@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Haziq Haiqal | Software Developer',
   description:
-    'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions and exceptional user experiences.',
+    'Developer by day, pianist by night. I build websites, mobile apps and automation.',
   keywords: [
     'Haziq Haiqal',
     'Software Developer',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Haziq Haiqal | Software Developer',
     description:
-      'Software Developer specializing in React, TypeScript, and SAP ABAP. Building innovative web solutions.',
+      'Developer by day, pianist by night. I build websites, mobile apps and automation.',
     url: SITE_URL,
     siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
