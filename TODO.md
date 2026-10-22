@@ -1,6 +1,6 @@
 # TODO
 
-## Track clients, orders and Maintenance Plans in the admin portal
+## Track clients, orders and Care Plans in the admin portal
 
 Right now the WhatsApp message is the only record of what a client chose. Nothing is
 saved, so the admin portal cannot show orders, amounts, payments or renewal dates.
@@ -20,7 +20,7 @@ saved, so the admin portal cannot show orders, amounts, payments or renewal date
 - [ ] Add a line to every WhatsApp message (template modal and estimators), for
       example `Quote ref: Q-7K2M9` plus an admin link carrying the token.
 - [ ] The token encodes: service (template, website or app), package or template slug,
-      extras with prices, promo code and discount, build total, Maintenance Plan
+      extras with prices, promo code and discount, build total, Care Plan
       (plan, with database, monthly or yearly, first payment) and the grand total.
 - [ ] Admin page that opens the token, checks the signature and shows the quote
       exactly as the client saw it. "Edited" or invalid tokens are flagged.
@@ -37,7 +37,7 @@ saved, so the admin portal cannot show orders, amounts, payments or renewal date
       new order and its client, so nothing is typed by hand.
 - [ ] Manual "New order" form for deals agreed outside the site.
 
-### 3. Maintenance Plan subscriptions
+### 3. Care Plan subscriptions
 
 - [ ] `care_subscriptions`: client, order, plan (website or app), with database,
       billing (monthly or yearly), amount, start date (launch date), current period
@@ -71,9 +71,43 @@ saved, so the admin portal cannot show orders, amounts, payments or renewal date
 - [ ] Link promo code redemptions to orders (count uses on confirm, not on apply).
 - [ ] Export orders and payments to CSV for accounting.
 
+## Online store demo with a sandbox payment gateway
+
+So clients can test a real checkout before ordering a custom online store.
+
+- [ ] Full store demo under `/templates/`: catalogue with categories and
+      variants, cart, checkout, order confirmation page and email.
+- [ ] Sandbox payment gateway (test mode only, no real money): pick a Malaysian
+      gateway with FPX test banks (e.g. Billplz or ToyyibPay sandbox), or Stripe
+      test mode for cards.
+- [ ] Clear "Demo: use test payment details" notice at checkout, with the test
+      bank or card details to use.
+- [ ] Admin side of the demo: orders list with status (paid, packed, shipped)
+      and stock that goes down after payment, so clients see both ends.
+- [ ] Payment webhook that marks the order paid; reset demo data daily.
+- [ ] Link it from the Custom package's online store build ("Try the demo").
+
+## Math solving game demo
+
+An interactive demo that shows games and learning apps can be built too.
+
+- [ ] Decide the audience and pitch first: kids (e.g. tuition centres, schools)
+      or general brain training, and which services it sells (custom web app,
+      mobile app, PWA).
+- [ ] Core game: questions by level (addition up to word problems), timer,
+      score, streaks and instant right/wrong feedback.
+- [ ] Progress that persists on the device, with a simple results screen.
+- [ ] Optional: leaderboard (needs a database) and sound effects with a mute
+      button.
+- [ ] Works on phones and installs as a PWA using the PWA kit, so it plays
+      offline.
+- [ ] Add it to the Projects page or the Services page as a live demo.
+
 ## Other open items
 
 - [ ] Deactivate or delete the `TRY10` test promo code (active until 29 Oct 2026).
 - [ ] Decide whether to remove the `?colour=` and `?promo=` URL parameters.
 - [ ] Decide whether to drop the unused `experiences.sort_order` column.
+- [ ] Deploy the deals section and the `is_featured` switch; FRYDAY10 (23 Oct 2026)
+      expires before it can show on the live site.
 - [ ] Commit the services, templates and admin work (nothing is committed yet).

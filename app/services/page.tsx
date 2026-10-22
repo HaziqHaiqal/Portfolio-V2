@@ -1,8 +1,19 @@
 import type { Metadata } from 'next';
-import { BriefcaseBusiness, Check, CircleHelp, Sparkles } from 'lucide-react';
-import { SiWhatsapp } from 'react-icons/si';
-import { getCachedPortfolio, getCachedTemplates } from '@lib/data';
 import {
+  BriefcaseBusiness,
+  Check,
+  CircleHelp,
+  Sparkles,
+  Tag,
+} from 'lucide-react';
+import { SiWhatsapp } from 'react-icons/si';
+import {
+  getCachedFeaturedDeals,
+  getCachedPortfolio,
+  getCachedTemplates,
+} from '@lib/data';
+import {
+  addOnById,
   CARE_RESPONSE,
   CARE_YEARLY_SAVING,
   careMonthly,
@@ -14,8 +25,6 @@ import {
   PAYMENT_TERMS,
   promoTargetsOf,
   startingPriceOf,
-  TEMPLATE_FEATURES,
-  TEMPLATE_PAYMENTS,
   TEMPLATE_SECTION,
   TEMPLATE_SUMMARY,
   WEBSITE_CMS,
@@ -37,6 +46,7 @@ import Recommender from '@components/Service/Recommender';
 import FaqTabs, { type FaqItem } from '@components/Service/FaqTabs';
 import { PromoProvider } from '@components/Promo/PromoProvider';
 import { PromoLink } from '@components/Promo/PromoParts';
+import DealList from '@components/Promo/DealList';
 
 export const metadata: Metadata = {
   title: 'Services | Haziq Haiqal',
@@ -54,7 +64,7 @@ const STEPS = [
   'Choose a template or package, or describe a custom build.',
   'Send your choices in one WhatsApp message.',
   'Pages, features, price and timeline are agreed before work starts.',
-  'Go live with lifetime bug fixes, kept online by the Maintenance Plan.',
+  'Go live with lifetime bug fixes, kept online by the Care Plan.',
 ];
 
 const formatStartingPrice = (config: typeof WEBSITE_ESTIMATOR) => {
@@ -68,7 +78,10 @@ const fixedPackages = WEBSITE_ESTIMATOR.packages.filter(
 const customFrom = Math.min(
   ...WEBSITE_ESTIMATOR.customPackages.map((build) => build.from)
 );
-const pwa = TEMPLATE_FEATURES.find((feature) => feature.id === 'pwa');
+const pwa = addOnById('pwa');
+const cart = addOnById('whatsapp-cart');
+const appointments = addOnById('appointment-request');
+const payments = addOnById('online-payments');
 
 const lowerFirst = (text: string) =>
   /^[A-Z][a-z]*\b/.test(text)
@@ -89,7 +102,7 @@ const CARE_PLANS = [
     name: 'Website with database',
     price: `${formatRM(careMonthly(webCare, true))}/month`,
     yearly: `${formatRM(careYearly(webCare, true))}/year`,
-    text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}. For a CMS, online payments or a custom build.`,
+    text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}. For an admin dashboard, online payments or a custom build.`,
   },
   {
     name: 'Mobile app',
@@ -123,7 +136,7 @@ const FAQS: FaqItem[] = [
       )}, and stores, bookings and portals start at ${formatRM(customFrom)}. Mobile apps are quoted after a short chat. The ${webCare.name} is paid monthly or yearly, from ${formatRM(webCare.monthlyPrice)} a month.`,
   },
   {
-    id: 'maintenance-plan',
+    id: 'care-plan',
     question: `What is the ${webCare.name}?`,
     answer: (
       <>
@@ -167,12 +180,17 @@ const FAQS: FaqItem[] = [
   },
   {
     question: 'What happens after launch?',
-    answer: `Bug fixes are free for life: if the delivered work stops working as agreed, it is fixed free. This excludes problems caused by other people's changes or third-party services. Changes and new features are charged separately, and the cost is confirmed before any work starts. With a CMS, you can update the parts you chose on your own.`,
+    answer: `Bug fixes are free for life: if the delivered work stops working as agreed, it is fixed free. This excludes problems caused by other people's changes or third-party services. New pages and features are quoted, and the cost is confirmed before any work starts.`,
+  },
+  {
+    question: 'How do I update my content after launch?',
+    answer:
+      'With the admin dashboard, you update the parts you chose yourself, at no extra cost. Without it, every content change, even a new photo, price or line of text, is done for you and charged by how complex it is. The cost is confirmed before any work starts.',
   },
   {
     question: 'Who owns the website or app?',
     answer:
-      'You do. Your domain and app store accounts are in your name from the start, and the code and content are yours once the final payment is made. Hosting is managed for you as part of the Maintenance Plan.',
+      'You do. Your domain and app store accounts are in your name from the start, and the code and content are yours once the final payment is made. Hosting is managed for you as part of the Care Plan.',
   },
   {
     question: 'What do I need to provide?',
@@ -181,11 +199,7 @@ const FAQS: FaqItem[] = [
   },
   {
     question: 'What does a template include?',
-    answer: `${TEMPLATE_SUMMARY} Extras have fixed prices: ${lowerFirst(TEMPLATE_SECTION.name)}s at ${formatRM(TEMPLATE_SECTION.price)} each, ${TEMPLATE_FEATURES.map(
-      (feature) => `${lowerFirst(feature.name)} at ${formatRM(feature.price)}`
-    ).join(
-      ', '
-    )}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and a CMS from ${formatRM(WEBSITE_CMS.price)}. The WhatsApp cart sends orders to your WhatsApp. Online payments by FPX, card or e-wallet can be added as a quoted extra, from ${formatRM(TEMPLATE_PAYMENTS.from)}.`,
+    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: ${lowerFirst(TEMPLATE_SECTION.name)}s at ${formatRM(TEMPLATE_SECTION.price)} each, add-ons that fit your type of site${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an admin dashboard from ${formatRM(WEBSITE_CMS.price)}.${payments ? ` Shop templates can add online payments by FPX, card or e-wallet as a quoted add-on, from ${formatRM(payments.price)}.` : ''}`,
   },
   ...(pwa
     ? [
@@ -235,6 +249,7 @@ const FAQ_GROUPS = [
     items: [
       faq(`What is the ${webCare.name}?`),
       faq('What happens after launch?'),
+      faq('How do I update my content after launch?'),
       faq('Who owns the website or app?'),
     ],
   },
@@ -247,9 +262,10 @@ function withMessage(whatsappHref: string, message: string) {
 }
 
 export default async function ServicePage() {
-  const [{ profile }, templates] = await Promise.all([
+  const [{ profile }, templates, deals] = await Promise.all([
     getCachedPortfolio(),
     getCachedTemplates(),
+    getCachedFeaturedDeals().catch(() => []),
   ]);
   const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
   const promoTargets = getPromoTargets();
@@ -296,7 +312,7 @@ export default async function ServicePage() {
           {
             id: 'automation',
             label: 'Automation',
-            price: 'Custom quote',
+            price: 'By quotation',
             icon: 'automation' as const,
             panel: (
               <div className="mx-auto grid max-w-5xl items-center gap-8 rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-10 md:grid-cols-[1fr_auto]">
@@ -322,6 +338,11 @@ export default async function ServicePage() {
                       </li>
                     ))}
                   </ul>
+                  {automation.note && (
+                    <p className="mt-6 max-w-xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                      {automation.note}
+                    </p>
+                  )}
                 </div>
                 {automation.cta && (
                   <PromoLink
@@ -331,7 +352,7 @@ export default async function ServicePage() {
                     )}
                     className={SOLID_BUTTON}
                   >
-                    Discuss a project
+                    Request a quote
                     <SiWhatsapp size={15} aria-hidden="true" />
                   </PromoLink>
                 )}
@@ -362,6 +383,20 @@ export default async function ServicePage() {
                 <ServiceTabs tabs={tabs} />
               </div>
             </section>
+
+            {deals.length > 0 && (
+              <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
+                <div className="mx-auto max-w-3xl">
+                  <SectionHeader
+                    icon={Tag}
+                    title="Deals"
+                    accentClass="text-green-500"
+                    gradientClass="from-green-600 to-green-400"
+                  />
+                  <DealList deals={deals} />
+                </div>
+              </section>
+            )}
 
             <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
               <div className="mx-auto max-w-3xl">

@@ -19,7 +19,7 @@ import {
 export default function AtelierNuraHome() {
   return (
     <>
-      <section className="relative flex h-[calc(100svh-5rem)] min-h-[38rem] flex-col justify-end overflow-hidden bg-black text-white">
+      <section className="relative flex min-h-[calc(100svh-5rem)] flex-col justify-end overflow-hidden bg-black pt-28 text-white">
         <HeroPhoto
           src={PHOTOS.hero}
           alt="Model in a sand satin abaya and chiffon shawl from the Sutera collection"

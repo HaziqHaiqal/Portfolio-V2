@@ -399,17 +399,27 @@ export default function PromoCodesEditor() {
                 title={<span className="font-mono">{promo.code}</span>}
                 subtitle={promo.title || 'No campaign name'}
                 meta={
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'px-1.5 py-0 text-[10px] font-normal',
-                      status === 'active'
-                        ? 'border-primary/40 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground'
+                  <>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'px-1.5 py-0 text-[10px] font-normal',
+                        status === 'active'
+                          ? 'border-primary/40 bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground'
+                      )}
+                    >
+                      {STATUS_LABELS[status]}
+                    </Badge>
+                    {promo.is_featured && (
+                      <Badge
+                        variant="outline"
+                        className="border-border px-1.5 py-0 text-[10px] font-normal text-muted-foreground"
+                      >
+                        On site
+                      </Badge>
                     )}
-                  >
-                    {STATUS_LABELS[status]}
-                  </Badge>
+                  </>
                 }
                 actions={
                   <EditDeleteActions
@@ -517,6 +527,7 @@ function PromoCodeForm({
     max_uses: promo?.max_uses ? String(promo.max_uses) : '',
     uses_count: String(promo?.uses_count ?? 0),
     is_active: promo?.is_active ?? true,
+    is_featured: promo?.is_featured ?? false,
     notes: promo?.notes ?? '',
   });
 
@@ -581,6 +592,7 @@ function PromoCodeForm({
       max_uses: maxUses,
       uses_count: Math.max(0, Math.floor(Number(form.uses_count) || 0)),
       is_active: form.is_active,
+      is_featured: form.is_featured,
       notes: form.notes.trim() || null,
     });
   };
@@ -648,7 +660,7 @@ function PromoCodeForm({
             <Field
               label="Campaign name"
               htmlFor="title"
-              hint="Only you see this."
+              hint="Private, unless the code is shown on the site."
             >
               <Input
                 id="title"
@@ -824,6 +836,16 @@ function PromoCodeForm({
               <Switch
                 checked={form.is_active}
                 onCheckedChange={(checked) => set('is_active', checked)}
+              />
+            }
+          />
+          <ToggleRow
+            label="Show on site"
+            description="List it as a deal on the Services page, with the campaign name, reward and end date, so visitors can apply it. Hidden automatically once it ends or is used up."
+            control={
+              <Switch
+                checked={form.is_featured}
+                onCheckedChange={(checked) => set('is_featured', checked)}
               />
             }
           />

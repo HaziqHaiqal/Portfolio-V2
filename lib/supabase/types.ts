@@ -170,6 +170,8 @@ export interface PromoCode {
   referrer_name?: string;
   notes?: string;
   is_active: boolean;
+  /** Listed publicly as a deal on the Services page. */
+  is_featured: boolean;
   created_at?: string;
   updated_at?: string;
 }

@@ -16,6 +16,7 @@ import {
   Workflow,
   type LucideIcon,
 } from 'lucide-react';
+import { SERVICES_ANCHOR_ID } from '@components/Promo/DealList';
 import { useServicePick } from './servicePick';
 
 const ICONS: Record<ServiceTab['icon'], LucideIcon> = {
@@ -192,7 +193,7 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
   };
 
   return (
-    <div ref={rootRef} className="scroll-mt-28">
+    <div ref={rootRef} id={SERVICES_ANCHOR_ID} className="scroll-mt-28">
       <ServicePicker tabs={tabs} activeId={activeId} onSelect={setActiveId} />
 
       <div

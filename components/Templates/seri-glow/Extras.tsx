@@ -168,7 +168,7 @@ export function IngredientStory() {
   return (
     <div ref={ref} className="grid gap-10 md:grid-cols-2 md:gap-16">
       <div className="relative hidden md:block">
-        <div className="sticky top-24 aspect-[4/5] overflow-hidden rounded-[2rem]">
+        <div className="sticky top-36 aspect-[4/5] overflow-hidden rounded-[2rem]">
           <AnimatePresence initial={false}>
             <m.div
               key={active}

@@ -4,16 +4,20 @@ import { useEffect, useState } from 'react';
 import { Check, ShieldCheck, Wallet } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
+  type AddOn,
   cmsLabel,
   careFirstPayment,
   carePrice,
   type CareBilling,
   cmsPrice,
   MULTI_LANGUAGE,
-  type CustomFeature,
   type EstimatorConfig,
   type PackageOption,
+  offeredFor,
   type PromoTarget,
+  SITE_TYPES,
+  type SiteType,
+  toggleAddOn,
 } from '@constants/services';
 import { formatRM, formatRMRange } from '@lib/format';
 import { discountedPrice, promoAppliesTo } from '@lib/promo';
@@ -22,8 +26,8 @@ import PromoField from '@components/Promo/PromoField';
 import { PromoPerks, PromoPrice } from '@components/Promo/PromoParts';
 import HostingCare from './HostingCare';
 import OrderSummary, { type SummaryLine } from './OrderSummary';
-import CmsPicker from './CmsPicker';
-import LanguagePicker from './LanguagePicker';
+import AddOnChecklist from './AddOnChecklist';
+import SiteTypePicker from './SiteTypePicker';
 import { useServicePick } from './servicePick';
 import { openFaq } from './FaqTabs';
 
@@ -225,6 +229,7 @@ export default function Estimator({
 }) {
   const { promo } = usePromo();
   const [packageId, setPackageId] = useState(config.packages[0].id);
+  const [siteType, setSiteType] = useState<SiteType | null>(null);
   const [addOnIds, setAddOnIds] = useState<string[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [cmsTabIds, setCmsTabIds] = useState<string[] | null>(null);
@@ -238,6 +243,7 @@ export default function Estimator({
       useServicePick.subscribe(({ pick }) => {
         if (pick?.tab !== config.id) return;
         if (pick.packageId) setPackageId(pick.packageId);
+        setSiteType(pick.siteType ?? null);
         setAddOnIds(pick.addOnIds ?? []);
         setCmsTabIds(pick.cmsTabIds ?? null);
         setBuildId(pick.buildId ?? null);
@@ -253,6 +259,22 @@ export default function Estimator({
     quoteOnly ? '' : formatRMRange(from, to);
 
   const addOns = config.addOns.filter((addOn) => addOnIds.includes(addOn.id));
+  const fixedAddOns = addOns.filter((addOn) => !addOn.priceTo);
+  const quotedAddOns = isCustom ? [] : addOns.filter((addOn) => addOn.priceTo);
+  const quoted = quotedAddOns.length > 0;
+  const quotedFrom = quotedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
+  const quotedTo = quotedAddOns.reduce(
+    (sum, addOn) => sum + (addOn.priceTo ?? addOn.price),
+    0
+  );
+  const siteTypeLabel = SITE_TYPES.find((type) => type.id === siteType)?.label;
+  const hasSiteTypes = config.addOns.some((addOn) => addOn.siteTypes);
+  const typeAddOns = config.addOns.filter(
+    (addOn) =>
+      addOn.siteTypes &&
+      (offeredFor(addOn, siteType) || addOnIds.includes(addOn.id))
+  );
+  const everySiteAddOns = config.addOns.filter((addOn) => !addOn.siteTypes);
   const { cms } = config;
   const cmsTotal = cms ? cmsPrice(cms, cmsTabIds) : 0;
   const languageTotal = languages.length * MULTI_LANGUAGE.pricePerLanguage;
@@ -265,50 +287,69 @@ export default function Estimator({
     : null;
   const customBuild =
     config.customPackages.find((build) => build.id === buildId) ?? null;
-  const isIncluded = (feature: CustomFeature) =>
-    Boolean(customBuild && feature.includedIn?.includes(customBuild.id));
-  const chosenFeatures = config.quoteOptions.filter((feature) =>
-    quoteIds.includes(feature.id)
+  const customAddOns = [
+    ...config.customAddOns,
+    ...config.addOns.filter((addOn) => !addOn.siteTypes),
+  ];
+  const includedInBuild = (addOn: AddOn) =>
+    Boolean(customBuild && addOn.includedInBuilds?.includes(customBuild.id));
+  const chosenCustom = customAddOns.filter((addOn) =>
+    quoteIds.includes(addOn.id)
   );
-  const pricedFeatures = chosenFeatures.filter(
-    (feature) => !isIncluded(feature)
-  );
+  const pricedCustom = chosenCustom.filter((addOn) => !includedInBuild(addOn));
   const customDetails = other.trim();
   const hasCustomDetails =
-    Boolean(customBuild) || chosenFeatures.length > 0 || Boolean(customDetails);
+    Boolean(customBuild) ||
+    chosenCustom.length > 0 ||
+    languages.length > 0 ||
+    Boolean(customDetails);
 
-  // A custom request without a listed build starts from the top fixed package.
+  // A custom request without a listed build starts from the cheapest build.
   const fixedPrices = config.packages.flatMap((item) => item.price ?? []);
-  const customFloor = fixedPrices.length
-    ? Math.max(...fixedPrices)
-    : (customRange?.from ?? 0);
+  const customFloor =
+    customRange?.from ?? (fixedPrices.length ? Math.max(...fixedPrices) : 0);
   const rangeFrom =
     (customBuild?.from ?? customFloor) +
-    pricedFeatures.reduce((total, feature) => total + feature.from, 0);
+    pricedCustom.reduce((total, addOn) => total + addOn.price, 0) +
+    languageTotal;
   const rangeTo =
     (customBuild?.to ?? customFloor) +
-    pricedFeatures.reduce((total, feature) => total + feature.to, 0);
+    pricedCustom.reduce(
+      (total, addOn) => total + (addOn.priceTo ?? addOn.price),
+      0
+    ) +
+    languageTotal;
   const rangeText = (extra: number) =>
-    customBuild || pricedFeatures.length
+    customBuild
       ? formatRMRange(rangeFrom + extra, rangeTo + extra)
       : hasCustomDetails || !customRange
-        ? `From ${formatRM(customFloor + extra)}`
+        ? `From ${formatRM(rangeFrom + extra)}`
         : formatRMRange(customRange.from + extra, customRange.to + extra);
+  const customPrice = (addOn: AddOn) =>
+    addOn.priceTo
+      ? formatRMRange(addOn.price, addOn.priceTo)
+      : formatRM(addOn.price);
   const rangeLabel = rangeText(0);
 
   const estimate =
     (pkg.price ?? 0) +
-    addOns.reduce((total, addOn) => total + addOn.price, 0) +
+    fixedAddOns.reduce((total, addOn) => total + addOn.price, 0) +
     cmsTotal +
     languageTotal;
   const eligiblePromo =
-    promo && promoAppliesTo(promo, [config.promoTarget]) ? promo : null;
+    promo && !quoted && promoAppliesTo(promo, [config.promoTarget])
+      ? promo
+      : null;
   const afterPromo = eligiblePromo
     ? discountedPrice(estimate, eligiblePromo)
     : estimate;
 
   const extras = [
-    ...addOns.map((addOn) => `${addOn.name} (+${formatRM(addOn.price)})`),
+    ...fixedAddOns.map((addOn) => `${addOn.name} (+${formatRM(addOn.price)})`),
+    ...quotedAddOns.map(
+      (addOn) =>
+        `${addOn.name} (${formatRMRange(addOn.price, addOn.priceTo ?? addOn.price)}, to be quoted)`
+    ),
     ...(languageTotal
       ? [
           `${MULTI_LANGUAGE.name}: ${languages.join(', ')} (+${formatRM(languageTotal)})`,
@@ -325,7 +366,7 @@ export default function Estimator({
     return url.toString();
   };
 
-  const withDatabase = isCustom || cmsTabIds !== null;
+  const withDatabase = isCustom || cmsTabIds !== null || quoted;
   const careFrom = quoteOnly
     ? 'by quotation'
     : `from ${formatRM(config.carePlan.monthlyPrice)}/month`;
@@ -338,7 +379,7 @@ export default function Estimator({
   const careAmount = firstCare?.amount ?? 0;
   const careLine = [
     firstCare
-      ? `${firstCare.label}: ${formatRM(firstCare.amount)}, then ${careText}`
+      ? `${config.carePlan.name}: ${careText}, first ${firstCare.period} included in the total`
       : quoteOnly
         ? `${config.carePlan.name}: by quotation`
         : `${config.carePlan.name}: ${careFrom}, confirmed in the quote`,
@@ -347,7 +388,12 @@ export default function Estimator({
     ? 'By quotation'
     : isCustom
       ? rangeText(careAmount)
-      : formatRM(afterPromo + careAmount);
+      : quoted
+        ? formatRMRange(
+            afterPromo + quotedFrom + careAmount,
+            afterPromo + quotedTo + careAmount
+          )
+        : formatRM(afterPromo + careAmount);
 
   const buildLines: SummaryLine[] = isCustom
     ? [
@@ -362,22 +408,36 @@ export default function Estimator({
             ? [
                 {
                   label: `Custom ${config.label.toLowerCase()}`,
-                  value: quoteOnly ? '' : formatRM(customFloor),
+                  value: quoteOnly ? '' : `From ${formatRM(customFloor)}`,
                 },
               ]
             : []),
-        ...chosenFeatures.map((feature) => ({
-          label: feature.name,
-          value: isIncluded(feature)
+        ...chosenCustom.map((addOn) => ({
+          label: addOn.name,
+          value: includedInBuild(addOn)
             ? 'Included'
-            : rangeOrBlank(feature.from, feature.to),
+            : quoteOnly
+              ? ''
+              : customPrice(addOn),
         })),
+        ...(languageTotal
+          ? [
+              {
+                label: `${MULTI_LANGUAGE.name}: ${languages.join(', ')}`,
+                value: formatRM(languageTotal),
+              },
+            ]
+          : []),
       ]
     : [
         { label: `${pkg.name} package`, value: formatRM(pkg.price ?? 0) },
-        ...addOns.map((addOn) => ({
+        ...fixedAddOns.map((addOn) => ({
           label: addOn.name,
           value: formatRM(addOn.price),
+        })),
+        ...quotedAddOns.map((addOn) => ({
+          label: `${addOn.name} (quoted)`,
+          value: formatRMRange(addOn.price, addOn.priceTo ?? addOn.price),
         })),
         ...(languageTotal
           ? [
@@ -399,7 +459,7 @@ export default function Estimator({
   const summaryLines = [
     ...buildLines,
     firstCare
-      ? { label: firstCare.label, value: formatRM(firstCare.amount) }
+      ? { label: config.carePlan.name, value: careText }
       : {
           label: config.carePlan.name,
           value: quoteOnly
@@ -413,14 +473,19 @@ export default function Estimator({
       : null;
 
   const quoteHref = toWhatsApp([
-    config.messageIntro,
+    quoted
+      ? `Hi Haziq, I'd like a quote for this ${config.label.toLowerCase()}.`
+      : config.messageIntro,
     `Package: ${pkg.name} (${formatRM(pkg.price ?? 0)})`,
+    ...(siteTypeLabel ? [`Site type: ${siteTypeLabel}`] : []),
     `Add-ons: ${extras.length ? extras.join(', ') : 'none'}`,
-    `Build price: ${formatRM(afterPromo)}${eligiblePromo ? ` with promo ${eligiblePromo.code}` : ''}`,
+    `Build price: ${formatRM(afterPromo)}${eligiblePromo ? ` with promo ${eligiblePromo.code}` : ''}${quoted ? ', plus the quoted items' : ''}`,
     ...careLine,
-    `Total: ${grandTotal}`,
+    `${quoted ? 'Estimated total' : 'Total'}: ${grandTotal}`,
     'Includes lifetime bug fixes',
-    'Please confirm the final scope, timeline and quote.',
+    quoted
+      ? 'Please confirm the final quote and what you need from me.'
+      : 'Please let me know what you need from me to get started.',
   ]);
 
   const customQuoteHref = toWhatsApp([
@@ -432,17 +497,22 @@ export default function Estimator({
             : `Build: ${customBuild.name} (${formatRMRange(customBuild.from, customBuild.to)})`,
         ]
       : []),
-    ...(chosenFeatures.length
+    ...(chosenCustom.length
       ? [
-          `Features: ${chosenFeatures
-            .map((feature) =>
-              isIncluded(feature)
-                ? `${feature.name} (included)`
+          `Add-ons: ${chosenCustom
+            .map((addOn) =>
+              includedInBuild(addOn)
+                ? `${addOn.name} (included)`
                 : quoteOnly
-                  ? feature.name
-                  : `${feature.name} (+${formatRMRange(feature.from, feature.to)})`
+                  ? addOn.name
+                  : `${addOn.name} (+${customPrice(addOn)})`
             )
             .join(', ')}`,
+        ]
+      : []),
+    ...(languageTotal
+      ? [
+          `${MULTI_LANGUAGE.name}: ${languages.join(', ')} (+${formatRM(languageTotal)})`,
         ]
       : []),
     ...(customDetails ? [`Details: ${customDetails}`] : []),
@@ -451,14 +521,22 @@ export default function Estimator({
     'Please let me know the final price and timeline.',
   ]);
 
-  const toggle = (
-    id: string,
-    list: string[],
-    setList: (next: string[]) => void
-  ) =>
-    setList(
-      list.includes(id) ? list.filter((value) => value !== id) : [...list, id]
+  const changeSiteType = (next: SiteType) => {
+    setSiteType(next);
+    setAddOnIds((ids) =>
+      ids.filter((id) => {
+        const addOn = config.addOns.find((item) => item.id === id);
+        return addOn ? offeredFor(addOn, next) : false;
+      })
     );
+    setCmsTabIds(
+      (ids) =>
+        ids?.filter((id) => {
+          const tab = cms?.tabs.find((item) => item.id === id);
+          return tab ? offeredFor(tab, next) : false;
+        }) ?? null
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -489,68 +567,41 @@ export default function Estimator({
 
       <div className={`${CARD} space-y-8 p-6 shadow-xl sm:p-8`}>
         {!isCustom && (
-          <fieldset>
-            <legend className="sr-only">Add-ons</legend>
-            <GroupTitle title="Add-ons" hint="Optional" />
-            <div className="grid gap-3 sm:grid-cols-2 sm:[&>label:last-of-type:nth-of-type(odd)]:col-span-2">
-              {config.addOns.map((addOn) => {
-                const selected = addOnIds.includes(addOn.id);
-                return (
-                  <label
-                    key={addOn.id}
-                    className={`${OPTION} ${selected ? OPTION_SELECTED : OPTION_IDLE}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggle(addOn.id, addOnIds, setAddOnIds)}
-                      className="sr-only"
-                    />
-                    <Indicator selected={selected} shape="checkbox" />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-baseline justify-between gap-x-2">
-                        <span className="font-semibold text-gray-900 dark:text-gray-100">
-                          {addOn.name}
-                        </span>
-                        <span className="text-xs font-semibold text-green-700 dark:text-green-400">
-                          +{formatRM(addOn.price)}
-                        </span>
-                      </span>
-                      {addOn.description && (
-                        <span className="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                          {addOn.description}
-                        </span>
-                      )}
-                      {addOn.runningCost && (
-                        <span className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                          <Wallet size={13} aria-hidden="true" />
-                          <span className="sr-only">Running cost: </span>
-                          {addOn.runningCost}
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                );
-              })}
-              {config.multiLanguage && (
-                <LanguagePicker
-                  languages={languages}
-                  onChange={setLanguages}
-                  idPrefix={config.id}
-                  className="sm:col-span-2"
-                />
-              )}
-              {config.cms && (
-                <CmsPicker
-                  cms={config.cms}
-                  selection={cmsTabIds}
-                  onChange={setCmsTabIds}
-                  idPrefix={config.id}
-                  className="sm:col-span-2"
-                />
-              )}
+          <>
+            {hasSiteTypes && (
+              <SiteTypePicker
+                value={siteType}
+                onChange={changeSiteType}
+                idPrefix={config.id}
+              />
+            )}
+
+            <div>
+              <GroupTitle title="Add-ons" hint="Optional" />
+              <AddOnChecklist
+                idPrefix={config.id}
+                groups={[
+                  ...(typeAddOns.length
+                    ? [
+                        {
+                          label: siteTypeLabel ?? 'Your site',
+                          addOns: typeAddOns,
+                        },
+                      ]
+                    : []),
+                  { label: 'Other add-ons', addOns: everySiteAddOns },
+                ]}
+                selected={addOnIds}
+                onToggle={(id) => setAddOnIds(toggleAddOn(addOnIds, id))}
+                languages={config.multiLanguage ? languages : undefined}
+                onLanguagesChange={setLanguages}
+                cms={config.cms}
+                cmsSelection={cmsTabIds}
+                onCmsChange={setCmsTabIds}
+                siteType={siteType}
+              />
             </div>
-          </fieldset>
+          </>
         )}
 
         {isCustom && (
@@ -611,52 +662,32 @@ export default function Estimator({
               </fieldset>
             )}
 
-            <fieldset>
-              <legend className="sr-only">Features</legend>
-              <GroupTitle title="Features you need" hint="Optional" />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {config.quoteOptions.map((feature) => {
-                  const included = isIncluded(feature);
-                  const selected = included || quoteIds.includes(feature.id);
-                  return (
-                    <label
-                      key={feature.id}
-                      className={`${OPTION} ${selected ? OPTION_SELECTED_CUSTOM : OPTION_IDLE} ${included ? 'cursor-default' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        disabled={included}
-                        onChange={() =>
-                          toggle(feature.id, quoteIds, setQuoteIds)
-                        }
-                        className="sr-only"
-                      />
-                      <Indicator selected={selected} shape="checkbox" custom />
-                      <span className="min-w-0 flex-1">
-                        <span className="flex flex-wrap items-baseline justify-between gap-x-2">
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            {feature.name}
-                          </span>
-                          <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
-                            {included
-                              ? 'Included'
-                              : quoteOnly
-                                ? ''
-                                : `+${formatRMRange(feature.from, feature.to)}`}
-                          </span>
-                        </span>
-                        <span className="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                          {included && customBuild
-                            ? `Part of the ${customBuild.name.toLowerCase()} build.`
-                            : feature.description}
-                        </span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
+            <div>
+              <GroupTitle title="Add-ons" hint="Optional" />
+              <AddOnChecklist
+                idPrefix={`${config.id}-custom`}
+                groups={[
+                  {
+                    label: everySiteAddOns.length
+                      ? 'For your build'
+                      : 'Features',
+                    addOns: config.customAddOns,
+                  },
+                  ...(everySiteAddOns.length
+                    ? [{ label: 'Other add-ons', addOns: everySiteAddOns }]
+                    : []),
+                ]}
+                selected={quoteIds}
+                included={customAddOns
+                  .filter(includedInBuild)
+                  .map((addOn) => addOn.id)}
+                onToggle={(id) => setQuoteIds(toggleAddOn(quoteIds, id))}
+                hidePrices={quoteOnly}
+                languages={config.multiLanguage ? languages : undefined}
+                onLanguagesChange={setLanguages}
+                siteType={null}
+              />
+            </div>
 
             <div>
               <label
@@ -685,7 +716,7 @@ export default function Estimator({
             billing={billing}
             onBillingChange={setBilling}
             name={`${config.id}-billing`}
-            onShowDetails={() => openFaq('maintenance-plan')}
+            onShowDetails={() => openFaq('care-plan')}
             className="rounded-2xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30"
           />
         </div>
@@ -695,15 +726,21 @@ export default function Estimator({
           lines={summaryLines}
           discount={discount}
           totalLabel={
-            quoteOnly ? 'Price' : isCustom ? 'Estimated range' : 'Total'
+            quoteOnly
+              ? 'Price'
+              : isCustom
+                ? 'Estimated range'
+                : quoted
+                  ? 'Estimated total'
+                  : 'Total'
           }
           total={grandTotal}
           note={
             firstCare
-              ? `Then ${careText} for the ${config.carePlan.name}`
+              ? `Includes ${formatRM(firstCare.amount)} for the first ${firstCare.period}, then ${careText}`
               : `The ${config.carePlan.name} is confirmed in your quote`
           }
-          quoted={isCustom}
+          quoted={isCustom || quoted}
           plain
           className="border-t border-gray-200 pt-8 dark:border-gray-700"
           action={
@@ -728,9 +765,9 @@ export default function Estimator({
                 href={quoteHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${SEND_BUTTON} w-full sm:w-auto sm:min-w-64`}
+                className={`${quoted ? CUSTOM_BUTTON : SEND_BUTTON} w-full sm:w-auto sm:min-w-64`}
               >
-                Send on WhatsApp
+                {quoted ? 'Request a quote' : 'Order on WhatsApp'}
                 <SiWhatsapp size={16} aria-hidden="true" />
               </a>
             )

@@ -37,7 +37,7 @@ const STATS = [
 export default function TerasBinaHome() {
   return (
     <>
-      <section className="relative flex h-[calc(100svh-3rem)] min-h-[40rem] flex-col justify-end overflow-hidden bg-[#0B0D10] text-white">
+      <section className="relative flex min-h-[calc(100svh-3rem)] flex-col justify-end overflow-hidden bg-[#0B0D10] pt-28 text-white">
         <HeroPhoto
           src={PHOTOS.hero}
           alt="Glass tower under construction with tower cranes"

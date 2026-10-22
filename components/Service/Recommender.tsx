@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import {
+  addOnById,
   careMonthly,
   cmsPrice,
   WEBSITE_CMS,
@@ -48,7 +49,7 @@ const GOAL: Question<'goal'> = {
     { value: 'whatsapp', label: 'Take orders on WhatsApp' },
     { value: 'accounts', label: 'Let customers book, buy or sign in' },
     { value: 'app', label: "Be an app on people's phones" },
-    { value: 'automate', label: 'Automate repetitive work' },
+    { value: 'automate', label: 'Automate work, like saving WhatsApp orders' },
   ],
 };
 
@@ -114,8 +115,7 @@ function nextQuestion(a: Answers): AnyQuestion | null {
 
 const pkgPrice = (id: string) =>
   WEBSITE_ESTIMATOR.packages.find((pkg) => pkg.id === id)?.price ?? 0;
-const addOnPrice = (id: string) =>
-  WEBSITE_ESTIMATOR.addOns.find((addOn) => addOn.id === id)?.price ?? 0;
+const addOnPrice = (id: string) => addOnById(id)?.price ?? 0;
 const build = (id: string) =>
   WEBSITE_ESTIMATOR.customPackages.find((item) => item.id === id);
 const care = (withDatabase: boolean) =>
@@ -145,8 +145,8 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
   if (a.goal === 'automate')
     return {
       name: 'Business automation',
-      price: 'Custom quote',
-      why: 'Chatbots, approval flows, automated forms and reports that send themselves, quoted after a short chat.',
+      price: 'By quotation',
+      why: 'WhatsApp orders that save themselves into your system, chatbots, approval flows and reports that send themselves, quoted after a short chat.',
       pick: { tab: 'automation' },
     };
 
@@ -167,7 +167,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     }[a.need];
     return {
       name: `Custom website: ${item?.name ?? 'custom build'}`,
-      price: item ? `Starting at ${formatRM(item.from)}` : 'Quoted',
+      price: item ? `Starting at ${formatRM(item.from)}` : 'By quotation',
       care: care(true),
       why,
       pick: { tab: WEBSITE_ESTIMATOR.id, packageId: 'custom', buildId: id },
@@ -189,6 +189,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
       pick: {
         tab: WEBSITE_ESTIMATOR.id,
         packageId: 'standard',
+        siteType: 'ecommerce',
         addOnIds: ['whatsapp-cart'],
       },
     };
@@ -217,7 +218,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     if (a.design === 'ready') {
       const pick = template(
         a.amount === 'changing'
-          ? 'A ready-made design set up with your content. Add the CMS so you can update prices and promotions yourself.'
+          ? 'A ready-made design set up with your content. Add the admin dashboard so you can update prices and promotions yourself.'
           : 'A ready-made design set up with your content. The quickest and most affordable way to look professional online.',
         a.amount === 'changing'
       );
@@ -234,7 +235,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
         'Up to 7 pages, so each service, your gallery and your story get their own page.'
       );
     return {
-      name: 'Advanced website + CMS',
+      name: 'Advanced website + admin dashboard',
       price: formatRM(
         pkgPrice('advanced') + cmsPrice(WEBSITE_CMS, UPDATE_TABS)
       ),

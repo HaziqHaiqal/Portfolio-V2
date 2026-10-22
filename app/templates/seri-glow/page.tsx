@@ -142,7 +142,7 @@ export default function SeriGlowPage() {
 
           <section
             id="shop"
-            className="mx-auto max-w-[90rem] scroll-mt-20 px-5 py-24 md:px-8 md:py-36"
+            className="mx-auto max-w-[90rem] scroll-mt-32 px-5 py-24 md:px-8 md:py-36"
           >
             <h2 className="mb-10 text-5xl font-semibold tracking-[-0.04em] md:text-7xl">
               <RevealText text="Bestsellers" onView />
@@ -152,7 +152,7 @@ export default function SeriGlowPage() {
 
           <section
             id="ingredients"
-            className="mx-auto max-w-[90rem] scroll-mt-20 px-5 md:px-8"
+            className="mx-auto max-w-[90rem] scroll-mt-32 px-5 md:px-8"
           >
             <h2 className="max-w-3xl text-5xl font-semibold tracking-[-0.04em] md:text-7xl">
               <RevealText text="Short ingredient lists. Real results." onView />
@@ -174,7 +174,7 @@ export default function SeriGlowPage() {
             </div>
           </section>
 
-          <section id="reviews" className="scroll-mt-20 py-24 md:py-32">
+          <section id="reviews" className="scroll-mt-32 py-24 md:py-32">
             <div className="mx-auto mb-12 flex max-w-[90rem] flex-wrap items-end justify-between gap-4 px-5 md:px-8">
               <h2 className="text-5xl font-semibold tracking-[-0.04em] md:text-7xl">
                 <RevealText text="Loved in the heat." onView />
@@ -218,7 +218,7 @@ export default function SeriGlowPage() {
 
           <section
             id="faq"
-            className="mx-auto max-w-[90rem] scroll-mt-20 px-5 pb-24 md:px-8 md:pb-32"
+            className="mx-auto max-w-[90rem] scroll-mt-32 px-5 pb-24 md:px-8 md:pb-32"
           >
             <div className="grid gap-10 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
               <div>

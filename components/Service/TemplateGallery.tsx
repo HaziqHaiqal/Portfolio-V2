@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, LayoutTemplate } from 'lucide-react';
 import type { WebsiteTemplate } from '@lib/supabase';
-import {
-  TEMPLATE_CATEGORIES,
-  TEMPLATE_PROMO_TARGET,
-} from '@constants/services';
+import { SITE_TYPES, TEMPLATE_PROMO_TARGET } from '@constants/services';
 import { HANDOFF, takeHandoff } from '@lib/handoff';
 import UniversalImage from '@components/Media/UniversalImage';
 import { PromoPrice } from '@components/Promo/PromoParts';
@@ -33,7 +30,7 @@ export default function TemplateGallery({
     return () => cancelAnimationFrame(frame);
   }, [templates]);
 
-  const categories = TEMPLATE_CATEGORIES.filter((c) =>
+  const categories = SITE_TYPES.filter((c) =>
     templates.some((t) => t.category === c.id)
   );
   const visible =
@@ -73,8 +70,8 @@ export default function TemplateGallery({
       <ul className="grid gap-x-8 gap-y-10 md:grid-cols-2 md:gap-y-12">
         {visible.map((template) => {
           const categoryLabel =
-            TEMPLATE_CATEGORIES.find((c) => c.id === template.category)
-              ?.label ?? 'Template';
+            SITE_TYPES.find((c) => c.id === template.category)?.label ??
+            'Template';
 
           return (
             <li key={template.id}>

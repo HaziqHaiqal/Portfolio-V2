@@ -13,13 +13,23 @@ export const SERVICE_ICONS: Record<ServiceIcon, LucideIcon> = {
   automation: Workflow,
 };
 
-export interface EstimatorOption {
+export interface AddOn {
   id: string;
   name: string;
-  description?: string;
+  description: string;
+  /** Fixed price, or the low end of a quoted range when `priceTo` is set. */
   price: number;
+  priceTo?: number;
   /** Where the feature runs after launch and who pays for it. */
   runningCost?: string;
+  /** Site types it is offered for; every site when omitted. */
+  siteTypes?: SiteType[];
+  /** Site types whose templates already include it. */
+  includedIn?: SiteType[];
+  /** Another add-on it needs, which is added along with it. */
+  requires?: string;
+  /** Custom builds that already include it. */
+  includedInBuilds?: string[];
 }
 
 export interface PackageOption {
@@ -46,24 +56,15 @@ export interface CustomPackage {
   runningCost: string;
 }
 
-export interface CustomFeature {
-  id: string;
-  name: string;
-  description: string;
-  from: number;
-  to: number;
-  /** Custom builds that already include this feature. */
-  includedIn?: string[];
-}
-
 export interface CmsTab {
   id: string;
   name: string;
   group: 'pages' | 'sell' | 'show';
   price: number;
+  siteTypes?: SiteType[];
 }
 
-/** `price` is the dashboard, which every CMS includes; tabs add to it. */
+/** The admin dashboard add-on: `price` is the base, and each tab adds to it. */
 export interface CmsConfig {
   name: string;
   description: string;
@@ -79,7 +80,7 @@ export interface CarePlan {
   name: string;
   summary: string;
   monthlyPrice: number;
-  /** Added when the project needs a database (CMS, payments, custom builds). */
+  /** Added when the project needs a database (admin dashboard, payments, custom builds). */
   databasePrice?: number;
   databaseIncludes?: string[];
   /** Confirmed in the project quote; monthlyPrice is the starting price. */
@@ -91,10 +92,11 @@ export interface EstimatorConfig {
   id: string;
   label: string;
   packages: PackageOption[];
-  addOns: EstimatorOption[];
+  addOns: AddOn[];
   cms?: CmsConfig;
   multiLanguage?: boolean;
-  quoteOptions: CustomFeature[];
+  /** Offered with a custom build; websites also get the every-site add-ons. */
+  customAddOns: AddOn[];
   customPackages: CustomPackage[];
   carePlan: CarePlan;
   /** Prices stay internal; the page and messages show "By quotation". */
@@ -111,6 +113,8 @@ export interface Service {
   price?: string;
   cta?: { label: string; href: string };
   highlights?: string[];
+  /** Running costs and what the client must do, in plain words. */
+  note?: string;
   estimator?: EstimatorConfig;
   promoTargets?: PromoTarget[];
 }
@@ -140,13 +144,13 @@ export const WEBSITE_PROMO_TARGET: PromoTarget = {
   label: 'Website estimate',
 };
 
-const MAINTENANCE_PLAN = 'Maintenance Plan';
+const CARE_PLAN = 'Care Plan';
 /** Yearly billing charges 10 months, so 2 months are free. */
 const YEARLY_MONTHS = 10;
 const DATABASE_PRICE = 50;
 
-const CMS_RUNNING_COST = `Adds a database to the ${MAINTENANCE_PLAN}: +${formatRM(DATABASE_PRICE)}/month`;
-const INCLUDED_IN_CARE = `Included in the ${MAINTENANCE_PLAN}`;
+const CMS_RUNNING_COST = `Adds a database to the ${CARE_PLAN}: +${formatRM(DATABASE_PRICE)}/month`;
+const INCLUDED_IN_CARE = `Included in the ${CARE_PLAN}`;
 const GATEWAY_RUNNING_COST =
   'Payment gateway fees per transaction, paid to the provider';
 
@@ -156,24 +160,31 @@ export const CARE_RESPONSE =
 export const PAYMENT_TERMS =
   'A 40% deposit to start, and 60% when the site or app goes live';
 
-const CMS_NAME = 'Content Management System (CMS)';
-const OTHER_UPDATES = 'Other changes are charged separately.';
+const ADMIN_DASHBOARD = 'Admin dashboard';
 
 export const WEBSITE_CMS: CmsConfig = {
-  name: CMS_NAME,
-  description: `Update your site yourself from a private dashboard. ${OTHER_UPDATES}`,
+  name: ADMIN_DASHBOARD,
+  description: 'Update your site yourself, and see how many people visit it.',
   price: 200,
-  dashboard: 'Dashboard & visitor stats',
+  dashboard: 'Visitor stats',
   groups: { pages: 'Your pages', sell: 'What you sell', show: 'What you show' },
   runningCost: CMS_RUNNING_COST,
   tabs: [
     { id: 'content', name: 'Text & photos', group: 'pages', price: 200 },
     { id: 'news', name: 'News & promotions', group: 'pages', price: 250 },
     {
+      id: 'jobs',
+      name: 'Job openings',
+      group: 'pages',
+      price: 200,
+      siteTypes: ['company'],
+    },
+    {
       id: 'products',
       name: 'Products or menu with prices',
       group: 'sell',
       price: 250,
+      siteTypes: ['ecommerce', 'food', 'services'],
     },
     {
       id: 'gallery',
@@ -199,26 +210,115 @@ export function cmsLabel(cms: CmsConfig, tabIds: string[]): string {
   const names = cms.tabs
     .filter((tab) => tabIds.includes(tab.id))
     .map((tab) => tab.name);
-  return `CMS (dashboard${names.length ? ` + ${names.join(', ')}` : ''})`;
+  return `${cms.name} (${names.length ? names.join(', ') : cms.dashboard.toLowerCase()})`;
 }
 
-const PWA_ADDON: EstimatorOption = {
-  id: 'pwa',
-  name: 'Installable app (PWA)',
+const REQUEST_ONLY = 'A request only: you confirm each one.';
+
+const ONLINE_PAYMENTS: AddOn = {
+  id: 'online-payments',
+  name: 'Online payments',
   description:
-    'A home-screen icon on phones. Opens like an app and works on a weak signal.',
-  price: 500,
-  runningCost: 'No running cost',
+    'Customers pay by FPX, card or e-wallet, with one payment gateway and payment emails. The final price is confirmed in a quote.',
+  price: 1500,
+  priceTo: 2500,
+  runningCost: GATEWAY_RUNNING_COST,
 };
 
-const WHATSAPP_CART: EstimatorOption = {
-  id: 'whatsapp-cart',
-  name: 'WhatsApp cart',
-  description:
-    'Customers send their full order to your WhatsApp in one tap. No online payment.',
-  price: 50,
-  runningCost: 'No running cost',
-};
+/** Every add-on for Standard, Advanced and templates, tagged by site type. */
+export const ADD_ONS: AddOn[] = [
+  {
+    id: 'whatsapp-cart',
+    name: 'WhatsApp cart',
+    description:
+      'Customers send their full order to your WhatsApp in one tap. No online payment.',
+    price: 50,
+    siteTypes: ['ecommerce', 'food'],
+    includedIn: ['ecommerce'],
+  },
+  {
+    id: 'product-options',
+    name: 'Product options',
+    description:
+      'Customers pick a size, colour or variant. Comes with the WhatsApp cart.',
+    price: 150,
+    siteTypes: ['ecommerce'],
+    requires: 'whatsapp-cart',
+  },
+  {
+    id: 'delivery-fee',
+    name: 'Delivery fee by area',
+    description:
+      "The delivery fee for the customer's area is added to the order. Comes with the WhatsApp cart.",
+    price: 150,
+    siteTypes: ['ecommerce'],
+    requires: 'whatsapp-cart',
+  },
+  { ...ONLINE_PAYMENTS, siteTypes: ['ecommerce'], requires: 'whatsapp-cart' },
+  {
+    id: 'table-reservation',
+    name: 'Table reservation request',
+    description: `Customers send the date, time and number of guests to your WhatsApp. ${REQUEST_ONLY}`,
+    price: 100,
+    siteTypes: ['food'],
+  },
+  {
+    id: 'menu-qr',
+    name: 'Menu QR code',
+    description: 'A print-ready QR code for your tables that opens your menu.',
+    price: 50,
+    siteTypes: ['food'],
+  },
+  {
+    id: 'appointment-request',
+    name: 'Appointment request',
+    description: `Customers pick a service, date and time and send it to your WhatsApp. ${REQUEST_ONLY} For a full booking calendar, choose Custom.`,
+    price: 100,
+    siteTypes: ['services'],
+  },
+  {
+    id: 'quotation-form',
+    name: 'Quotation request form',
+    description:
+      'A detailed quote request form, sent to your WhatsApp or email.',
+    price: 100,
+    siteTypes: ['company'],
+  },
+  {
+    id: 'pwa',
+    name: 'Installable app (PWA)',
+    description:
+      'A home-screen icon on phones. Opens like an app and works on a weak signal.',
+    price: 300,
+  },
+];
+
+export const addOnById = (id: string) =>
+  ADD_ONS.find((addOn) => addOn.id === id);
+
+/** Every-site items, plus those tagged with this site type. */
+export const offeredFor = (
+  item: { siteTypes?: readonly SiteType[] },
+  siteType: SiteType | null
+) =>
+  !item.siteTypes || (siteType !== null && item.siteTypes.includes(siteType));
+
+export function toggleAddOn(
+  ids: string[],
+  id: string,
+  alreadyIncluded: string[] = []
+): string[] {
+  if (ids.includes(id))
+    return ids.filter(
+      (item) => item !== id && addOnById(item)?.requires !== id
+    );
+  const requires = addOnById(id)?.requires;
+  return requires &&
+    !ids.includes(requires) &&
+    !alreadyIncluded.includes(requires)
+    ? [...ids, requires, id]
+    : [...ids, id];
+}
 
 export const TEMPLATE_PROMO_TARGET: PromoTarget = {
   id: 'templates',
@@ -226,7 +326,8 @@ export const TEMPLATE_PROMO_TARGET: PromoTarget = {
   label: 'Ready-made templates',
 };
 
-export const TEMPLATE_CATEGORIES = [
+/** Site types: template categories, and what filters the add-ons. */
+export const SITE_TYPES = [
   {
     id: 'ecommerce',
     label: 'WhatsApp shop',
@@ -254,6 +355,8 @@ export const TEMPLATE_CATEGORIES = [
   },
 ] as const;
 
+export type SiteType = (typeof SITE_TYPES)[number]['id'];
+
 export const TEMPLATE_SUMMARY =
   'Every template is set up with your logo, colours and content, and launched on your domain. Lifetime bug fixes included.';
 
@@ -277,7 +380,6 @@ export const MULTI_LANGUAGE = {
   description:
     'A language switch on your site. Your main language is included; you provide the translations.',
   pricePerLanguage: 100,
-  runningCost: 'No running cost',
   languages: [
     'Bahasa Melayu',
     'English',
@@ -296,23 +398,6 @@ export const MULTI_LANGUAGE = {
     'Spanish',
   ],
 };
-
-const ONLINE_PAYMENTS_RANGE = { from: 1500, to: 2500 };
-
-/** Quoted, never fixed: gateway work varies by provider and checkout flow. */
-export const TEMPLATE_PAYMENTS = {
-  name: 'Online payments',
-  description:
-    'Customers pay at checkout by FPX, card or e-wallet. Includes one payment gateway, payment confirmation and order emails.',
-  ...ONLINE_PAYMENTS_RANGE,
-  requires: WHATSAPP_CART.id,
-  runningCost: GATEWAY_RUNNING_COST,
-};
-
-export const TEMPLATE_FEATURES: (EstimatorOption & {
-  /** Categories whose templates already include this feature. */
-  includedIn?: string[];
-})[] = [{ ...WHATSAPP_CART, includedIn: ['ecommerce'] }, PWA_ADDON];
 
 export const WEBSITE_ESTIMATOR: EstimatorConfig = {
   id: 'website',
@@ -337,9 +422,14 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       id: 'advanced',
       name: 'Advanced',
       summary: 'A full business site with room to grow.',
-      price: WEBSITE_BASE_PRICE + 600,
+      price: WEBSITE_BASE_PRICE + 800,
       includesFrom: 'standard',
-      includes: ['Up to 7 pages with unlimited sections'],
+      includes: [
+        'Up to 7 pages with unlimited sections',
+        'Full SEO: titles, descriptions and a sitemap for every page',
+        'Google Search Console setup',
+        'Link previews when shared on WhatsApp and social media',
+      ],
       bestFor:
         'you have several services or products, each needing its own page.',
     },
@@ -348,106 +438,78 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       name: 'Custom',
       summary: 'Stores, bookings and portals built around your business.',
       custom: true,
+      includesFrom: 'advanced',
       includes: [
         'Online store, booking system or member portal',
         'Sign-in for customers or staff',
-        'Admin dashboard',
-        'Online payments (FPX, card, e-wallet)',
+        `${ADMIN_DASHBOARD} for orders, bookings and members`,
         'Any number of pages',
       ],
       bestFor:
         'customers or staff need to sign in, book, order or pay, and those records must be saved.',
     },
   ],
-  addOns: [WHATSAPP_CART, PWA_ADDON],
+  addOns: ADD_ONS,
   cms: WEBSITE_CMS,
   multiLanguage: true,
-  quoteOptions: [
-    {
-      id: 'admin-dashboard',
-      name: 'Admin dashboard',
-      description: 'Manage users, orders, bookings or other records.',
-      from: 1500,
-      to: 3500,
-      includedIn: ['online-store', 'booking-system', 'member-portal'],
-    },
-    {
-      id: 'payments',
-      name: 'Online payments',
-      description: 'FPX, card or e-wallet, as deposits or full payments.',
-      ...ONLINE_PAYMENTS_RANGE,
-      includedIn: ['online-store'],
-    },
+  customAddOns: [
+    { ...ONLINE_PAYMENTS, includedInBuilds: ['online-store'] },
     {
       id: 'integrations',
       name: 'Custom integrations or workflow',
       description: 'Connect tools you already use, or automate a process.',
-      from: 800,
-      to: 3000,
-    },
-    {
-      id: 'multilingual',
-      name: 'Multiple languages',
-      description: 'Extra language versions. You provide the translations.',
-      from: 600,
-      to: 1500,
-    },
-    {
-      id: 'pwa',
-      name: 'Installable app (PWA)',
-      description: 'Home-screen icon, works offline, push notifications.',
-      from: 500,
-      to: 1000,
+      price: 800,
+      priceTo: 3000,
     },
     {
       id: 'large-site',
       name: 'Large or content-heavy site',
       description: 'Many pages or long content.',
-      from: 1000,
-      to: 4000,
+      price: 1000,
+      priceTo: 4000,
     },
   ],
   customPackages: [
     {
       id: 'online-store',
       name: 'Online store',
-      from: 5999,
-      to: 9999,
+      from: 11999,
+      to: 24999,
       includes: [
         'Product catalogue with categories',
-        'Cart and online checkout',
+        'Cart and checkout with online payments',
         'Order email notifications',
-        'Admin dashboard for products and orders',
+        `${ADMIN_DASHBOARD} for products and orders`,
       ],
       runningCost: GATEWAY_RUNNING_COST,
     },
     {
       id: 'booking-system',
       name: 'Booking system',
-      from: 2499,
-      to: 4999,
+      from: 8999,
+      to: 16999,
       includes: [
         'Services, staff and time slots',
         'Online booking with confirmations',
-        'Admin calendar for bookings',
+        `${ADMIN_DASHBOARD} with a bookings calendar`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
     {
       id: 'member-portal',
-      name: 'Member or customer portal',
-      from: 2999,
-      to: 5999,
+      name: 'Member portal',
+      from: 9999,
+      to: 19999,
       includes: [
-        'Customer or member sign-in',
-        'Private pages for each user',
-        'Admin dashboard for users and content',
+        'Sign-in for members or customers',
+        'Private pages for each member',
+        `${ADMIN_DASHBOARD} for members and content`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
   ],
   carePlan: {
-    name: MAINTENANCE_PLAN,
+    name: CARE_PLAN,
     summary: 'Hosting, SSL and security updates.',
     monthlyPrice: 49,
     databasePrice: DATABASE_PRICE,
@@ -455,7 +517,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
     databaseIncludes: ['Database hosting', 'Daily backups, kept for 7 days'],
   },
   promoTarget: WEBSITE_PROMO_TARGET.id,
-  messageIntro: "Hi Haziq, I'd like a quote for this website build.",
+  messageIntro: "Hi Haziq, I'd like to order this website.",
 };
 
 export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
@@ -470,7 +532,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Android and iOS from one codebase',
         'Custom design for your brand',
-        'Backend and admin panel when needed',
+        `Backend and ${ADMIN_DASHBOARD.toLowerCase()} when needed`,
         'Push notifications',
         'Tested on real devices',
         'App Store and Google Play submission',
@@ -480,74 +542,67 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     },
   ],
   addOns: [],
-  quoteOptions: [
+  customAddOns: [
     {
       id: 'accounts',
-      name: 'User sign-in and accounts',
-      description: 'Email or phone sign-in with a backend for your app data.',
-      from: 800,
-      to: 1500,
-      includedIn: ['loyalty-app', 'booking-app', 'ordering-app'],
-    },
-    {
-      id: 'cms',
-      name: 'Content updates (CMS)',
-      description:
-        'Update text, images or announcements without releasing a new app version.',
-      from: 600,
-      to: 1500,
+      name: 'Sign-in for customers or staff',
+      description: "Email or phone sign-in, and each user's data is saved.",
+      price: 800,
+      priceTo: 1500,
+      includedInBuilds: ['loyalty-app', 'booking-app', 'ordering-app'],
     },
     {
       id: 'push',
       name: 'Push notifications',
       description: 'Reminders, promotions or order updates on the phone.',
-      from: 300,
-      to: 800,
-      includedIn: ['info-app', 'booking-app'],
+      price: 300,
+      priceTo: 800,
+      includedInBuilds: ['info-app', 'booking-app'],
     },
     {
       id: 'admin-dashboard',
-      name: 'Admin dashboard',
-      description: 'Manage users, orders or activity.',
-      from: 2000,
-      to: 4000,
-      includedIn: ['loyalty-app', 'booking-app', 'ordering-app'],
+      name: ADMIN_DASHBOARD,
+      description:
+        'Update your app content without a new release, and manage users, orders or bookings.',
+      price: 600,
+      priceTo: 4000,
+      includedInBuilds: ['loyalty-app', 'booking-app', 'ordering-app'],
     },
     {
       id: 'payments',
       name: 'Online payments',
       description: 'FPX, card or e-wallet, as deposits or full payments.',
-      from: 2500,
-      to: 4000,
-      includedIn: ['ordering-app'],
+      price: 2500,
+      priceTo: 4000,
+      includedInBuilds: ['ordering-app'],
     },
     {
       id: 'user-roles',
       name: 'Multiple user types',
       description: 'Different roles, permissions or connected processes.',
-      from: 1500,
-      to: 3500,
+      price: 1500,
+      priceTo: 3500,
     },
     {
       id: 'realtime',
       name: 'Chat or real-time features',
       description: 'Messaging, live updates or activity feeds.',
-      from: 2000,
-      to: 5000,
+      price: 2000,
+      priceTo: 5000,
     },
     {
       id: 'maps-tracking',
       name: 'Maps or live tracking',
       description: 'Locations, routes or live delivery tracking.',
-      from: 2000,
-      to: 5000,
+      price: 2000,
+      priceTo: 5000,
     },
     {
       id: 'existing-systems',
       name: 'Connect your existing systems',
       description: 'Link the app to tools or databases you already use.',
-      from: 1500,
-      to: 5000,
+      price: 1500,
+      priceTo: 5000,
     },
   ],
   customPackages: [
@@ -569,9 +624,9 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       from: 5999,
       to: 9999,
       includes: [
-        'Member sign-in and profiles',
+        'Sign-in for members, with profiles',
         'Points or stamps with rewards',
-        'Admin dashboard for members and rewards',
+        `${ADMIN_DASHBOARD} for members and rewards`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
@@ -583,7 +638,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Services and time slots',
         'Bookings with push reminders',
-        'Admin dashboard to manage bookings',
+        `${ADMIN_DASHBOARD} for bookings`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
@@ -593,16 +648,16 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       from: 12999,
       to: 19999,
       includes: [
-        'Product catalogue and cart',
-        'Checkout with a payment gateway',
+        'Product catalogue',
+        'Cart and checkout with online payments',
         'Order status updates',
-        'Admin dashboard for orders and products',
+        `${ADMIN_DASHBOARD} for orders and products`,
       ],
       runningCost: GATEWAY_RUNNING_COST,
     },
   ],
   carePlan: {
-    name: MAINTENANCE_PLAN,
+    name: CARE_PLAN,
     summary:
       'Backend hosting, security updates and new Android and iOS requirements.',
     monthlyPrice: 149,
@@ -630,21 +685,15 @@ export type CareBilling = 'monthly' | 'yearly';
 
 export const CARE_YEARLY_SAVING = Math.round(((12 - YEARLY_MONTHS) / 12) * 100);
 
-/** What the first billing period costs, paid when the project goes live. */
+/** The first billing period, paid when the project goes live. */
 export function careFirstPayment(
   plan: CarePlan,
   withDatabase: boolean,
   billing: CareBilling
-): { label: string; amount: number } {
+): { period: 'month' | 'year'; amount: number } {
   return billing === 'yearly'
-    ? {
-        label: `${plan.name} (first year)`,
-        amount: careYearly(plan, withDatabase),
-      }
-    : {
-        label: `${plan.name} (first month)`,
-        amount: careMonthly(plan, withDatabase),
-      };
+    ? { period: 'year', amount: careYearly(plan, withDatabase) }
+    : { period: 'month', amount: careMonthly(plan, withDatabase) };
 }
 
 export function carePrice(
@@ -708,13 +757,15 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
           id: 'automation',
           title: 'Business Automation',
           description:
-            'Take repetitive work off your plate: chatbots for your website, WhatsApp or Telegram, approval flows for leave and claims, automated forms and spreadsheets, and reports that send themselves.',
+            'Take repetitive work off your plate: WhatsApp orders that save themselves, chatbots for your website, WhatsApp or Telegram, approval flows for leave and claims, automated forms and spreadsheets, and reports that send themselves.',
           icon: 'automation',
           highlights: [
+            'WhatsApp orders saved to your admin dashboard or Google Sheets automatically, with a confirmation sent to the customer',
             'Website, WhatsApp and Telegram chatbots',
             'Approval flows, forms and spreadsheet automation',
             'Scheduled reports and notifications',
           ],
+          note: 'WhatsApp automation uses the WhatsApp Business Platform: Meta must approve your number, and its message fees are paid by you to Meta. In most cases you can keep using the WhatsApp Business app on the same number. Running costs are confirmed in your quote.',
           cta: {
             label: CTA_LABEL,
             href: contact(

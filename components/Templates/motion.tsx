@@ -57,7 +57,7 @@ function SamePageLinks() {
       event.preventDefault();
       const id = link.getAttribute('href')?.slice(1) ?? '';
       const target = id && id !== 'top' ? document.getElementById(id) : null;
-      if (lenis) lenis.scrollTo(target ?? 0, { offset: target ? -72 : 0 });
+      if (lenis) lenis.scrollTo(target ?? 0, { offset: target ? -120 : 0 });
       else if (target) target.scrollIntoView({ behavior: 'smooth' });
       else window.scrollTo({ top: 0, behavior: 'smooth' });
     };

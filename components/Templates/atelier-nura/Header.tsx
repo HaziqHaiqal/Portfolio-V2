@@ -35,9 +35,9 @@ export default function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-30 transition-colors duration-500 ${home ? '-mb-16' : ''} ${
+        className={`sticky top-[--demo-bar] z-30 transition-colors duration-500 ${home ? '-mb-16' : ''} ${
           clear
-            ? 'text-white'
+            ? 'border-b border-transparent text-white'
             : 'border-b border-tpl-line bg-tpl-bg/90 text-tpl-ink backdrop-blur-xl'
         }`}
       >

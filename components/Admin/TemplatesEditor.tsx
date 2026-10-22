@@ -53,13 +53,13 @@ import {
   Toolbar,
   useConfirm,
 } from '@components/Admin/shared';
-import { TEMPLATE_CATEGORIES } from '@constants/services';
+import { SITE_TYPES } from '@constants/services';
 import { listContainer } from '@constants/motion';
 import { formatRM, pluralize } from '@lib/format';
 import { cn } from '@lib/utils';
 
 const categoryLabel = (id: string) =>
-  TEMPLATE_CATEGORIES.find((category) => category.id === id)?.label ?? id;
+  SITE_TYPES.find((category) => category.id === id)?.label ?? id;
 
 function slugify(value: string) {
   return value
@@ -352,7 +352,7 @@ function TemplateForm({
   const [form, setForm] = useState({
     name: template?.name ?? '',
     slug: template?.slug ?? '',
-    category: template?.category ?? TEMPLATE_CATEGORIES[0].id,
+    category: template?.category ?? SITE_TYPES[0].id,
     price: template ? String(template.price) : '',
     compare_price:
       template?.compare_price != null ? String(template.compare_price) : '',
@@ -502,7 +502,7 @@ function TemplateForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TEMPLATE_CATEGORIES.map((category) => (
+                  {SITE_TYPES.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.label}
                     </SelectItem>

@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque } from 'next/font/google';
 import { ArrowUpRight, Coffee, Star } from 'lucide-react';
 import { SiInstagram, SiWhatsapp } from 'react-icons/si';
 import DemoBar from '@components/Templates/DemoBar';
+import PwaKit from '@components/Pwa/PwaKit';
 import Photo from '@components/Templates/Photo';
 import SiteHeader from '@components/Templates/SiteHeader';
 import WhatsAppButton from '@components/Templates/WhatsAppButton';
@@ -26,6 +27,12 @@ import {
   PHOTOS,
   REVIEWS,
 } from '@components/Templates/kopi-teduh/data';
+import {
+  KOPI_TEDUH_PWA,
+  PWA_APPLE_ICON,
+  PWA_OFFLINE_URL,
+  PWA_SCOPE,
+} from '@components/Templates/kopi-teduh/pwa';
 
 const font = Bricolage_Grotesque({
   subsets: ['latin'],
@@ -37,7 +44,12 @@ export const metadata: Metadata = {
   title: BRAND,
   description:
     'Café template with a live open status, photo menu and WhatsApp pickup orders.',
+  manifest: `${PWA_SCOPE}/manifest.webmanifest`,
+  appleWebApp: { capable: true, title: BRAND, statusBarStyle: 'default' },
+  icons: { apple: PWA_APPLE_ICON },
 };
+
+export const viewport: Viewport = { themeColor: KOPI_TEDUH_PWA.themeColor };
 
 const LINKS = [
   { href: '#menu', label: 'Menu' },
@@ -51,6 +63,12 @@ export default function KopiTeduhPage() {
   return (
     <PaletteRoot slug="kopi-teduh" className={font.variable}>
       <DemoBar slug="kopi-teduh" />
+      <PwaKit
+        name={BRAND}
+        scope={PWA_SCOPE}
+        offlineUrl={PWA_OFFLINE_URL}
+        iconSrc={KOPI_TEDUH_PWA.icons.small}
+      />
       <SiteHeader
         overlay
         links={LINKS}
@@ -73,7 +91,7 @@ export default function KopiTeduhPage() {
       </SiteHeader>
 
       <main id="top">
-        <section className="relative flex h-[calc(100svh-3rem)] min-h-[36rem] items-end overflow-hidden bg-black text-white">
+        <section className="relative flex min-h-[calc(100svh-3rem)] items-end overflow-hidden bg-black pt-28 text-white">
           <HeroPhoto
             src={PHOTOS.interior}
             alt="Sunlit café seating with rattan chairs and plants"
@@ -127,10 +145,10 @@ export default function KopiTeduhPage() {
 
         <section
           id="menu"
-          className="mx-auto max-w-[90rem] scroll-mt-20 px-5 py-24 md:px-8 md:py-36"
+          className="mx-auto max-w-[90rem] scroll-mt-32 px-5 py-24 md:px-8 md:py-36"
         >
           <div className="grid gap-10 lg:grid-cols-[1fr_2.4fr] lg:gap-16">
-            <div className="lg:sticky lg:top-28 lg:self-start">
+            <div className="lg:sticky lg:top-40 lg:self-start">
               <h2 className="text-6xl font-semibold tracking-[-0.04em] md:text-8xl">
                 <RevealText text="Menu" onView />
               </h2>
@@ -149,7 +167,7 @@ export default function KopiTeduhPage() {
           </div>
         </section>
 
-        <section id="space" className="scroll-mt-20 bg-tpl-ink text-tpl-bg">
+        <section id="space" className="scroll-mt-32 bg-tpl-ink text-tpl-bg">
           <div className="mx-auto flex max-w-[90rem] flex-col gap-4 px-5 pb-10 pt-24 md:flex-row md:items-end md:justify-between md:px-8 md:pt-32">
             <h2 className="text-5xl font-semibold tracking-[-0.04em] md:text-8xl">
               <RevealText text="Teduh means shade." onView />
@@ -190,7 +208,7 @@ export default function KopiTeduhPage() {
 
         <section
           id="visit"
-          className="mx-auto max-w-[90rem] scroll-mt-20 px-5 py-24 md:px-8 md:py-36"
+          className="mx-auto max-w-[90rem] scroll-mt-32 px-5 py-24 md:px-8 md:py-36"
         >
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
             <div>

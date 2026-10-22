@@ -159,7 +159,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       </div>
 
       <div className="px-4 md:px-0">
-        <div className="lg:sticky lg:top-24">
+        <div className="lg:sticky lg:top-36">
           <nav aria-label="Breadcrumb" className="text-xs text-tpl-muted">
             <Link href={`${BASE_PATH}/shop`} className="hover:text-tpl-ink">
               Shop

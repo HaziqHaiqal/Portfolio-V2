@@ -12,18 +12,19 @@ import {
 import { SiWhatsapp } from 'react-icons/si';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
+  ADD_ONS,
   careFirstPayment,
   carePrice,
   type CareBilling,
   cmsLabel,
   cmsPrice,
   MULTI_LANGUAGE,
-  TEMPLATE_CATEGORIES,
-  TEMPLATE_FEATURES,
+  offeredFor,
+  SITE_TYPES,
   TEMPLATE_INCLUDES,
-  TEMPLATE_PAYMENTS,
   TEMPLATE_PROMO_TARGET,
   TEMPLATE_SECTION,
+  toggleAddOn,
   WEBSITE_CMS,
   WEBSITE_ESTIMATOR,
 } from '@constants/services';
@@ -33,12 +34,10 @@ import PromoField from '@components/Promo/PromoField';
 import { PromoPerks } from '@components/Promo/PromoParts';
 import { usePromo } from '@components/Promo/PromoProvider';
 import { discountedPrice, promoAppliesTo } from '@lib/promo';
-import CmsPicker from './CmsPicker';
 import BillingSwitch from './BillingSwitch';
-import LanguagePicker from './LanguagePicker';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
-import ExtraOption from './ExtraOption';
+import AddOnChecklist from './AddOnChecklist';
 
 const STEPPER_BUTTON =
   'flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-green-500/60 hover:text-green-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 disabled:pointer-events-none disabled:opacity-40 dark:border-gray-600 dark:text-gray-200 dark:hover:text-green-400';
@@ -57,33 +56,41 @@ export default function TemplateOrder({
   const [featureIds, setFeatureIds] = useState<string[]>([]);
   const [cmsTabIds, setCmsTabIds] = useState<string[] | null>(null);
   const [languages, setLanguages] = useState<string[]>([]);
-  const [payments, setPayments] = useState(false);
   const carePlan = WEBSITE_ESTIMATOR.carePlan;
   const [billing, setBilling] = useState<CareBilling>('monthly');
 
-  const categoryLabel =
-    TEMPLATE_CATEGORIES.find((c) => c.id === template.category)?.label ??
-    'Template';
+  const siteTypeEntry = SITE_TYPES.find(
+    (type) => type.id === template.category
+  );
+  const siteType = siteTypeEntry?.id ?? null;
+  const categoryLabel = siteTypeEntry?.label ?? 'Template';
   const saving =
     template.compare_price != null && template.compare_price > template.price
       ? template.compare_price - template.price
       : 0;
 
-  const isIncluded = (feature: (typeof TEMPLATE_FEATURES)[number]) =>
-    Boolean(feature.includedIn?.includes(template.category));
-  const includedFeatures = TEMPLATE_FEATURES.filter(isIncluded);
-  const optionalFeatures = TEMPLATE_FEATURES.filter(
-    (feature) => !isIncluded(feature)
+  const includedFeatures = ADD_ONS.filter(
+    (addOn) => siteType !== null && addOn.includedIn?.includes(siteType)
   );
-  const chosen = optionalFeatures.filter((feature) =>
-    featureIds.includes(feature.id)
+  const includedIds = includedFeatures.map((addOn) => addOn.id);
+  const optionalFeatures = ADD_ONS.filter(
+    (addOn) => offeredFor(addOn, siteType) && !includedIds.includes(addOn.id)
   );
-  const canPayOnline = TEMPLATE_FEATURES.some(
-    (feature) =>
-      feature.id === TEMPLATE_PAYMENTS.requires &&
-      (isIncluded(feature) || featureIds.includes(feature.id))
+  const typedOptional = optionalFeatures.filter((addOn) => addOn.siteTypes);
+  const everyOptional = optionalFeatures.filter((addOn) => !addOn.siteTypes);
+  const chosen = optionalFeatures.filter((addOn) =>
+    featureIds.includes(addOn.id)
   );
-  const quoted = payments && canPayOnline;
+  const fixedChosen = chosen.filter((addOn) => !addOn.priceTo);
+  const quotedChosen = chosen.filter((addOn) => addOn.priceTo);
+  const quoted = quotedChosen.length > 0;
+  const quotedFrom = quotedChosen.reduce((sum, addOn) => sum + addOn.price, 0);
+  const quotedTo = quotedChosen.reduce(
+    (sum, addOn) => sum + (addOn.priceTo ?? addOn.price),
+    0
+  );
+  const rangeOf = (addOn: (typeof ADD_ONS)[number]) =>
+    formatRMRange(addOn.price, addOn.priceTo ?? addOn.price);
   const cmsTotal = cmsPrice(WEBSITE_CMS, cmsTabIds);
 
   const lines = [
@@ -96,7 +103,7 @@ export default function TemplateOrder({
           },
         ]
       : []),
-    ...chosen.map((feature) => ({ label: feature.name, price: feature.price })),
+    ...fixedChosen.map((addOn) => ({ label: addOn.name, price: addOn.price })),
     ...(languages.length
       ? [
           {
@@ -110,11 +117,7 @@ export default function TemplateOrder({
       : []),
   ];
   const total = lines.reduce((sum, line) => sum + line.price, 0);
-  const paymentsRange = formatRMRange(
-    TEMPLATE_PAYMENTS.from,
-    TEMPLATE_PAYMENTS.to
-  );
-  const extrasCount = lines.length - 1 + (quoted ? 1 : 0);
+  const extrasCount = lines.length - 1 + quotedChosen.length;
   const { promo } = usePromo();
   const eligiblePromo =
     promo && !quoted && promoAppliesTo(promo, [TEMPLATE_PROMO_TARGET.id])
@@ -128,8 +131,8 @@ export default function TemplateOrder({
   const firstCare = careFirstPayment(carePlan, careWithDatabase, billing);
   const grandTotal = quoted
     ? formatRMRange(
-        total + TEMPLATE_PAYMENTS.from + firstCare.amount,
-        total + TEMPLATE_PAYMENTS.to + firstCare.amount
+        total + quotedFrom + firstCare.amount,
+        total + quotedTo + firstCare.amount
       )
     : formatRM(afterPromo + firstCare.amount);
 
@@ -139,18 +142,17 @@ export default function TemplateOrder({
       'text',
       [
         quoted
-          ? `Hi Haziq, I'd like a quote for the ${template.name} template with online payments.`
+          ? `Hi Haziq, I'd like a quote for the ${template.name} template with ${quotedChosen.map((addOn) => addOn.name.toLowerCase()).join(' and ')}.`
           : `Hi Haziq, I'd like the ${template.name} template.`,
         ...lines.map((line) => `• ${line.label}: ${formatRM(line.price)}`),
-        ...(quoted
-          ? [`• ${TEMPLATE_PAYMENTS.name}: ${paymentsRange} (to be quoted)`]
-          : []),
-        `• ${firstCare.label}: ${formatRM(firstCare.amount)}`,
+        ...quotedChosen.map(
+          (addOn) => `• ${addOn.name}: ${rangeOf(addOn)} (to be quoted)`
+        ),
+        `• ${carePlan.name}: ${careText} (first ${firstCare.period} included)`,
         ...(eligiblePromo && afterPromo < total
           ? [`• Promo ${eligiblePromo.code}: −${formatRM(total - afterPromo)}`]
           : []),
         `${quoted ? 'Estimated total' : 'Total'}: ${grandTotal}`,
-        `Then ${careText} for the ${carePlan.name}`,
         quoted
           ? 'Please confirm the final quote and what you need from me.'
           : 'Please let me know what you need from me to get started.',
@@ -160,9 +162,7 @@ export default function TemplateOrder({
   })();
 
   const toggle = (id: string) =>
-    setFeatureIds((ids) =>
-      ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]
-    );
+    setFeatureIds((ids) => toggleAddOn(ids, id, includedIds));
 
   const orderButton = (className = '') => (
     <a
@@ -250,7 +250,7 @@ export default function TemplateOrder({
               className="flex w-full items-center justify-between gap-3 py-4 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
             >
               <span>
-                Add extras{' '}
+                Add-ons{' '}
                 <span className="font-normal text-gray-500 dark:text-gray-400">
                   (optional)
                 </span>
@@ -270,83 +270,71 @@ export default function TemplateOrder({
               />
             </button>
             {showExtras && (
-              <div id="template-extras" className="space-y-3 pb-4">
-                <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30">
-                  <div className="min-w-0">
-                    <p id="template-sections-label" className="font-semibold">
-                      {TEMPLATE_SECTION.name}s
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      {TEMPLATE_SECTION.description}{' '}
-                      {formatRM(TEMPLATE_SECTION.price)} each.
-                    </p>
-                  </div>
-                  <div
-                    role="group"
-                    aria-labelledby="template-sections-label"
-                    className="flex shrink-0 items-center gap-2"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSections((count) => count - 1)}
-                      disabled={sections === 0}
-                      aria-label="Remove a section"
-                      className={STEPPER_BUTTON}
-                    >
-                      <Minus size={15} aria-hidden="true" />
-                    </button>
-                    <output
-                      aria-live="polite"
-                      className="w-5 text-center font-mono font-semibold"
-                    >
-                      {sections}
-                    </output>
-                    <button
-                      type="button"
-                      onClick={() => setSections((count) => count + 1)}
-                      disabled={sections === TEMPLATE_SECTION.max}
-                      aria-label="Add a section"
-                      className={STEPPER_BUTTON}
-                    >
-                      <Plus size={15} aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-
-                {optionalFeatures.map((feature) => (
-                  <ExtraOption
-                    key={feature.id}
-                    name={feature.name}
-                    price={`+${formatRM(feature.price)}`}
-                    description={feature.description ?? ''}
-                    runningCost={feature.runningCost}
-                    checked={featureIds.includes(feature.id)}
-                    onChange={() => toggle(feature.id)}
-                  />
-                ))}
-
-                {canPayOnline && (
-                  <ExtraOption
-                    name={TEMPLATE_PAYMENTS.name}
-                    price={`+${paymentsRange}`}
-                    description={`${TEMPLATE_PAYMENTS.description} The final price is confirmed in a quote.`}
-                    runningCost={TEMPLATE_PAYMENTS.runningCost}
-                    checked={payments}
-                    onChange={() => setPayments((value) => !value)}
-                    quoted
-                  />
-                )}
-
-                <LanguagePicker
+              <div id="template-extras" className="pb-4">
+                <AddOnChecklist
+                  idPrefix="template"
+                  groups={[
+                    ...(typedOptional.length
+                      ? [{ label: categoryLabel, addOns: typedOptional }]
+                      : []),
+                    { label: 'Other add-ons', addOns: everyOptional },
+                  ]}
+                  selected={featureIds}
+                  onToggle={toggle}
+                  leadingRows={
+                    <li className="flex items-center justify-between gap-4 px-4 py-3.5 sm:px-5">
+                      <span className="min-w-0">
+                        <span
+                          id="template-sections-label"
+                          className="flex items-baseline gap-2 text-sm font-semibold"
+                        >
+                          {TEMPLATE_SECTION.name}s
+                          <span className="text-xs font-semibold text-green-700 dark:text-green-400">
+                            {formatRM(TEMPLATE_SECTION.price)} each
+                          </span>
+                        </span>
+                        <span className="mt-0.5 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                          {TEMPLATE_SECTION.description}
+                        </span>
+                      </span>
+                      <span
+                        role="group"
+                        aria-labelledby="template-sections-label"
+                        className="flex shrink-0 items-center gap-2"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setSections((count) => count - 1)}
+                          disabled={sections === 0}
+                          aria-label="Remove a section"
+                          className={STEPPER_BUTTON}
+                        >
+                          <Minus size={15} aria-hidden="true" />
+                        </button>
+                        <output
+                          aria-live="polite"
+                          className="w-5 text-center font-mono font-semibold"
+                        >
+                          {sections}
+                        </output>
+                        <button
+                          type="button"
+                          onClick={() => setSections((count) => count + 1)}
+                          disabled={sections === TEMPLATE_SECTION.max}
+                          aria-label="Add a section"
+                          className={STEPPER_BUTTON}
+                        >
+                          <Plus size={15} aria-hidden="true" />
+                        </button>
+                      </span>
+                    </li>
+                  }
                   languages={languages}
-                  onChange={setLanguages}
-                  idPrefix="template"
-                />
-                <CmsPicker
+                  onLanguagesChange={setLanguages}
                   cms={WEBSITE_CMS}
-                  selection={cmsTabIds}
-                  onChange={setCmsTabIds}
-                  idPrefix="template"
+                  cmsSelection={cmsTabIds}
+                  onCmsChange={setCmsTabIds}
+                  siteType={siteType}
                 />
               </div>
             )}
@@ -363,17 +351,13 @@ export default function TemplateOrder({
                 label: line.label,
                 value: formatRM(line.price),
               })),
-              ...(quoted
-                ? [
-                    {
-                      label: `${TEMPLATE_PAYMENTS.name} (quoted)`,
-                      value: paymentsRange,
-                    },
-                  ]
-                : []),
+              ...quotedChosen.map((addOn) => ({
+                label: `${addOn.name} (quoted)`,
+                value: rangeOf(addOn),
+              })),
               {
-                label: firstCare.label,
-                value: formatRM(firstCare.amount),
+                label: carePlan.name,
+                value: careText,
                 detail: (
                   <BillingSwitch
                     name="template-billing"
@@ -394,7 +378,7 @@ export default function TemplateOrder({
             }
             totalLabel={quoted ? 'Estimated total' : 'Total'}
             total={grandTotal}
-            note={`Then ${careText} for the ${carePlan.name}`}
+            note={`Includes ${formatRM(firstCare.amount)} for the first ${firstCare.period}, then ${careText}`}
             quoted={quoted}
             action={orderButton('hidden w-full md:inline-flex')}
             footnote={

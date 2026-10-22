@@ -5,14 +5,14 @@ import { formatRM } from '@lib/format';
 import { PaletteSwitcher } from './Palette';
 import UseTemplateLink from './UseTemplateLink';
 
-// Sits above the demo site, like a theme-shop preview bar, so the bottom of
-// the screen stays free for each site's own sticky actions.
+// Pinned above the demo site, like a theme-shop preview bar, so Back and the
+// colours stay in reach while the bottom stays free for each site's actions.
 export default async function DemoBar({ slug }: { slug: string }) {
   const templates = await getCachedTemplates().catch(() => []);
   const template = templates.find((item) => item.slug === slug);
 
   return (
-    <div className="relative z-[60] h-[--demo-bar] bg-neutral-950 font-sans text-white">
+    <div className="sticky top-0 z-[60] h-[--demo-bar] bg-neutral-950 font-sans text-white">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-3 px-3 sm:px-5">
         <Link
           href="/services"

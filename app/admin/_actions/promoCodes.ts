@@ -1,7 +1,12 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { upsertPromoCode, setPromoCodeUses, deletePromoCode } from '@lib/data';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import {
+  deletePromoCode,
+  FEATURED_PROMOS_TAG,
+  setPromoCodeUses,
+  upsertPromoCode,
+} from '@lib/data';
 import type { NullableWritable, PromoCode } from '@lib/supabase';
 import { normalizePromoCode, PROMO_CODE_PATTERN } from '@lib/promo';
 import { requireAdminClient } from './auth';
@@ -18,6 +23,7 @@ export async function upsertPromoCodeAction(
   }
   const result = await upsertPromoCode(db, { ...row, code });
   revalidatePath('/admin/promo-codes');
+  revalidateTag(FEATURED_PROMOS_TAG, 'max');
   return result;
 }
 
@@ -25,6 +31,7 @@ export async function setPromoCodeUsesAction(id: string, uses: number) {
   const db = await requireAdminClient();
   const result = await setPromoCodeUses(db, id, Math.max(0, Math.floor(uses)));
   revalidatePath('/admin/promo-codes');
+  revalidateTag(FEATURED_PROMOS_TAG, 'max');
   return result;
 }
 
@@ -32,4 +39,5 @@ export async function deletePromoCodeAction(id: string) {
   const db = await requireAdminClient();
   await deletePromoCode(db, id);
   revalidatePath('/admin/promo-codes');
+  revalidateTag(FEATURED_PROMOS_TAG, 'max');
 }

@@ -1,8 +1,10 @@
 import { create } from 'zustand';
+import type { SiteType } from '@constants/services';
 
 export interface ServicePick {
   tab: string;
   packageId?: string;
+  siteType?: SiteType;
   addOnIds?: string[];
   cmsTabIds?: string[] | null;
   buildId?: string | null;
