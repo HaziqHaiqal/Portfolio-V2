@@ -21,10 +21,16 @@ const TARGET_NAMES: Record<string, string> = {
   [MOBILE_APP_PROMO_TARGET.id]: 'Mobile apps',
 };
 
-function appliesTo(targets: string[]) {
+const TEMPLATE_PREFIX = 'template:';
+
+function appliesTo(targets: string[], templateNames: Record<string, string>) {
   if (!targets.length) return 'All services';
   return targets
-    .map((target) => TARGET_NAMES[target])
+    .map((target) =>
+      target.startsWith(TEMPLATE_PREFIX)
+        ? `${templateNames[target.slice(TEMPLATE_PREFIX.length)] ?? 'One'} template`
+        : TARGET_NAMES[target]
+    )
     .filter(Boolean)
     .map((name, index) => (index ? name.toLowerCase() : name))
     .join(' and ');
@@ -75,7 +81,14 @@ const LINK =
   'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-green-700 transition-colors hover:text-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-green-400 dark:hover:text-green-300';
 
 /** Deals switched to "Show on site", each applied in one tap. */
-export default function DealList({ deals }: { deals: FeaturedDeal[] }) {
+export default function DealList({
+  deals,
+  templateNames,
+}: {
+  deals: FeaturedDeal[];
+  /** Template names by slug, for deals on a single template. */
+  templateNames: Record<string, string>;
+}) {
   const { promo, apply } = usePromo();
   const [applying, setApplying] = useState<string | null>(null);
   const now = useNow();
@@ -84,7 +97,10 @@ export default function DealList({ deals }: { deals: FeaturedDeal[] }) {
     <ul className="divide-y divide-gray-200 rounded-3xl border border-gray-200 bg-white/70 px-6 backdrop-blur-sm dark:divide-gray-700/70 dark:border-gray-700 dark:bg-gray-800/70 sm:px-8">
       {deals.map((deal) => {
         const applied = promo?.code === deal.code;
-        const offer = [rewardSummary(deal), appliesTo(deal.eligibleTargets)]
+        const offer = [
+          rewardSummary(deal),
+          appliesTo(deal.eligibleTargets, templateNames),
+        ]
           .filter(Boolean)
           .join(' · ');
         return (

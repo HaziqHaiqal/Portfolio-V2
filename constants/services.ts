@@ -3,7 +3,7 @@ import { formatRM } from '@lib/format';
 
 const CTA_LABEL = 'Get Quote';
 
-const WEBSITE_BASE_PRICE = 799;
+const WEBSITE_BASE_PRICE = 800;
 
 export type ServiceIcon = 'web' | 'mobile' | 'automation';
 
@@ -326,6 +326,9 @@ export const TEMPLATE_PROMO_TARGET: PromoTarget = {
   label: 'Ready-made templates',
 };
 
+/** Promo target for one template, next to the all-templates target. */
+export const templatePromoTarget = (slug: string) => `template:${slug}`;
+
 /** Site types: template categories, and what filters the add-ons. */
 export const SITE_TYPES = [
   {
@@ -473,8 +476,8 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
     {
       id: 'online-store',
       name: 'Online store',
-      from: 11999,
-      to: 24999,
+      from: 12000,
+      to: 25000,
       includes: [
         'Product catalogue with categories',
         'Cart and checkout with online payments',
@@ -486,8 +489,8 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
     {
       id: 'booking-system',
       name: 'Booking system',
-      from: 8999,
-      to: 16999,
+      from: 9000,
+      to: 17000,
       includes: [
         'Services, staff and time slots',
         'Online booking with confirmations',
@@ -498,8 +501,8 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
     {
       id: 'member-portal',
       name: 'Member portal',
-      from: 9999,
-      to: 19999,
+      from: 10000,
+      to: 20000,
       includes: [
         'Sign-in for members or customers',
         'Private pages for each member',
@@ -511,7 +514,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
   carePlan: {
     name: CARE_PLAN,
     summary: 'Hosting, SSL and security updates.',
-    monthlyPrice: 49,
+    monthlyPrice: 50,
     databasePrice: DATABASE_PRICE,
     includes: ['Hosting and SSL certificate', 'Security and software updates'],
     databaseIncludes: ['Database hosting', 'Daily backups, kept for 7 days'],
@@ -609,8 +612,8 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     {
       id: 'info-app',
       name: 'Info or catalogue app',
-      from: 2999,
-      to: 4999,
+      from: 3000,
+      to: 5000,
       includes: [
         'Your info, menu or product catalogue',
         'One quick action, such as WhatsApp, call or directions',
@@ -621,8 +624,8 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     {
       id: 'loyalty-app',
       name: 'Membership or loyalty app',
-      from: 5999,
-      to: 9999,
+      from: 6000,
+      to: 10000,
       includes: [
         'Sign-in for members, with profiles',
         'Points or stamps with rewards',
@@ -633,8 +636,8 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     {
       id: 'booking-app',
       name: 'Booking app',
-      from: 6999,
-      to: 11999,
+      from: 7000,
+      to: 12000,
       includes: [
         'Services and time slots',
         'Bookings with push reminders',
@@ -645,8 +648,8 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     {
       id: 'ordering-app',
       name: 'Ordering app',
-      from: 12999,
-      to: 19999,
+      from: 13000,
+      to: 20000,
       includes: [
         'Product catalogue',
         'Cart and checkout with online payments',
@@ -660,7 +663,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     name: CARE_PLAN,
     summary:
       'Backend hosting, security updates and new Android and iOS requirements.',
-    monthlyPrice: 149,
+    monthlyPrice: 150,
     quoted: true,
     includes: [
       'Backend and database hosting, if your app has one',

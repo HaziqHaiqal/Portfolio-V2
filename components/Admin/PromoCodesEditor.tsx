@@ -59,7 +59,7 @@ import {
   Toolbar,
   useConfirm,
 } from '@components/Admin/shared';
-import { getPromoTargets } from '@constants/services';
+import { getPromoTargets, templatePromoTarget } from '@constants/services';
 import { listContainer } from '@constants/motion';
 import { SITE_URL } from '@lib/site';
 import {
@@ -115,10 +115,12 @@ function summaryOf(promo: PromoCode) {
   });
 }
 
-function targetsLabel(ids: string[]) {
+type TargetOption = { id: string; label: string };
+
+function targetsLabel(ids: string[], targets: TargetOption[]) {
   if (ids.length === 0) return 'All services';
   return ids
-    .map((id) => TARGETS.find((t) => t.id === id)?.label ?? `${id} (removed)`)
+    .map((id) => targets.find((t) => t.id === id)?.label ?? `${id} (removed)`)
     .join(', ');
 }
 
@@ -141,6 +143,7 @@ function generateCode() {
 
 export default function PromoCodesEditor() {
   const [codes, setCodes] = useState<PromoCode[]>([]);
+  const [templateTargets, setTemplateTargets] = useState<TargetOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [now, setNow] = useState(0);
@@ -149,15 +152,33 @@ export default function PromoCodesEditor() {
   const [query, setQuery] = useState('');
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<PromoCode>();
+  const targets = useMemo(
+    () => [...TARGETS, ...templateTargets],
+    [templateTargets]
+  );
 
   const loadCodes = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [{ data, error }, templates] = await Promise.all([
+        supabase
+          .from('promo_codes')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('website_templates')
+          .select('slug, name')
+          .order('sort_order', { ascending: true }),
+      ]);
       if (error) throw error;
       setCodes((data ?? []) as PromoCode[]);
+      setTemplateTargets(
+        ((templates.data ?? []) as { slug: string; name: string }[]).map(
+          (template) => ({
+            id: templatePromoTarget(template.slug),
+            label: `Template: ${template.name}`,
+          })
+        )
+      );
       setNow(Date.now());
     } catch (error) {
       console.error('Error loading promo codes:', error);
@@ -286,6 +307,7 @@ export default function PromoCodesEditor() {
     return (
       <PromoCodeForm
         promo={editing}
+        targets={targets}
         onSave={handleSave}
         onCancel={() => {
           setShowForm(false);
@@ -454,7 +476,7 @@ export default function PromoCodesEditor() {
                     {summaryOf(promo)}
                   </li>
                   <li className="pl-5">
-                    {targetsLabel(promo.eligible_targets)}
+                    {targetsLabel(promo.eligible_targets, targets)}
                   </li>
                   <li className="flex items-start gap-2">
                     <Handshake className="mt-0.5 h-3 w-3 shrink-0" />
@@ -503,6 +525,7 @@ export default function PromoCodesEditor() {
 
 interface PromoCodeFormProps {
   promo: PromoCode | null;
+  targets: TargetOption[];
   onSave: (row: Parameters<typeof upsertPromoCodeAction>[0]) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
@@ -510,6 +533,7 @@ interface PromoCodeFormProps {
 
 function PromoCodeForm({
   promo,
+  targets,
   onSave,
   onCancel,
   saving,
@@ -752,7 +776,7 @@ function PromoCodeForm({
           description="Leave everything unticked to apply it to every service."
         >
           <div className="grid gap-2 sm:grid-cols-2">
-            {TARGETS.map((target) => (
+            {targets.map((target) => (
               <label
                 key={target.id}
                 className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-surface-raised/60 px-4 py-3 text-sm text-foreground transition-colors hover:border-input has-[[data-state=checked]]:border-primary/50"

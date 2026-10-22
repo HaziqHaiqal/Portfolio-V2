@@ -20,14 +20,18 @@ function useEligiblePromo(targets: string[]) {
 export function PromoPrice({
   target,
   price,
+  salePrice,
 }: {
-  target: string;
+  target: string | string[];
   price: number | string;
+  /** Price after a running sale; an applied code comes off this. */
+  salePrice?: number;
 }) {
-  const promo = useEligiblePromo([target]);
+  const promo = useEligiblePromo(Array.isArray(target) ? target : [target]);
   if (typeof price === 'string') return <>{price}</>;
 
-  const final = promo ? discountedPrice(price, promo) : price;
+  const base = salePrice ?? price;
+  const final = promo ? discountedPrice(base, promo) : base;
   if (final === price) return <>{formatRM(price)}</>;
 
   return (
@@ -46,10 +50,10 @@ export function PromoPerks({
   target,
   quoted,
 }: {
-  target: string;
+  target: string | string[];
   quoted: boolean;
 }) {
-  const promo = useEligiblePromo([target]);
+  const promo = useEligiblePromo(Array.isArray(target) ? target : [target]);
   if (!promo) return null;
 
   const discount = discountLabel(promo.discountType, promo.discountValue);

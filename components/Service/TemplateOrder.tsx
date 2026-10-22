@@ -23,6 +23,7 @@ import {
   SITE_TYPES,
   TEMPLATE_INCLUDES,
   TEMPLATE_PROMO_TARGET,
+  templatePromoTarget,
   TEMPLATE_SECTION,
   toggleAddOn,
   WEBSITE_CMS,
@@ -33,10 +34,12 @@ import UniversalImage from '@components/Media/UniversalImage';
 import PromoField from '@components/Promo/PromoField';
 import { PromoPerks } from '@components/Promo/PromoParts';
 import { usePromo } from '@components/Promo/PromoProvider';
-import { discountedPrice, promoAppliesTo } from '@lib/promo';
+import { type AppliedPromo, discountedPrice, promoAppliesTo } from '@lib/promo';
 import BillingSwitch from './BillingSwitch';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
+import DealSuggestion from '@components/Promo/DealSuggestion';
+import type { FeaturedDeal } from '@lib/data';
 import AddOnChecklist from './AddOnChecklist';
 
 const STEPPER_BUTTON =
@@ -44,10 +47,16 @@ const STEPPER_BUTTON =
 
 export default function TemplateOrder({
   template,
+  sale,
+  suggestion,
   whatsappHref,
   onClose,
 }: {
   template: WebsiteTemplate;
+  /** A running sale on this template: taken off automatically. */
+  sale: FeaturedDeal | null;
+  /** A public code to offer when none is applied. */
+  suggestion: FeaturedDeal | null;
   whatsappHref: string;
   onClose: () => void;
 }) {
@@ -119,20 +128,28 @@ export default function TemplateOrder({
   const total = lines.reduce((sum, line) => sum + line.price, 0);
   const extrasCount = lines.length - 1 + quotedChosen.length;
   const { promo } = usePromo();
+  const thisTemplateTarget = {
+    id: templatePromoTarget(template.slug),
+    name: template.name,
+    label: `${template.name} template`,
+  };
+  const promoTargetIds = [TEMPLATE_PROMO_TARGET.id, thisTemplateTarget.id];
+  const saleAmount = sale
+    ? template.price - discountedPrice(template.price, sale)
+    : 0;
+  const afterSale = total - saleAmount;
   const eligiblePromo =
-    promo && !quoted && promoAppliesTo(promo, [TEMPLATE_PROMO_TARGET.id])
-      ? promo
-      : null;
+    promo && !quoted && promoAppliesTo(promo, promoTargetIds) ? promo : null;
   const afterPromo = eligiblePromo
-    ? discountedPrice(total, eligiblePromo)
-    : total;
+    ? discountedPrice(afterSale, eligiblePromo)
+    : afterSale;
   const careWithDatabase = cmsTabIds !== null || quoted;
   const careText = carePrice(carePlan, careWithDatabase, billing);
   const firstCare = careFirstPayment(carePlan, careWithDatabase, billing);
   const grandTotal = quoted
     ? formatRMRange(
-        total + quotedFrom + firstCare.amount,
-        total + quotedTo + firstCare.amount
+        afterSale + quotedFrom + firstCare.amount,
+        afterSale + quotedTo + firstCare.amount
       )
     : formatRM(afterPromo + firstCare.amount);
 
@@ -149,8 +166,13 @@ export default function TemplateOrder({
           (addOn) => `• ${addOn.name}: ${rangeOf(addOn)} (to be quoted)`
         ),
         `• ${carePlan.name}: ${careText} (first ${firstCare.period} included)`,
-        ...(eligiblePromo && afterPromo < total
-          ? [`• Promo ${eligiblePromo.code}: −${formatRM(total - afterPromo)}`]
+        ...(sale && saleAmount
+          ? [`• Deal (${sale.title || sale.code}): −${formatRM(saleAmount)}`]
+          : []),
+        ...(eligiblePromo && afterPromo < afterSale
+          ? [
+              `• Promo ${eligiblePromo.code}: −${formatRM(afterSale - afterPromo)}`,
+            ]
           : []),
         `${quoted ? 'Estimated total' : 'Total'}: ${grandTotal}`,
         quoted
@@ -192,6 +214,7 @@ export default function TemplateOrder({
               <UniversalImage
                 src={template.preview_image_url}
                 alt={`${template.name} template preview`}
+                loading="eager"
                 width={0}
                 height={0}
                 className="absolute inset-0 h-full w-full object-cover"
@@ -368,14 +391,24 @@ export default function TemplateOrder({
                 ),
               },
             ]}
-            discount={
-              eligiblePromo && afterPromo < total
-                ? {
-                    label: `Promo ${eligiblePromo.code}`,
-                    amount: total - afterPromo,
-                  }
-                : null
-            }
+            discount={[
+              ...(sale && saleAmount
+                ? [
+                    {
+                      label: `Deal: ${sale.title || 'Sale'}`,
+                      amount: saleAmount,
+                    },
+                  ]
+                : []),
+              ...(eligiblePromo && afterPromo < afterSale
+                ? [
+                    {
+                      label: `Promo ${eligiblePromo.code}`,
+                      amount: afterSale - afterPromo,
+                    },
+                  ]
+                : []),
+            ]}
             totalLabel={quoted ? 'Estimated total' : 'Total'}
             total={grandTotal}
             note={`Includes ${formatRM(firstCare.amount)} for the first ${firstCare.period}, then ${careText}`}
@@ -390,10 +423,11 @@ export default function TemplateOrder({
             }
           >
             <ul className="space-y-2 empty:hidden">
-              <PromoPerks target={TEMPLATE_PROMO_TARGET.id} quoted={false} />
+              <PromoPerks target={promoTargetIds} quoted={false} />
             </ul>
+            <DealSuggestion deal={suggestion} />
             <PromoField
-              targets={[TEMPLATE_PROMO_TARGET]}
+              targets={[TEMPLATE_PROMO_TARGET, thisTemplateTarget]}
               inputId="template-promo-code"
             />
           </OrderSummary>

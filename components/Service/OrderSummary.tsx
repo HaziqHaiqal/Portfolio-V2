@@ -8,6 +8,11 @@ export interface SummaryLine {
   detail?: ReactNode;
 }
 
+interface Discount {
+  label: string;
+  amount: number;
+}
+
 export default function OrderSummary({
   id,
   lines,
@@ -25,7 +30,7 @@ export default function OrderSummary({
 }: {
   id: string;
   lines: SummaryLine[];
-  discount?: { label: string; amount: number } | null;
+  discount?: Discount | Discount[] | null;
   totalLabel: string;
   total: string;
   quoted?: boolean;
@@ -38,6 +43,12 @@ export default function OrderSummary({
   plain?: boolean;
   className?: string;
 }) {
+  const discounts = discount
+    ? Array.isArray(discount)
+      ? discount
+      : [discount]
+    : [];
+
   return (
     <section
       ref={ref}
@@ -51,7 +62,7 @@ export default function OrderSummary({
       <h4 id={id} className={plain ? 'font-bold' : 'text-sm font-semibold'}>
         Your order
       </h4>
-      {(lines.length > 0 || discount) && (
+      {(lines.length > 0 || discounts.length > 0) && (
         <dl className="mt-3 space-y-2 text-sm">
           {lines.map((line) => (
             <div key={line.label}>
@@ -66,14 +77,17 @@ export default function OrderSummary({
               {line.detail && <dd className="mt-2">{line.detail}</dd>}
             </div>
           ))}
-          {discount && (
-            <div className="flex justify-between gap-4 text-green-700 dark:text-green-400">
+          {discounts.map((discount) => (
+            <div
+              key={discount.label}
+              className="flex justify-between gap-4 text-green-700 dark:text-green-400"
+            >
               <dt>{discount.label}</dt>
               <dd className="shrink-0 font-medium">
                 −{formatRM(discount.amount)}
               </dd>
             </div>
-          )}
+          ))}
         </dl>
       )}
 

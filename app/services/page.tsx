@@ -33,6 +33,7 @@ import {
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { themeClasses } from '@constants/theme';
 import { formatRM } from '@lib/format';
+import { isTemplateSale } from '@lib/promo';
 import GridBackground from '@components/Layout/GridBackground';
 import FloatingElements from '@components/Layout/FloatingElements';
 import NavBar from '@components/Layout/NavBar';
@@ -269,6 +270,7 @@ export default async function ServicePage() {
   ]);
   const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
   const promoTargets = getPromoTargets();
+  const vouchers = deals.filter((deal) => !isTemplateSale(deal));
   const automation = getServiceGroups(whatsappUrl)
     .flatMap((group) => group.items)
     .find((service) => service.id === 'automation');
@@ -283,12 +285,14 @@ export default async function ServicePage() {
           {
             id: 'templates',
             label: 'Templates',
+            tagline: 'Ready-made designs, your content',
             price: `From ${formatRM(templatesFrom ?? 0)}`,
             icon: 'templates' as const,
             panel: (
               <TemplateGallery
                 templates={templates}
                 whatsappHref={whatsappUrl}
+                deals={deals}
               />
             ),
           },
@@ -297,6 +301,10 @@ export default async function ServicePage() {
     ...[WEBSITE_ESTIMATOR, MOBILE_APP_ESTIMATOR].map((config) => ({
       id: config.id,
       label: config.label,
+      tagline:
+        config.id === 'website'
+          ? 'Designed for your brand'
+          : 'Android and iOS apps',
       price: formatStartingPrice(config),
       icon: (config.id === 'website' ? 'web' : 'mobile') as ServiceTab['icon'],
       panel: (
@@ -312,6 +320,7 @@ export default async function ServicePage() {
           {
             id: 'automation',
             label: 'Automation',
+            tagline: 'Chatbots, WhatsApp orders and workflows',
             price: 'By quotation',
             icon: 'automation' as const,
             panel: (
@@ -384,7 +393,7 @@ export default async function ServicePage() {
               </div>
             </section>
 
-            {deals.length > 0 && (
+            {vouchers.length > 0 && (
               <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
                 <div className="mx-auto max-w-3xl">
                   <SectionHeader
@@ -393,7 +402,15 @@ export default async function ServicePage() {
                     accentClass="text-green-500"
                     gradientClass="from-green-600 to-green-400"
                   />
-                  <DealList deals={deals} />
+                  <DealList
+                    deals={vouchers}
+                    templateNames={Object.fromEntries(
+                      templates.map((template) => [
+                        template.slug,
+                        template.name,
+                      ])
+                    )}
+                  />
                 </div>
               </section>
             )}

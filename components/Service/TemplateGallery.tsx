@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, LayoutTemplate } from 'lucide-react';
 import type { WebsiteTemplate } from '@lib/supabase';
-import { SITE_TYPES, TEMPLATE_PROMO_TARGET } from '@constants/services';
+import type { FeaturedDeal } from '@lib/data';
+import { formatRM } from '@lib/format';
+import { discountedPrice, isTemplateSale, promoAppliesTo } from '@lib/promo';
+import {
+  SITE_TYPES,
+  TEMPLATE_PROMO_TARGET,
+  templatePromoTarget,
+} from '@constants/services';
 import { HANDOFF, takeHandoff } from '@lib/handoff';
 import UniversalImage from '@components/Media/UniversalImage';
 import { PromoPrice } from '@components/Promo/PromoParts';
@@ -12,12 +19,36 @@ import TemplateOrder from './TemplateOrder';
 const ALL = 'all';
 // A handful of templates reads better without filters.
 const FILTER_FROM = 6;
+/** The biggest saving on this template, from sales or from codes. */
+function bestOffer(
+  deals: FeaturedDeal[],
+  template: WebsiteTemplate,
+  sales: boolean
+) {
+  const targets = [
+    TEMPLATE_PROMO_TARGET.id,
+    templatePromoTarget(template.slug),
+  ];
+  return deals.reduce<{ deal: FeaturedDeal; saving: number } | null>(
+    (best, deal) => {
+      if (isTemplateSale(deal) !== sales || !promoAppliesTo(deal, targets))
+        return best;
+      const saving = template.price - discountedPrice(template.price, deal);
+      return saving > (best?.saving ?? 0) ? { deal, saving } : best;
+    },
+    null
+  );
+}
+
 export default function TemplateGallery({
   templates,
   whatsappHref,
+  deals = [],
 }: {
   templates: WebsiteTemplate[];
   whatsappHref: string;
+  /** Running deals; the best one for each template gets a badge. */
+  deals?: FeaturedDeal[];
 }) {
   const [category, setCategory] = useState(ALL);
   const [ordering, setOrdering] = useState<WebsiteTemplate | null>(null);
@@ -68,7 +99,8 @@ export default function TemplateGallery({
       )}
 
       <ul className="grid gap-x-8 gap-y-10 md:grid-cols-2 md:gap-y-12">
-        {visible.map((template) => {
+        {visible.map((template, index) => {
+          const offer = bestOffer(deals, template, true);
           const categoryLabel =
             SITE_TYPES.find((c) => c.id === template.category)?.label ??
             'Template';
@@ -82,6 +114,14 @@ export default function TemplateGallery({
                 aria-label={`Open the ${template.name} live demo`}
                 className="group relative block aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-gray-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/40 dark:bg-gray-900 dark:ring-white/10"
               >
+                {offer && (
+                  <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-2.5 py-1 text-xs text-white shadow-lg">
+                    <span className="font-bold uppercase tracking-wider">
+                      Deal
+                    </span>
+                    {formatRM(offer.saving)} off
+                  </span>
+                )}
                 {template.preview_image_url ? (
                   <UniversalImage
                     src={template.preview_image_url}
@@ -89,6 +129,7 @@ export default function TemplateGallery({
                     width={0}
                     height={0}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    loading={index < 2 ? 'eager' : undefined}
                   />
                 ) : (
                   <span className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -114,8 +155,14 @@ export default function TemplateGallery({
                 <div className="flex shrink-0 flex-col items-end">
                   <p className="flex flex-wrap items-baseline justify-end gap-x-1.5 font-semibold text-gray-900 dark:text-gray-100 md:text-lg">
                     <PromoPrice
-                      target={TEMPLATE_PROMO_TARGET.id}
+                      target={[
+                        TEMPLATE_PROMO_TARGET.id,
+                        templatePromoTarget(template.slug),
+                      ]}
                       price={template.price}
+                      salePrice={
+                        offer ? template.price - offer.saving : undefined
+                      }
                     />
                   </p>
                   <button
@@ -141,6 +188,8 @@ export default function TemplateGallery({
         <TemplateOrder
           key={ordering.id}
           template={ordering}
+          sale={bestOffer(deals, ordering, true)?.deal ?? null}
+          suggestion={bestOffer(deals, ordering, false)?.deal ?? null}
           whatsappHref={whatsappHref}
           onClose={() => setOrdering(null)}
         />

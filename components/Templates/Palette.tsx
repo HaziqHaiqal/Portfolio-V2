@@ -79,6 +79,7 @@ export function PaletteRoot({
   return (
     <PaletteContext value={{ slug, palettes, active }}>
       <div
+        data-template-root
         style={style}
         className={`min-h-screen bg-tpl-bg font-tpl text-tpl-ink antialiased [--demo-bar:3rem] ${className}`}
       >

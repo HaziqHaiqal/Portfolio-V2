@@ -1624,3 +1624,8 @@
     transparent 58%
   );
 }
+
+/* Scroll-linked motion on template demos measures against <html>. */
+html:has([data-template-root]) {
+  position: relative;
+}

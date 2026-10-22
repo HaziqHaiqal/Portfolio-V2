@@ -10,6 +10,8 @@ interface UniversalImageProps {
   height: number;
   className?: string;
   fallback?: string;
+  /** 'eager' for an above-the-fold image that may be the LCP. */
+  loading?: 'eager' | 'lazy';
 }
 
 export default function UniversalImage({
@@ -19,6 +21,7 @@ export default function UniversalImage({
   height,
   className,
   fallback,
+  loading,
 }: UniversalImageProps) {
   const [imgError, setImgError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
@@ -70,6 +73,7 @@ export default function UniversalImage({
             sizes={`${Math.max(width, height)}px`}
             className={className}
             onError={handleError}
+            loading={loading}
             unoptimized
           />
         </div>
@@ -85,6 +89,7 @@ export default function UniversalImage({
         sizes="100vw"
         className={className}
         onError={handleError}
+        loading={loading}
         unoptimized
       />
     );
@@ -100,6 +105,7 @@ export default function UniversalImage({
         sizes="100vw"
         className={className}
         onError={handleError}
+        loading={loading}
       />
     );
   }
@@ -122,6 +128,7 @@ export default function UniversalImage({
         sizes={`${Math.max(width, height)}px`}
         className={className}
         onError={handleError}
+        loading={loading}
       />
     </div>
   );

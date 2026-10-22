@@ -26,6 +26,14 @@ export function promoAppliesTo(
   return targets.some((target) => promo.eligibleTargets.includes(target));
 }
 
+/** Only on chosen templates: a sale on those cards, not a code in Deals. */
+export function isTemplateSale(promo: Pick<AppliedPromo, 'eligibleTargets'>) {
+  return (
+    promo.eligibleTargets.length > 0 &&
+    promo.eligibleTargets.every((target) => target.startsWith('template:'))
+  );
+}
+
 export function discountLabel(
   type: DiscountType,
   value: number
