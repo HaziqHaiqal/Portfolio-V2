@@ -1573,31 +1573,6 @@
 }
 
 :root {
-  --tint-web: #dbeafe;
-  --tint-mobile: #d1fae5;
-  --tint-art: #f3e8ff;
-  --tint-game: #ffe4e6;
-  --tint-api: #ffedd5;
-  --tint-ai: #fce7f3;
-  --tint-tool: #fef3c7;
-  --tint-other: #e5e7eb;
-  --modal-stop2: rgba(255, 255, 255, 0.5);
-  --modal-stop3: #ffffff;
-}
-.dark {
-  --tint-web: #1e3a8a;
-  --tint-mobile: #065f46;
-  --tint-art: #6b21a8;
-  --tint-game: #9f1239;
-  --tint-api: #9a3412;
-  --tint-ai: #9d174d;
-  --tint-tool: #854d0e;
-  --tint-other: #374151;
-  --modal-stop2: rgba(17, 24, 39, 0.65);
-  --modal-stop3: #111827;
-}
-
-:root {
   --hero-ring-base: 0.4;
   --hero-ring-step: 0.1;
   --hero-glow-a: 0.1;

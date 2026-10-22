@@ -80,7 +80,6 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeader
           icon={Briefcase}
-          label="experience.timeline()"
           title="Experience"
           accentClass="text-rose-500"
           gradientClass="from-rose-600 to-rose-400"

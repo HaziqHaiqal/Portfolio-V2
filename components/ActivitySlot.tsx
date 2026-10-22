@@ -10,7 +10,6 @@ function ActivityFallback() {
       <div className="mx-auto max-w-6xl">
         <SectionHeader
           icon={SiGithub}
-          label="github.activity()"
           title="GitHub Activity"
           accentClass="text-cyan-500"
           gradientClass="from-cyan-600 to-cyan-400"

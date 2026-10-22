@@ -40,7 +40,6 @@ const TechStackSection = () => {
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeader
           icon={Code2}
-          label="tech.stack()"
           title="Tech Stack"
           accentClass="text-blue-500"
           gradientClass="from-blue-600 to-blue-400"

@@ -30,6 +30,8 @@ const pageTitles: Record<string, string> = {
   '/admin/education': 'Education',
   '/admin/skills': 'Skills',
   '/admin/interests': 'Interests',
+  '/admin/promo-codes': 'Promo codes',
+  '/admin/templates': 'Templates',
 };
 
 function DynamicBreadcrumb() {

@@ -13,7 +13,9 @@ import {
   Heart,
   LayoutDashboard,
   LogOut,
+  LayoutTemplate,
   Sparkles,
+  TicketPercent,
   User as UserIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -64,6 +66,13 @@ const navigation: NavGroup[] = [
       { title: 'Experience', url: '/admin/experience', icon: Briefcase },
       { title: 'Education', url: '/admin/education', icon: GraduationCap },
       { title: 'Companies', url: '/admin/companies', icon: Building2 },
+    ],
+  },
+  {
+    label: 'Business',
+    items: [
+      { title: 'Promo codes', url: '/admin/promo-codes', icon: TicketPercent },
+      { title: 'Templates', url: '/admin/templates', icon: LayoutTemplate },
     ],
   },
 ];

@@ -6,14 +6,12 @@ import ActivitySlot from '@components/ActivitySlot';
 import TechStackSection from '@components/TechStackSection';
 import ExperienceSection from '@components/ExperienceSection';
 import EducationSection from '@components/EducationSection';
-import ProjectSection from '@components/ProjectSection';
-import ServiceSection from '@components/ServiceSection';
+import GetInTouchSection from '@components/GetInTouchSection';
 import Footer from '@components/Layout/Footer';
 
 // Always dynamic (the layout reads the theme cookie), so caching lives in the data layer.
 export default async function Home() {
-  const { profile, experience, education, projects } =
-    await getCachedPortfolio();
+  const { profile, experience, education } = await getCachedPortfolio();
 
   return (
     <>
@@ -24,8 +22,7 @@ export default async function Home() {
         <TechStackSection />
         <ExperienceSection experience={experience} />
         <EducationSection education={education} />
-        <ProjectSection projects={projects} />
-        <ServiceSection />
+        <GetInTouchSection profile={profile} />
       </HomeShell>
     </>
   );

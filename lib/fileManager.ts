@@ -12,7 +12,8 @@ export interface UploadedFile {
 }
 
 export interface UploadConfig {
-  entityType: 'profile' | 'project' | 'experience' | 'education' | 'company';
+  entityType:
+    'profile' | 'project' | 'experience' | 'education' | 'company' | 'template';
   entityId: string;
   fieldName: string;
   bucket: string;
@@ -91,6 +92,15 @@ export const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     path: 'institution-logos',
     maxSize: 2 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+  },
+  template_preview: {
+    entityType: 'template',
+    entityId: '',
+    fieldName: 'template_preview',
+    bucket: 'project-thumbnails',
+    path: 'templates',
+    maxSize: 5 * 1024 * 1024,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
 };
 
@@ -381,6 +391,7 @@ async function updateEntityTable(
     experience: 'experience',
     education: 'education',
     company: 'companies',
+    template: 'website_templates',
   };
 
   const fieldMap: Record<string, string> = {
@@ -389,6 +400,7 @@ async function updateEntityTable(
     project_thumbnail: 'thumbnail_url',
     company_logo: 'logo_url',
     institution_logo: 'logo_url',
+    template_preview: 'preview_image_url',
   };
 
   const table = tableMap[entityType];
@@ -419,6 +431,7 @@ async function clearEntityField(
     experience: 'experience',
     education: 'education',
     company: 'companies',
+    template: 'website_templates',
   };
 
   const fieldMap: Record<string, string> = {
@@ -427,6 +440,7 @@ async function clearEntityField(
     project_thumbnail: 'thumbnail_url',
     company_logo: 'logo_url',
     institution_logo: 'logo_url',
+    template_preview: 'preview_image_url',
   };
 
   const table = tableMap[entityType];

@@ -1,83 +1,45 @@
 'use client';
 
-import React, { Fragment, ReactNode, useEffect } from 'react';
-import Image from 'next/image';
+import { useEffect, type ReactNode } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Globe,
-  Clock,
-  Calendar,
-  Users,
-  GitCommit,
-  CirclePlay,
-} from 'lucide-react';
+import { ArrowUpRight, Check, CirclePlay, X } from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
 import ProjectImageGallery from '@components/Media/ProjectImageGallery';
 import { getCategoryInfo } from '@constants/projects';
+import { themeClasses } from '@constants/theme';
 import { useUIStore } from '@lib/stores';
+import type { ProjectProps } from 'types/portfolio';
 
-interface ProjectModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: {
-    id?: string;
-    title: string;
-    description: string;
-    longDescription?: string;
-    tech: string;
-    year: string;
-    gradient: string;
-    commits: string;
-    languages: string[];
-    category: string;
-    projectUrl?: string;
-    demoUrl?: string;
-    githubUrl?: string;
-    features?: string[];
-    teamSize?: string;
-    duration?: string;
-    thumbnail_url?: string;
-  } | null;
+const PRIMARY_LINK =
+  'inline-flex min-h-10 items-center gap-1.5 rounded-full bg-gray-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-purple-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/30 dark:bg-white dark:text-gray-900 dark:hover:bg-purple-500 dark:hover:text-white';
+const SECONDARY_LINK =
+  'inline-flex min-h-10 items-center gap-1.5 rounded-full border border-gray-300 px-5 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/20 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500';
+
+function teamLabel(teamSize?: string) {
+  const size = teamSize?.trim();
+  if (!size) return null;
+  if (size === '1') return 'Solo project';
+  return /^\d+$/.test(size) ? `Team of ${size}` : size;
 }
 
-interface ThemeTokens {
-  panelBg: string;
-  panelText: string;
-  textPrimary: string;
-  textSecondary: string;
-  textMuted: string;
-  textFaint: string;
-  divider: string;
-  cardBg: string;
-  cardBorder: string;
-  chipBg: string;
-  chipBorder: string;
-  chipText: string;
-  chipHoverBg: string;
-  glassBg: string;
-  glassBorder: string;
-  glassText: string;
-  primaryBtnBg: string;
-  primaryBtnText: string;
-  primaryBtnDisabled: string;
-  secondaryBtnBg: string;
-  secondaryBtnHoverBg: string;
-  secondaryBtnBorder: string;
-  secondaryBtnText: string;
-  secondaryBtnDisabled: string;
-  backdropClass: string;
-  headerStop1: string;
-  headerStop2: string;
-  headerStop3: string;
-  shadowOnImage: string;
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700">
+      <h3 className="mb-4 font-bold text-gray-900 dark:text-white">{title}</h3>
+      {children}
+    </section>
+  );
 }
 
 export default function ProjectModal({
   isOpen,
   onClose,
   project,
-}: ProjectModalProps) {
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  project: ProjectProps | null;
+}) {
   const setChatVisible = useUIStore((state) => state.setChatVisible);
 
   useEffect(() => {
@@ -87,87 +49,58 @@ export default function ProjectModal({
   }, [isOpen, setChatVisible]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    if (!isOpen) return;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = overflow;
     };
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
   if (!project) return null;
 
-  const categoryInfo = getCategoryInfo(project.category);
-  const CategoryIcon = categoryInfo.icon;
-
-  const TINT_CATEGORIES = new Set([
-    'web',
-    'mobile',
-    'art',
-    'game',
-    'api',
-    'ai',
-    'tool',
-    'other',
-  ]);
-  const tintKey = TINT_CATEGORIES.has(categoryInfo.value)
-    ? categoryInfo.value
-    : 'other';
-  const tint = `var(--tint-${tintKey})`;
-
-  const T: ThemeTokens = {
-    panelBg: 'bg-white dark:bg-gray-900',
-    panelText: 'text-gray-900 dark:text-white',
-    textPrimary: 'text-gray-900 dark:text-white',
-    textSecondary: 'text-gray-700 dark:text-white/75',
-    textMuted: 'text-gray-500 dark:text-white/55',
-    textFaint: 'text-gray-400 dark:text-white/35',
-    divider: 'border-gray-200 dark:border-white/[0.06]',
-    cardBg: 'bg-gray-50 dark:bg-white/[0.04]',
-    cardBorder: 'border-gray-200 dark:border-white/10',
-    chipBg: 'bg-gray-100 dark:bg-white/[0.08]',
-    chipBorder: 'border-gray-200 dark:border-white/10',
-    chipText: 'text-gray-700 dark:text-white/90',
-    chipHoverBg: 'hover:bg-gray-200 dark:hover:bg-white/[0.12]',
-    glassBg: 'bg-white/80 dark:bg-white/10',
-    glassBorder: 'border-gray-200 dark:border-white/10',
-    glassText: 'text-gray-900 dark:text-white',
-    primaryBtnBg:
-      'bg-gray-900 text-white shadow-md hover:bg-gray-800 dark:bg-white dark:text-black dark:shadow-lg dark:hover:bg-white/90',
-    primaryBtnText: 'text-white dark:text-black',
-    primaryBtnDisabled:
-      'cursor-not-allowed bg-gray-200 text-gray-400 shadow-none dark:bg-white/30 dark:text-black/40',
-    secondaryBtnBg: 'bg-white dark:bg-white/[0.08]',
-    secondaryBtnHoverBg: 'hover:bg-gray-50 dark:hover:bg-white/[0.15]',
-    secondaryBtnBorder: 'border-gray-200 dark:border-white/10',
-    secondaryBtnText: 'text-gray-900 dark:text-white',
-    secondaryBtnDisabled:
-      'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400 dark:border-white/5 dark:bg-white/[0.04] dark:text-white/30',
-    backdropClass: 'bg-black/40 backdrop-blur-md dark:bg-black/80',
-    headerStop1: tint,
-    headerStop2: 'var(--modal-stop2)',
-    headerStop3: 'var(--modal-stop3)',
-    shadowOnImage:
-      'shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]',
-  };
-
   const meta = [
-    { icon: Calendar, label: project.year },
-    { icon: Users, label: project.teamSize || 'Solo' },
-    { icon: Clock, label: project.duration || 'Ongoing' },
-    ...(project.commits && project.commits !== '0'
-      ? [{ icon: GitCommit, label: project.commits }]
+    getCategoryInfo(project.category).label,
+    project.year,
+    teamLabel(project.teamSize),
+    project.duration?.trim(),
+  ].filter(Boolean);
+  const links: { href: string; label: string; icon: ReactNode }[] = [
+    ...(project.projectUrl
+      ? [
+          {
+            href: project.projectUrl,
+            label: 'Live site',
+            icon: <ArrowUpRight size={15} aria-hidden="true" />,
+          },
+        ]
+      : []),
+    ...(project.demoUrl
+      ? [
+          {
+            href: project.demoUrl,
+            label: 'Demo',
+            icon: <CirclePlay size={15} aria-hidden="true" />,
+          },
+        ]
+      : []),
+    ...(project.githubUrl
+      ? [
+          {
+            href: project.githubUrl,
+            label: 'Code',
+            icon: <SiGithub size={14} aria-hidden="true" />,
+          },
+        ]
       : []),
   ];
 
@@ -180,310 +113,118 @@ export default function ProjectModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <m.div
-            className={`absolute inset-0 ${T.backdropClass}`}
+          <div
+            className="absolute inset-0 bg-gray-950/60 backdrop-blur-sm"
             onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           />
 
           <m.div
-            className={`relative flex h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl shadow-2xl md:mx-4 md:h-[88dvh] md:max-w-4xl md:rounded-2xl ${T.panelBg}`}
-            initial={{ y: '8%', opacity: 0, scale: 0.96 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: '8%', opacity: 0, scale: 0.96 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-modal-title"
+            className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl border shadow-2xl md:mx-4 md:max-h-[88dvh] md:max-w-3xl md:rounded-3xl ${themeClasses.modal}`}
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 40, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-[55%]"
-              style={{
-                background: `linear-gradient(180deg, ${T.headerStop1} 0%, ${T.headerStop2} 55%, ${T.headerStop3} 100%)`,
-              }}
-            />
-
-            <div className="relative z-10 flex flex-shrink-0 items-center justify-between px-5 py-3">
-              <div
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium backdrop-blur-md ${T.glassBg} ${T.glassBorder} ${T.glassText}`}
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 py-3 pl-6 pr-3 dark:border-gray-700 md:pl-8">
+              <h2
+                id="project-modal-title"
+                className="truncate text-base font-bold text-gray-900 dark:text-white"
               >
-                <CategoryIcon size={12} />
-                {categoryInfo.label}
-              </div>
-              <m.button
+                {project.title}
+              </h2>
+              <button
+                type="button"
                 onClick={onClose}
-                className={`rounded-full border p-2 backdrop-blur-md transition-colors ${T.glassBg} hover:${T.chipHoverBg} ${T.glassBorder} ${T.glassText}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                autoFocus
                 aria-label="Close"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/20 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
               >
-                <X size={16} />
-              </m.button>
+                <X size={18} />
+              </button>
             </div>
 
-            <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain">
-              <div className="flex flex-col items-end gap-6 px-6 py-7 md:flex-row md:gap-8 md:px-8">
-                <m.div
-                  className={`relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl sm:w-80 md:w-80 ${T.shadowOnImage} bg-gray-100 dark:bg-gray-950/50`}
-                  initial={{ y: 20, opacity: 0, scale: 0.96 }}
-                  animate={{ y: 0, opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {project.thumbnail_url && (
-                    <Image
-                      src={project.thumbnail_url}
-                      alt=""
-                      fill
-                      sizes="320px"
-                      className={`scale-110 object-cover opacity-40 blur-2xl dark:opacity-60`}
-                      aria-hidden
-                    />
-                  )}
-                  {project.thumbnail_url ? (
-                    <Image
-                      src={project.thumbnail_url}
-                      alt={project.title}
-                      fill
-                      sizes="320px"
-                      className="object-contain"
-                      loading="eager"
-                    />
-                  ) : (
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`}
-                    />
-                  )}
-                </m.div>
-
-                <m.div
-                  className={`min-w-0 flex-1 ${T.textPrimary}`}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                >
-                  <h1 className="mb-3 break-words text-4xl font-bold leading-[0.95] tracking-tight sm:text-5xl md:mb-4 md:text-6xl">
-                    {project.title}
-                  </h1>
-                  <p
-                    className={`mb-4 max-w-2xl text-sm leading-relaxed md:text-base ${T.textSecondary}`}
-                  >
-                    {project.description}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-                    {meta.map((m, i) => {
-                      const MIcon = m.icon;
-                      return (
-                        <Fragment key={i}>
-                          {i > 0 && (
-                            <span className={`select-none ${T.textFaint}`}>
-                              ·
-                            </span>
-                          )}
-                          <span
-                            className={`inline-flex items-center gap-1.5 ${T.textMuted}`}
-                          >
-                            <MIcon size={12} className={T.textFaint} />
-                            {m.label}
-                          </span>
-                        </Fragment>
-                      );
-                    })}
-                  </div>
-                </m.div>
-              </div>
-
-              <m.div
-                className="flex flex-wrap items-center gap-3 px-6 pb-6 md:px-8"
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <ActionButton
-                  href={project.projectUrl}
-                  icon={<Globe size={15} />}
-                  label="Live Site"
-                  variant="primary"
-                  T={T}
-                />
-                {project.demoUrl && (
-                  <ActionButton
-                    href={project.demoUrl}
-                    icon={<CirclePlay size={15} />}
-                    label="Demo"
-                    variant="secondary"
-                    T={T}
-                  />
-                )}
-                <ActionButton
-                  href={project.githubUrl}
-                  icon={<SiGithub size={15} />}
-                  label="Source"
-                  variant="secondary"
-                  T={T}
-                />
-              </m.div>
-
-              {project.id && (
-                <Section T={T} first>
-                  <SectionTitle T={T}>Gallery</SectionTitle>
-                  <div
-                    className={`rounded-xl border p-3 ${T.cardBg} ${T.cardBorder}`}
-                  >
-                    <ProjectImageGallery projectId={project.id} compact />
-                  </div>
-                </Section>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-10 pt-6 md:px-8 md:pt-8">
+              <p className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                {meta.join(' · ')}
+              </p>
+              {project.description && (
+                <p className="mt-3 text-lg leading-relaxed text-gray-700 dark:text-gray-300">
+                  {project.description}
+                </p>
+              )}
+              {links.length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {links.map((link, index) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={index === 0 ? PRIMARY_LINK : SECONDARY_LINK}
+                    >
+                      {link.icon}
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
               )}
 
               {project.longDescription && (
-                <Section T={T}>
-                  <SectionTitle T={T}>About</SectionTitle>
-                  <p
-                    className={`max-w-3xl text-[15px] leading-relaxed ${T.textSecondary}`}
-                  >
+                <Section title="About">
+                  <p className="leading-relaxed text-gray-600 dark:text-gray-400">
                     {project.longDescription}
                   </p>
                 </Section>
               )}
 
               {project.features && project.features.length > 0 && (
-                <Section T={T}>
-                  <SectionTitle T={T}>Highlights</SectionTitle>
-                  <div>
-                    {project.features.map((feature, i) => (
-                      <m.div
-                        key={i}
-                        className={`border-b py-5 last:border-b-0 ${T.divider}`}
-                        initial={{ opacity: 0, y: 6 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.04 * i }}
+                <Section title="Highlights">
+                  <ul className="grid gap-3 sm:grid-cols-2">
+                    {project.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
                       >
-                        <p
-                          className={`text-[15px] leading-relaxed ${T.textPrimary}`}
-                        >
-                          {feature}
-                        </p>
-                      </m.div>
+                        <Check
+                          size={16}
+                          aria-hidden="true"
+                          className="mt-0.5 shrink-0 text-purple-600 dark:text-purple-400"
+                        />
+                        {feature}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </Section>
               )}
 
               {project.languages.length > 0 && (
-                <Section T={T}>
-                  <SectionTitle T={T}>Built with</SectionTitle>
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.languages.map((tech, i) => (
-                      <span
-                        key={i}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${T.chipBg} ${T.chipBorder} ${T.chipText} ${T.chipHoverBg}`}
+                <Section title="Built with">
+                  <ul className="flex flex-wrap gap-2">
+                    {project.languages.map((tech) => (
+                      <li
+                        key={tech}
+                        className="rounded-full border border-gray-200 px-3 py-1 font-mono text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
                       >
                         {tech}
-                      </span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </Section>
               )}
 
-              <div
-                className={`mt-10 border-t px-6 pb-10 pt-6 text-xs md:px-8 ${T.divider} ${T.textFaint}`}
-              >
-                {project.year} · {categoryInfo.label} ·{' '}
-                {project.duration || 'Ongoing'}
-                {project.teamSize ? ` · ${project.teamSize}` : ''}
-              </div>
+              {project.id && (
+                <ProjectImageGallery
+                  projectId={project.id}
+                  className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700"
+                />
+              )}
             </div>
           </m.div>
         </m.div>
       )}
     </AnimatePresence>
-  );
-}
-
-function Section({
-  children,
-  T,
-  first,
-}: {
-  children: ReactNode;
-  T: ThemeTokens;
-  first?: boolean;
-}) {
-  return (
-    <section
-      className={`px-6 md:px-8 ${
-        first ? 'mt-2' : `mt-8 border-t pt-8 ${T.divider}`
-      }`}
-    >
-      {children}
-    </section>
-  );
-}
-
-function SectionTitle({
-  children,
-  T,
-}: {
-  children: ReactNode;
-  T: ThemeTokens;
-}) {
-  return (
-    <h2
-      className={`mb-4 text-base font-semibold tracking-tight ${T.textPrimary}`}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function ActionButton({
-  href,
-  icon,
-  label,
-  variant,
-  T,
-}: {
-  href?: string;
-  icon: ReactNode;
-  label: string;
-  variant: 'primary' | 'secondary';
-  T: ThemeTokens;
-}) {
-  const enabled = Boolean(href);
-  const baseClass =
-    'flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-colors';
-  const enabledClass =
-    variant === 'primary'
-      ? T.primaryBtnBg
-      : `${T.secondaryBtnBg} ${T.secondaryBtnHoverBg} backdrop-blur-md border ${T.secondaryBtnBorder} ${T.secondaryBtnText}`;
-  const disabledClass =
-    variant === 'primary' ? T.primaryBtnDisabled : T.secondaryBtnDisabled;
-
-  if (!enabled) {
-    return (
-      <button
-        disabled
-        className={`${baseClass} ${disabledClass}`}
-        aria-label={`${label} (unavailable)`}
-        title="Not available"
-      >
-        {icon}
-        {label}
-      </button>
-    );
-  }
-  return (
-    <m.a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${baseClass} ${enabledClass}`}
-      whileHover={{ scale: 1.02, y: -1 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      {icon}
-      {label}
-    </m.a>
   );
 }

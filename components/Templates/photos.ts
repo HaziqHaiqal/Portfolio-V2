@@ -1,0 +1,78 @@
+// Free Unsplash photos (Unsplash License), hotlinked from their CDN.
+
+export const SERI_GLOW = {
+  pSerum: 'https://images.unsplash.com/photo-1781346325200-61cef7b29d76',
+  pOil: 'https://images.unsplash.com/photo-1781344116880-029945a42b75',
+  pCream: 'https://images.unsplash.com/photo-1779437141537-62577b216307',
+  pCleanser: 'https://images.unsplash.com/photo-1778665654058-dcd700142738',
+  pSunscreen: 'https://images.unsplash.com/photo-1638609927040-8a7e97cd9d6a',
+  pToner: 'https://images.unsplash.com/photo-1597931752949-98c74b5b159f',
+  hero: 'https://images.unsplash.com/photo-1599847896696-7e19dbd9d2e8',
+  modelCream: 'https://images.unsplash.com/photo-1643379855823-086c58876e27',
+  modelGlow: 'https://images.unsplash.com/photo-1687298703924-0d11be697d8b',
+  texture: 'https://images.unsplash.com/photo-1585945037805-5fd82c2e60b1',
+  review1: 'https://images.unsplash.com/photo-1695757002354-8bca71d087c7',
+  review2: 'https://images.unsplash.com/photo-1616326431919-be810ad5dacd',
+  review3: 'https://images.unsplash.com/photo-1567046318559-b29fcd7bf471',
+};
+
+export const ATELIER_NURA = {
+  hero: 'https://images.pexels.com/photos/8002604/pexels-photo-8002604.jpeg',
+  campaign: 'https://images.unsplash.com/photo-1762605135376-ae5af70a5628',
+  sleeve: 'https://images.unsplash.com/photo-1626386699888-b8865823b279',
+  abayaKasih: 'https://images.unsplash.com/photo-1772474528936-4f1187eb1611',
+  abayaKasihDetail:
+    'https://images.unsplash.com/photo-1772474500365-c2c520545f44',
+  abayaSeri: 'https://images.unsplash.com/photo-1772474511860-9cef46d98ea6',
+  abayaLembayung:
+    'https://images.unsplash.com/photo-1772474479567-11a6ce6a2d20',
+  abayaCahaya: 'https://images.unsplash.com/photo-1772474557170-4818d01d7bca',
+  abayaMutiara: 'https://images.unsplash.com/photo-1772474521525-c022114367ce',
+  abayaMutiaraDetail:
+    'https://images.unsplash.com/photo-1772474578035-bebcd90b355d',
+  abayaDamai: 'https://images.unsplash.com/photo-1772474542630-5f5822ca8421',
+  abayaEmbun: 'https://images.unsplash.com/photo-1752794673269-dc356838c5fd',
+  abayaStudio: 'https://images.unsplash.com/photo-1772474587292-08b3e8932acd',
+  tudungKoko: 'https://images.unsplash.com/photo-1640154852340-9de73a0643a8',
+  tudungRose: 'https://images.unsplash.com/photo-1574297500578-afae55026ff3',
+  tudungPutih: 'https://images.unsplash.com/photo-1585728748176-455ac5eed962',
+  tudungMauve: 'https://images.unsplash.com/photo-1746366618640-9b0257c3cd64',
+  dressAnggun: 'https://images.unsplash.com/photo-1760083545495-b297b1690672',
+  jubahDahlia: 'https://images.unsplash.com/photo-1762605135012-56a59a059e60',
+};
+
+export const TERAS_BINA = {
+  hero: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c',
+  teamSite: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5',
+  svcBuilding: 'https://images.unsplash.com/photo-1508450859948-4e04fabaa4ea',
+  svcCivil: 'https://images.unsplash.com/photo-1786744026397-32dade526eaa',
+  svcMne: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd',
+  svcDesign: 'https://images.unsplash.com/photo-1479839672679-a46483c0e7c8',
+  pMedical: 'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30',
+  pCampus: 'https://images.unsplash.com/photo-1481253127861-534498168948',
+  pOffice: 'https://images.unsplash.com/photo-1614595737476-42487331b8a1',
+  pLab: 'https://images.unsplash.com/photo-1479293581560-aee98bb24f7f',
+  pResidence: 'https://images.unsplash.com/photo-1529592829369-5e84d19ca37a',
+  pOngoing: 'https://images.unsplash.com/photo-1599995903128-531fc7fb694b',
+  safety: 'https://images.unsplash.com/photo-1552879890-3a06dd3a06c2',
+  workers: 'https://images.unsplash.com/photo-1622612063021-116cc3407145',
+  cranes: 'https://images.unsplash.com/photo-1429497419816-9ca5cfb4571a',
+};
+
+export const KOPI_TEDUH = {
+  heroCup: 'https://images.unsplash.com/photo-1708337338617-466d5558cdcd',
+  kopiAis: 'https://images.unsplash.com/photo-1768703321808-be77e535a523',
+  nasiLemak: 'https://images.unsplash.com/photo-1754617438035-712ddf5500ef',
+  nasiLemakRendang:
+    'https://images.unsplash.com/photo-1570275239925-4af0aa93a0dc',
+  nasiLemakAyam: 'https://images.unsplash.com/photo-1666239308345-c4c12ef3e177',
+  rotiBakar: 'https://images.unsplash.com/photo-1644378334278-f3d2b4cb2262',
+  rotiTisu: 'https://images.unsplash.com/photo-1768204038747-4ff9d9421ff2',
+  rotiCanai: 'https://images.unsplash.com/photo-1683533743190-89c9b19f9ea6',
+  tehTarik: 'https://images.unsplash.com/photo-1708194245532-aeb677ce4bd4',
+  icedLatte: 'https://images.unsplash.com/photo-1767840272154-4eb32b348cdd',
+  interior: 'https://images.unsplash.com/photo-1769473357493-319cbde6b248',
+  interiorCounter:
+    'https://images.unsplash.com/photo-1633944241961-e511ab23455f',
+  barista: 'https://images.unsplash.com/photo-1599549192669-6baac5d32432',
+};

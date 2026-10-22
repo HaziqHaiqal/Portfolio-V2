@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { useTheme } from '@components/Provider/ThemeProvider';
 
 const emptySubscribe = () => () => {};

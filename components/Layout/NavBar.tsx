@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
@@ -34,28 +35,45 @@ const mobileItemVariants = {
   open: { opacity: 1, y: 0, transition: { duration: 0.15 } },
 };
 
-const HEADER_LANDING = { phone: 104, desktop: 128 };
+const NAV_ITEMS = [
+  {
+    href: '/',
+    label: 'About',
+    hoverTextClass: 'hover:text-blue-600',
+    underlineClass: 'bg-blue-600',
+    decorationClass: 'decoration-blue-600',
+  },
+  {
+    href: '/projects',
+    label: 'Projects',
+    hoverTextClass: 'hover:text-purple-600',
+    underlineClass: 'bg-purple-600',
+    decorationClass: 'decoration-purple-600',
+  },
+  {
+    href: '/services',
+    label: 'Services',
+    hoverTextClass: 'hover:text-green-600',
+    underlineClass: 'bg-green-600',
+    decorationClass: 'decoration-green-600',
+  },
+  {
+    href: '/contact',
+    label: 'Contact',
+    hoverTextClass: 'hover:text-yellow-600',
+    underlineClass: 'bg-yellow-600',
+    decorationClass: 'decoration-yellow-600',
+  },
+] as const;
 
-// offsetTop, because the header's reveal animation shifts getBoundingClientRect.
-function layoutTop(el: HTMLElement) {
-  let top = 0;
-  for (let n: Element | null = el; n instanceof HTMLElement; n = n.offsetParent)
-    top += n.offsetTop;
-  return top;
-}
-
-function scrollToSection(id: string) {
-  const section = document.getElementById(id);
-  if (!section) return;
-  const header = section.querySelector<HTMLElement>('[data-section-header]');
-  if (!header) {
-    section.scrollIntoView({ behavior: 'smooth' });
-    return;
-  }
-  const landing = window.matchMedia('(min-width: 768px)').matches
-    ? HEADER_LANDING.desktop
-    : HEADER_LANDING.phone;
-  window.scrollTo({ top: layoutTop(header) - landing, behavior: 'smooth' });
+function Brand() {
+  return (
+    <span
+      className={`whitespace-nowrap font-bold tracking-tight ${themeClasses.text.primary}`}
+    >
+      Haziq<span className="text-green-600">.</span>
+    </span>
+  );
 }
 
 const NavBar = () => {
@@ -63,77 +81,35 @@ const NavBar = () => {
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
 
   const { currentTime, mounted } = useCurrentTime();
-
-  const navItems = [
-    {
-      href: '#home',
-      label: 'Home',
-      hoverTextClass: 'hover:text-blue-600',
-      underlineClass: 'bg-blue-600',
-    },
-    {
-      href: '#experience',
-      label: 'Experience',
-      hoverTextClass: 'hover:text-rose-600',
-      underlineClass: 'bg-rose-600',
-    },
-    {
-      href: '#education',
-      label: 'Education',
-      hoverTextClass: 'hover:text-yellow-600',
-      underlineClass: 'bg-yellow-600',
-    },
-    {
-      href: '#projects',
-      label: 'Projects',
-      hoverTextClass: 'hover:text-purple-600',
-      underlineClass: 'bg-purple-600',
-    },
-    {
-      href: '/service',
-      label: 'Service',
-      hoverTextClass: 'hover:text-green-600',
-      underlineClass: 'bg-green-600',
-    },
-  ] as const;
+  const pathname = usePathname();
+  const isActive = (href: string) =>
+    href === '/'
+      ? pathname === '/'
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <>
       <nav className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 transform md:block">
         <div
-          className={`enter-down rounded-full border px-8 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
+          className={`enter-down rounded-full border px-6 py-4 shadow-2xl backdrop-blur-xl transition-all duration-300 lg:px-8 ${themeClasses.navbar}`}
         >
-          <div className="flex items-center gap-8">
-            {navItems.map((item) => {
-              const linkClass = `${item.hoverTextClass} group relative font-medium transition-all duration-300 ${themeClasses.text.secondary}`;
-              const underline = (
-                <span
-                  className={`absolute -bottom-1 left-0 h-0.5 w-0 ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
-                />
-              );
-
-              if (!item.href.startsWith('#')) {
-                return (
-                  <Link key={item.href} href={item.href} className={linkClass}>
-                    {item.label}
-                    {underline}
-                  </Link>
-                );
-              }
-
+          <div className="flex items-center gap-5 lg:gap-8">
+            <Brand />
+            <div className={`h-6 w-px ${themeClasses.border.muted}`} />
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.href);
               return (
-                <a
+                <Link
                   key={item.href}
                   href={item.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(item.href.slice(1));
-                  }}
-                  className={linkClass}
+                  aria-current={active ? 'page' : undefined}
+                  className={`${item.hoverTextClass} group relative whitespace-nowrap font-medium transition-all duration-300 ${themeClasses.text.secondary}`}
                 >
                   {item.label}
-                  {underline}
-                </a>
+                  <span
+                    className={`absolute -bottom-1 left-0 h-0.5 ${active ? 'w-full' : 'w-0'} ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
+                  />
+                </Link>
               );
             })}
             <div className={`h-6 w-px ${themeClasses.border.muted}`} />
@@ -163,12 +139,7 @@ const NavBar = () => {
           className={`enter-down rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 ${themeClasses.navbar}`}
         >
           <div className="flex items-center justify-between">
-            <div
-              className={`whitespace-nowrap font-mono text-xs ${themeClasses.text.muted}`}
-              suppressHydrationWarning
-            >
-              {mounted ? currentTime.toLocaleTimeString() : '--:--:--'}
-            </div>
+            <Brand />
 
             <div className="flex items-center gap-3">
               <m.button
@@ -185,6 +156,8 @@ const NavBar = () => {
 
               <m.button
                 onClick={toggleMobileMenu}
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={isMobileMenuOpen}
                 className={`rounded-full p-2 transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
                 whileTap={{ scale: 0.9 }}
               >
@@ -203,39 +176,26 @@ const NavBar = () => {
                 exit="closed"
               >
                 <div className="flex flex-col gap-1">
-                  {navItems.map((item) => {
-                    const itemClass = `block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`;
-
-                    if (!item.href.startsWith('#')) {
-                      return (
-                        <m.div key={item.href} variants={mobileItemVariants}>
-                          <Link
-                            href={item.href}
-                            onClick={closeMobileMenu}
-                            className={itemClass}
-                          >
-                            {item.label}
-                          </Link>
-                        </m.div>
-                      );
-                    }
-
+                  {NAV_ITEMS.map((item) => {
+                    const active = isActive(item.href);
                     return (
                       <m.div key={item.href} variants={mobileItemVariants}>
-                        <a
+                        <Link
                           href={item.href}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            closeMobileMenu();
-                            setTimeout(
-                              () => scrollToSection(item.href.slice(1)),
-                              100
-                            );
-                          }}
-                          className={itemClass}
+                          onClick={closeMobileMenu}
+                          aria-current={active ? 'page' : undefined}
+                          className={`block rounded-lg px-3 py-2.5 font-medium transition-all duration-300 ${themeClasses.text.secondary} ${themeClasses.hover.bg}`}
                         >
-                          {item.label}
-                        </a>
+                          <span
+                            className={
+                              active
+                                ? `underline decoration-2 underline-offset-[6px] ${item.decorationClass}`
+                                : undefined
+                            }
+                          >
+                            {item.label}
+                          </span>
+                        </Link>
                       </m.div>
                     );
                   })}

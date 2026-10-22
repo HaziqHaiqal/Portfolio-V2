@@ -5,7 +5,6 @@ type SectionIcon = ComponentType<{ size?: number; className?: string }>;
 
 interface SectionHeaderProps {
   icon: SectionIcon;
-  label: string;
   title: string;
   accentClass: string;
   gradientClass: string;
@@ -14,7 +13,6 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({
   icon: Icon,
-  label,
   title,
   accentClass,
   gradientClass,
@@ -26,14 +24,10 @@ export default function SectionHeader({
       y={30}
       duration={0.6}
     >
-      <div
-        data-section-header
-        className="mb-3 inline-flex items-center gap-2 font-mono text-sm"
-      >
-        <Icon size={16} className={accentClass} />
-        <span className="text-gray-500 dark:text-gray-400">{label}</span>
-      </div>
-      <h2 className="mb-4 text-3xl font-extrabold text-gray-900 dark:text-gray-100 md:text-4xl">
+      <h2 className="mb-4 inline-flex items-center gap-3 text-3xl font-extrabold text-gray-900 dark:text-gray-100 md:text-4xl">
+        <span aria-hidden="true" className="contents">
+          <Icon size={28} className={`shrink-0 ${accentClass}`} />
+        </span>
         {title}
       </h2>
       <div

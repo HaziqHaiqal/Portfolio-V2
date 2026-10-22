@@ -61,7 +61,7 @@ export function useTheme() {
       'useTheme called outside ThemeProvider, using fallback values'
     );
     return {
-      isDarkMode: false,
+      isDarkMode: true,
       toggleDarkMode: () => {},
       setDarkMode: () => {},
     };

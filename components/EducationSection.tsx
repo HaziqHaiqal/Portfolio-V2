@@ -20,7 +20,6 @@ const EducationSection = ({ education }: EducationSectionProps) => {
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeader
           icon={GraduationCap}
-          label="education.certificates()"
           title="Education"
           accentClass="text-yellow-500"
           gradientClass="from-yellow-600 to-yellow-400"

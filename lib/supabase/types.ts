@@ -59,8 +59,6 @@ export interface Experience {
   created_at?: string;
   updated_at?: string;
   companies?: Company;
-  // Legacy, kept for backward compatibility with old rows. New code sorts by date.
-  sort_order?: number;
 }
 
 export interface Education {
@@ -154,4 +152,43 @@ export interface Upload {
   entity_type: string;
   field_name: string;
   sort_order: number;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  title: string;
+  discount_type: 'none' | 'fixed' | 'percent';
+  discount_value: number;
+  perks: string[];
+  eligible_targets: string[];
+  starts_at?: string;
+  expires_at?: string;
+  max_uses?: number;
+  uses_count: number;
+  applied_count: number;
+  referrer_name?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WebsiteTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  description?: string;
+  price: number;
+  /** The same site as a custom build, shown for comparison. */
+  compare_price?: number | null;
+  pages?: string;
+  features: string[];
+  demo_url?: string;
+  preview_image_url?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
 }

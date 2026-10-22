@@ -9,4 +9,6 @@ export type {
   ProjectImage,
   Interest,
   Upload,
+  PromoCode,
+  WebsiteTemplate,
 } from './types';

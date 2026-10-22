@@ -5,4 +5,6 @@ export * from './interests';
 export * from './portfolio';
 export * from './profile';
 export * from './projects';
+export * from './promoCodes';
 export * from './skills';
+export * from './templates';

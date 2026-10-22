@@ -59,7 +59,7 @@ export const metadata: Metadata = {
 
 export async function generateViewport(): Promise<Viewport> {
   const cookieStore = await cookies();
-  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value === 'dark';
+  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value !== 'light';
   const canvas = THEME_CANVAS[isDarkMode ? 'dark' : 'light'];
 
   return {
@@ -74,7 +74,7 @@ export default async function RootLayout({
   children: ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value === 'dark';
+  const isDarkMode = cookieStore.get(THEME_COOKIE)?.value !== 'light';
 
   return (
     <html

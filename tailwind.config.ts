@@ -18,8 +18,35 @@ const config: Config = {
       fontFamily: {
         inter: ['var(--font-inter)', 'sans-serif'],
         'space-grotesk': ['var(--font-space-grotesk)', 'sans-serif'],
+        tpl: ['var(--tpl-font)', 'sans-serif'],
+      },
+      keyframes: {
+        'tpl-pop': {
+          '0%': { transform: 'scale(0.5)' },
+          '60%': { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'tpl-marquee': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
+        },
+        'tpl-rise': {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
       },
       colors: {
+        // Set per template demo by PaletteRoot, so one class follows every colour option.
+        tpl: {
+          bg: 'rgb(var(--tpl-bg) / <alpha-value>)',
+          surface: 'rgb(var(--tpl-surface) / <alpha-value>)',
+          ink: 'rgb(var(--tpl-ink) / <alpha-value>)',
+          muted: 'rgb(var(--tpl-muted) / <alpha-value>)',
+          accent: 'rgb(var(--tpl-accent) / <alpha-value>)',
+          'on-accent': 'rgb(var(--tpl-on-accent) / <alpha-value>)',
+          tint: 'rgb(var(--tpl-tint) / <alpha-value>)',
+          line: 'rgb(var(--tpl-line) / <alpha-value>)',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
