@@ -310,7 +310,6 @@ export default async function ServicePage() {
             label: 'Templates',
             tagline: 'Ready-made designs, your content',
             price: `From ${formatRM(templatesFrom ?? 0)}`,
-            icon: 'templates' as const,
             panel: (
               <TemplateGallery
                 templates={templates}
@@ -329,7 +328,6 @@ export default async function ServicePage() {
           ? 'Designed for your brand'
           : 'Android and iOS apps',
       price: formatStartingPrice(config),
-      icon: (config.id === 'website' ? 'web' : 'mobile') as ServiceTab['icon'],
       panel: (
         <Estimator
           config={config}
@@ -345,7 +343,6 @@ export default async function ServicePage() {
             label: 'Automation',
             tagline: 'Chatbots, WhatsApp orders and workflows',
             price: 'By quotation',
-            icon: 'automation' as const,
             panel: (
               <div className="mx-auto grid max-w-5xl items-center gap-8 rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-10 md:grid-cols-[1fr_auto]">
                 <div>
