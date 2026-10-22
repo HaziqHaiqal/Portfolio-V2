@@ -1,9 +1,10 @@
-import type { CareBilling, CarePlan } from '@constants/services';
+import type { CareBilling, CarePlan, CareTier } from '@constants/services';
 import { formatRM } from '@lib/format';
 import BillingSwitch from './BillingSwitch';
 
 export default function HostingCare({
   plan,
+  tier,
   withDatabase,
   billing,
   onBillingChange,
@@ -12,6 +13,7 @@ export default function HostingCare({
   className = '',
 }: {
   plan: CarePlan;
+  tier?: CareTier;
   withDatabase: boolean;
   billing: CareBilling;
   onBillingChange: (value: CareBilling) => void;
@@ -24,12 +26,22 @@ export default function HostingCare({
       className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-3 text-gray-900 dark:text-gray-100 ${className}`}
     >
       <div className="min-w-0 flex-1 basis-56">
-        <p className="font-semibold">{plan.name}</p>
+        <p className="font-semibold">
+          {plan.name}
+          {tier && (
+            <span className="font-normal text-gray-500 dark:text-gray-400">
+              {' '}
+              · {tier.name}, for {tier.for.toLowerCase()}
+            </span>
+          )}
+        </p>
         <p className="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
           {plan.summary}
-          {withDatabase &&
-            plan.databasePrice &&
-            ` Includes a database (+${formatRM(plan.databasePrice)}/month).`}
+          {tier?.includesDatabase
+            ? ' Database included; the final price is confirmed in your quote.'
+            : withDatabase &&
+              plan.databasePrice &&
+              ` Includes a database (+${formatRM(plan.databasePrice)}/month).`}
           {onShowDetails && (
             <>
               {' '}

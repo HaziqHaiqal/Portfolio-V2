@@ -15,6 +15,7 @@ import {
 import {
   addOnById,
   CARE_RESPONSE,
+  CARE_TIERS,
   CARE_YEARLY_SAVING,
   careMonthly,
   careYearly,
@@ -90,23 +91,38 @@ const lowerFirst = (text: string) =>
     : text;
 
 const webCare = WEBSITE_ESTIMATOR.carePlan;
-const CARE_PLANS = [
+const careIncludes = `${webCare.includes
+  .map((item, index) => (index ? lowerFirst(item) : item))
+  .join(', ')}.`;
+const CARE_PLANS: {
+  name: string;
+  for: string;
+  price: string;
+  yearly?: string;
+  text: string;
+}[] = [
+  ...(['basic', 'business'] as const).map((id) => ({
+    name: CARE_TIERS[id].name,
+    for: CARE_TIERS[id].for,
+    price: `${formatRM(careMonthly(webCare, false, CARE_TIERS[id]))}/month`,
+    yearly: `${formatRM(careYearly(webCare, false, CARE_TIERS[id]))}/year`,
+    text: careIncludes,
+  })),
   {
-    name: 'Website',
-    price: `${formatRM(careMonthly(webCare, false))}/month`,
-    yearly: `${formatRM(careYearly(webCare, false))}/year`,
-    text: `${webCare.includes
-      .map((item, index) => (index ? lowerFirst(item) : item))
-      .join(', ')}.`,
+    name: 'With a database',
+    for: 'Admin dashboard or online payments',
+    price: `+${formatRM(webCare.databasePrice ?? 0)}/month`,
+    text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}.`,
   },
   {
-    name: 'Website with database',
-    price: `${formatRM(careMonthly(webCare, true))}/month`,
-    yearly: `${formatRM(careYearly(webCare, true))}/year`,
-    text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}. For an admin dashboard, online payments or a custom build.`,
+    name: CARE_TIERS.custom.name,
+    for: CARE_TIERS.custom.for,
+    price: `From ${formatRM(CARE_TIERS.custom.monthlyPrice)}/month`,
+    text: 'Database and backups included. Confirmed in your quote.',
   },
   {
     name: 'Mobile app',
+    for: 'Android and iOS apps',
     price: 'By quotation',
     text: 'Confirmed in your app quote.',
   },
@@ -142,15 +158,22 @@ const FAQS: FaqItem[] = [
     answer: (
       <>
         <p>
-          Every project needs a plan to stay online. Pay monthly, or yearly and
-          save {CARE_YEARLY_SAVING}%.
+          Every project needs a plan to stay online. The price depends on how
+          much there is to look after. Pay monthly, or yearly and save{' '}
+          {CARE_YEARLY_SAVING}%.
         </p>
         <ul className="mt-4 divide-y divide-gray-200 rounded-2xl bg-gray-100/80 px-4 dark:divide-gray-700/70 dark:bg-gray-900/40">
           {CARE_PLANS.map((plan) => (
             <li key={plan.name} className="py-3">
               <p className="flex flex-wrap items-baseline justify-between gap-x-4">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
-                  {plan.name}
+                <span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                    {plan.name}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {' '}
+                    · {plan.for}
+                  </span>
                 </span>
                 <span className="text-sm">
                   <span className="font-semibold text-gray-900 dark:text-gray-100">

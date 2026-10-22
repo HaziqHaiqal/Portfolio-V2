@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import {
   addOnById,
+  CARE_TIERS,
+  type CareTierId,
   careMonthly,
   cmsPrice,
   WEBSITE_CMS,
@@ -118,8 +120,8 @@ const pkgPrice = (id: string) =>
 const addOnPrice = (id: string) => addOnById(id)?.price ?? 0;
 const build = (id: string) =>
   WEBSITE_ESTIMATOR.customPackages.find((item) => item.id === id);
-const care = (withDatabase: boolean) =>
-  `+ ${WEBSITE_ESTIMATOR.carePlan.name} from ${formatRM(careMonthly(WEBSITE_ESTIMATOR.carePlan, withDatabase))}/month`;
+const care = (tier: CareTierId, withDatabase: boolean) =>
+  `+ ${WEBSITE_ESTIMATOR.carePlan.name} from ${formatRM(careMonthly(WEBSITE_ESTIMATOR.carePlan, withDatabase, CARE_TIERS[tier]))}/month`;
 
 const UPDATE_TABS = ['products', 'news'];
 
@@ -130,14 +132,14 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
       : {
           name: 'Website template',
           price: `From ${formatRM(templatesFrom)}`,
-          care: care(withDatabase),
+          care: care('basic', withDatabase),
           why,
           pick: { tab: 'templates' },
         };
   const website = (id: 'standard' | 'advanced', why: string): Suggestion => ({
     name: `${id === 'standard' ? 'Standard' : 'Advanced'} website`,
     price: formatRM(pkgPrice(id)),
-    care: care(false),
+    care: care(id === 'standard' ? 'basic' : 'business', false),
     why,
     pick: { tab: WEBSITE_ESTIMATOR.id, packageId: id },
   });
@@ -168,7 +170,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     return {
       name: `Custom website: ${item?.name ?? 'custom build'}`,
       price: item ? `Starting at ${formatRM(item.from)}` : 'By quotation',
-      care: care(true),
+      care: care('custom', true),
       why,
       pick: { tab: WEBSITE_ESTIMATOR.id, packageId: 'custom', buildId: id },
     };
@@ -184,7 +186,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     return {
       name: 'Standard website + WhatsApp cart',
       price: formatRM(pkgPrice('standard') + addOnPrice('whatsapp-cart')),
-      care: care(false),
+      care: care('basic', false),
       why: 'Your products or menu on a site designed for your brand. Customers send their full order to your WhatsApp in one tap.',
       pick: {
         tab: WEBSITE_ESTIMATOR.id,
@@ -208,7 +210,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     return {
       name: `${id === 'standard' ? 'Standard' : 'Advanced'} website + installable app (PWA)`,
       price: formatRM(pkgPrice(id) + addOnPrice('pwa')),
-      care: care(false),
+      care: care(id === 'standard' ? 'basic' : 'business', false),
       why: 'People add your site to their home screen and open it like an app, without the App Store or Google Play, for much less than a mobile app.',
       pick: { tab: WEBSITE_ESTIMATOR.id, packageId: id, addOnIds: ['pwa'] },
     };
@@ -239,7 +241,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
       price: formatRM(
         pkgPrice('advanced') + cmsPrice(WEBSITE_CMS, UPDATE_TABS)
       ),
-      care: care(true),
+      care: care('business', true),
       why: 'Update your prices, menus and promotions yourself from a private dashboard, without paying for every change.',
       pick: {
         tab: WEBSITE_ESTIMATOR.id,

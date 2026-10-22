@@ -16,6 +16,7 @@ import {
   Reveal,
 } from '@components/Templates/motion';
 import {
+  HoursCompact,
   HoursList,
   Menu,
   OpenStatus,
@@ -274,31 +275,74 @@ export default function KopiTeduhPage() {
         </section>
       </main>
 
-      <footer className="overflow-hidden px-5 pb-8 pt-20 md:px-8">
-        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 text-sm text-tpl-muted">
-          <p>Open daily from 7am in Bangsar</p>
-          <div className="flex gap-2">
-            {[
-              { icon: SiInstagram, label: 'Instagram' },
-              { icon: SiWhatsapp, label: 'WhatsApp' },
-            ].map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                aria-label={label}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-tpl-line text-tpl-ink"
-              >
-                <Icon size={16} aria-hidden="true" />
-              </span>
-            ))}
+      <footer className="border-t border-tpl-line px-5 pb-10 pt-14 md:px-8 md:pt-16">
+        <div className="mx-auto grid max-w-[90rem] grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.6fr_1fr_1fr_0.8fr]">
+          <div className="col-span-2 lg:col-span-1">
+            <p className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+              <Coffee
+                size={20}
+                aria-hidden="true"
+                className="text-tpl-accent"
+              />
+              {BRAND}
+            </p>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-tpl-muted">
+              A shady kopitiam in Bangsar. Thick kopi and slow mornings since
+              2016.
+            </p>
+            <OpenStatus className="mt-4 text-sm font-medium" />
+            <div className="mt-5 flex gap-2">
+              {[
+                { icon: SiInstagram, label: 'Instagram' },
+                { icon: SiWhatsapp, label: 'WhatsApp' },
+              ].map(({ icon: Icon, label }) => (
+                <span
+                  key={label}
+                  aria-label={label}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-tpl-line"
+                >
+                  <Icon size={16} aria-hidden="true" />
+                </span>
+              ))}
+            </div>
           </div>
+          <div>
+            <p className="text-sm font-semibold">Hours</p>
+            <HoursCompact className="mt-3" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Visit</p>
+            <p className="mt-3 text-sm leading-relaxed text-tpl-muted">
+              18, Jalan Telawi 2
+              <br />
+              Bangsar Baru
+              <br />
+              59100 Kuala Lumpur
+            </p>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Jalan+Telawi+2+Bangsar+Kuala+Lumpur"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-tpl-accent underline-offset-4 hover:underline"
+            >
+              Get directions
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
+          </div>
+          <nav aria-label="Footer">
+            <p className="text-sm font-semibold">Explore</p>
+            <ul className="mt-3 space-y-2 text-sm text-tpl-muted">
+              {LINKS.map((link) => (
+                <li key={link.href}>
+                  <a href={link.href} className="hover:text-tpl-ink">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
-        <p
-          aria-hidden="true"
-          className="mx-auto mt-6 max-w-[90rem] whitespace-nowrap text-[19vw] font-semibold leading-[0.8] tracking-[-0.06em] text-tpl-accent"
-        >
-          Kopi Teduh
-        </p>
-        <p className="mx-auto mt-6 max-w-[90rem] text-xs text-tpl-muted">
+        <p className="mx-auto mt-12 max-w-[90rem] border-t border-tpl-line pt-6 text-xs text-tpl-muted">
           © {BRAND}. Demo content for template preview.
         </p>
       </footer>

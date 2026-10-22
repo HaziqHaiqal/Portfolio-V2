@@ -29,9 +29,9 @@ export default function TerasBinaLayout({ children }: { children: ReactNode }) {
       <Header />
       <main>{children}</main>
 
-      <footer className="bg-[#0B0D10] px-5 pb-10 pt-16 text-white md:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
+      <footer className="bg-[#0B0D10] px-5 pb-10 pt-14 text-white md:px-8 md:pt-16">
+        <div className="mx-auto grid max-w-7xl grid-cols-[0.8fr_1.2fr] gap-x-6 gap-y-10 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
+          <div className="col-span-2 lg:col-span-1">
             <Logo />
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">
               {LEGAL_NAME} (199801012345). Building, civil and M&E contractor

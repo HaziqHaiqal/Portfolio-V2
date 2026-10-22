@@ -5,6 +5,8 @@ import { Check, ShieldCheck, Wallet } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   type AddOn,
+  CARE_TIERS,
+  careName,
   cmsLabel,
   careFirstPayment,
   carePrice,
@@ -370,16 +372,18 @@ export default function Estimator({
   const careFrom = quoteOnly
     ? 'by quotation'
     : `from ${formatRM(config.carePlan.monthlyPrice)}/month`;
+  const careTier = pkg.careTier ? CARE_TIERS[pkg.careTier] : undefined;
+  const careLabel = careName(config.carePlan, careTier);
   const firstCare = config.carePlan.quoted
     ? null
-    : careFirstPayment(config.carePlan, withDatabase, billing);
+    : careFirstPayment(config.carePlan, withDatabase, billing, careTier);
   const careText = firstCare
-    ? carePrice(config.carePlan, withDatabase, billing)
+    ? carePrice(config.carePlan, withDatabase, billing, careTier)
     : careFrom;
   const careAmount = firstCare?.amount ?? 0;
   const careLine = [
     firstCare
-      ? `${config.carePlan.name}: ${careText}, first ${firstCare.period} included in the total`
+      ? `${careLabel}: ${careText}, first ${firstCare.period} included in the total${careTier?.from ? ', confirmed in the quote' : ''}`
       : quoteOnly
         ? `${config.carePlan.name}: by quotation`
         : `${config.carePlan.name}: ${careFrom}, confirmed in the quote`,
@@ -459,7 +463,10 @@ export default function Estimator({
   const summaryLines = [
     ...buildLines,
     firstCare
-      ? { label: config.carePlan.name, value: careText }
+      ? {
+          label: careLabel,
+          value: careText.charAt(0).toUpperCase() + careText.slice(1),
+        }
       : {
           label: config.carePlan.name,
           value: quoteOnly
@@ -712,6 +719,7 @@ export default function Estimator({
           <GroupTitle title="After launch" hint="Required" />
           <HostingCare
             plan={config.carePlan}
+            tier={careTier}
             withDatabase={withDatabase}
             billing={billing}
             onBillingChange={setBilling}

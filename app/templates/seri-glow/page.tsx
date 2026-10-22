@@ -257,43 +257,76 @@ export default function SeriGlowPage() {
           </section>
         </main>
 
-        <footer className="overflow-hidden bg-tpl-ink px-5 pb-24 pt-20 text-tpl-bg md:px-8 md:pb-10">
-          <div className="mx-auto grid max-w-[90rem] gap-10 md:grid-cols-2">
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">
-                Get 10% off your first order
-              </p>
-              <p className="mt-2 opacity-70">
-                Routines, restocks and member-only bundles.
-              </p>
+        <footer className="bg-tpl-ink px-5 pb-28 pt-14 text-tpl-bg md:px-8 md:pb-10 md:pt-16">
+          <div className="mx-auto max-w-[90rem]">
+            <div className="grid gap-6 border-b border-tpl-bg/15 pb-12 md:grid-cols-2 md:items-center">
+              <div>
+                <p className="text-xl font-semibold tracking-tight">
+                  Restocks and new routines, first
+                </p>
+                <p className="mt-1 text-sm opacity-70">
+                  One email a month. Unsubscribe any time.
+                </p>
+              </div>
+              <div className="md:justify-self-end">
+                <Newsletter />
+              </div>
             </div>
-            <div className="md:justify-self-end">
-              <Newsletter />
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-10 pt-12 lg:grid-cols-[1.6fr_1fr_1fr]">
+              <div className="col-span-2 lg:col-span-1">
+                <p className="text-lg font-semibold tracking-tight">
+                  seri glow
+                </p>
+                <p className="mt-3 max-w-xs text-sm leading-relaxed opacity-70">
+                  Lightweight skincare made in Malaysia for humid days.
+                </p>
+                <div className="mt-5 flex gap-2">
+                  {[
+                    { icon: SiInstagram, label: 'Instagram' },
+                    { icon: SiTiktok, label: 'TikTok' },
+                    { icon: SiWhatsapp, label: 'WhatsApp' },
+                  ].map(({ icon: Icon, label }) => (
+                    <span
+                      key={label}
+                      aria-label={label}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-tpl-bg/25"
+                    >
+                      <Icon size={15} aria-hidden="true" />
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <nav aria-label="Shop">
+                <p className="text-sm font-semibold">Shop</p>
+                <ul className="mt-3 space-y-2 text-sm opacity-70">
+                  {LINKS.slice(0, 2).map((link) => (
+                    <li key={link.href}>
+                      <a href={link.href} className="hover:opacity-100">
+                        {link.href === '#shop' ? 'Shop all' : link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <nav aria-label="Help">
+                <p className="text-sm font-semibold">Help</p>
+                <ul className="mt-3 space-y-2 text-sm opacity-70">
+                  {LINKS.slice(2).map((link) => (
+                    <li key={link.href}>
+                      <a href={link.href} className="hover:opacity-100">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                  <li>Free postage above RM{FREE_POSTAGE_AT}</li>
+                </ul>
+              </nav>
             </div>
-          </div>
-          <p
-            aria-hidden="true"
-            className="mx-auto mt-20 max-w-[90rem] whitespace-nowrap text-[23vw] font-semibold leading-[0.8] tracking-[-0.07em]"
-          >
-            seri glow
-          </p>
-          <div className="mx-auto mt-10 flex max-w-[90rem] flex-wrap items-center justify-between gap-4 text-xs opacity-70">
-            <p>© {BRAND}. Demo content for template preview.</p>
-            <div className="flex gap-2">
-              {[
-                { icon: SiInstagram, label: 'Instagram' },
-                { icon: SiTiktok, label: 'TikTok' },
-                { icon: SiWhatsapp, label: 'WhatsApp' },
-              ].map(({ icon: Icon, label }) => (
-                <span
-                  key={label}
-                  aria-label={label}
-                  className="border-current/30 flex h-10 w-10 items-center justify-center rounded-full border"
-                >
-                  <Icon size={15} aria-hidden="true" />
-                </span>
-              ))}
-            </div>
+
+            <p className="mt-12 border-t border-tpl-bg/15 pt-6 text-xs opacity-70">
+              © {BRAND}. Demo content for template preview.
+            </p>
           </div>
         </footer>
 

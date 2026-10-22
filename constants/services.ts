@@ -44,6 +44,7 @@ export interface PackageOption {
   /** Completes "Choose this if …" on the package card. */
   bestFor?: string;
   custom?: boolean;
+  careTier?: CareTierId;
 }
 
 export interface CustomPackage {
@@ -148,6 +149,47 @@ const CARE_PLAN = 'Care Plan';
 /** Yearly billing charges 10 months, so 2 months are free. */
 const YEARLY_MONTHS = 10;
 const DATABASE_PRICE = 50;
+
+export type CareTierId = 'basic' | 'business' | 'custom';
+
+export interface CareTier {
+  id: CareTierId;
+  name: string;
+  for: string;
+  monthlyPrice: number;
+  /** Custom builds always run on a database, so it is part of the price. */
+  includesDatabase?: boolean;
+  /** A starting price; the final one is confirmed in the quote. */
+  from?: boolean;
+}
+
+/** The Care Plan is priced by how much there is to look after. */
+export const CARE_TIERS: Record<CareTierId, CareTier> = {
+  basic: {
+    id: 'basic',
+    name: 'Basic',
+    for: 'One-page sites',
+    monthlyPrice: 50,
+  },
+  business: {
+    id: 'business',
+    name: 'Business',
+    for: 'Multi-page sites',
+    monthlyPrice: 80,
+  },
+  custom: {
+    id: 'custom',
+    name: 'Custom',
+    for: 'Stores, bookings and portals',
+    monthlyPrice: 200,
+    includesDatabase: true,
+    from: true,
+  },
+};
+
+/** Templates: one page is Basic, anything bigger is Business. */
+export const careTierForPages = (pages?: string | null): CareTier =>
+  /^one\b/i.test(pages ?? '') ? CARE_TIERS.basic : CARE_TIERS.business;
 
 const CMS_RUNNING_COST = `Adds a database to the ${CARE_PLAN}: +${formatRM(DATABASE_PRICE)}/month`;
 const INCLUDED_IN_CARE = `Included in the ${CARE_PLAN}`;
@@ -411,6 +453,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       name: 'Standard',
       summary: 'A one-page site to get you online.',
       price: WEBSITE_BASE_PRICE,
+      careTier: 'basic',
       includes: [
         '1 page with unlimited sections',
         'Custom design for your brand',
@@ -426,6 +469,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       name: 'Advanced',
       summary: 'A full business site with room to grow.',
       price: WEBSITE_BASE_PRICE + 800,
+      careTier: 'business',
       includesFrom: 'standard',
       includes: [
         'Up to 7 pages with unlimited sections',
@@ -441,6 +485,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       name: 'Custom',
       summary: 'Stores, bookings and portals built around your business.',
       custom: true,
+      careTier: 'custom',
       includesFrom: 'advanced',
       includes: [
         'Online store, booking system or member portal',
@@ -676,12 +721,22 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
   messageIntro: "Hi Haziq, I'd like a quote for this mobile app build.",
 };
 
-export function careMonthly(plan: CarePlan, withDatabase: boolean): number {
-  return plan.monthlyPrice + (withDatabase ? (plan.databasePrice ?? 0) : 0);
+export function careMonthly(
+  plan: CarePlan,
+  withDatabase: boolean,
+  tier?: CareTier
+): number {
+  const database =
+    withDatabase && !tier?.includesDatabase ? (plan.databasePrice ?? 0) : 0;
+  return (tier?.monthlyPrice ?? plan.monthlyPrice) + database;
 }
 
-export function careYearly(plan: CarePlan, withDatabase: boolean): number {
-  return careMonthly(plan, withDatabase) * YEARLY_MONTHS;
+export function careYearly(
+  plan: CarePlan,
+  withDatabase: boolean,
+  tier?: CareTier
+): number {
+  return careMonthly(plan, withDatabase, tier) * YEARLY_MONTHS;
 }
 
 export type CareBilling = 'monthly' | 'yearly';
@@ -692,22 +747,31 @@ export const CARE_YEARLY_SAVING = Math.round(((12 - YEARLY_MONTHS) / 12) * 100);
 export function careFirstPayment(
   plan: CarePlan,
   withDatabase: boolean,
-  billing: CareBilling
+  billing: CareBilling,
+  tier?: CareTier
 ): { period: 'month' | 'year'; amount: number } {
   return billing === 'yearly'
-    ? { period: 'year', amount: careYearly(plan, withDatabase) }
-    : { period: 'month', amount: careMonthly(plan, withDatabase) };
+    ? { period: 'year', amount: careYearly(plan, withDatabase, tier) }
+    : { period: 'month', amount: careMonthly(plan, withDatabase, tier) };
 }
 
+/** "RM80/month", or "from RM200/month" for a quoted tier. */
 export function carePrice(
   plan: CarePlan,
   withDatabase: boolean,
-  billing: CareBilling
+  billing: CareBilling,
+  tier?: CareTier
 ): string {
-  return billing === 'yearly'
-    ? `${formatRM(careYearly(plan, withDatabase))}/year`
-    : `${formatRM(careMonthly(plan, withDatabase))}/month`;
+  const amount =
+    billing === 'yearly'
+      ? `${formatRM(careYearly(plan, withDatabase, tier))}/year`
+      : `${formatRM(careMonthly(plan, withDatabase, tier))}/month`;
+  return tier?.from ? `from ${amount}` : amount;
 }
+
+/** "Care Plan (Business)". */
+export const careName = (plan: CarePlan, tier?: CareTier) =>
+  tier ? `${plan.name} (${tier.name})` : plan.name;
 
 /** Lowest fixed package price, for "From" labels; null when quote-only. */
 export function startingPriceOf(config: EstimatorConfig): number | null {

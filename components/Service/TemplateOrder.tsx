@@ -14,7 +14,9 @@ import type { WebsiteTemplate } from '@lib/supabase';
 import {
   ADD_ONS,
   careFirstPayment,
+  careName,
   carePrice,
+  careTierForPages,
   type CareBilling,
   cmsLabel,
   cmsPrice,
@@ -66,6 +68,8 @@ export default function TemplateOrder({
   const [cmsTabIds, setCmsTabIds] = useState<string[] | null>(null);
   const [languages, setLanguages] = useState<string[]>([]);
   const carePlan = WEBSITE_ESTIMATOR.carePlan;
+  const careTier = careTierForPages(template.pages);
+  const careLabel = careName(carePlan, careTier);
   const [billing, setBilling] = useState<CareBilling>('monthly');
 
   const siteTypeEntry = SITE_TYPES.find(
@@ -144,8 +148,13 @@ export default function TemplateOrder({
     ? discountedPrice(afterSale, eligiblePromo)
     : afterSale;
   const careWithDatabase = cmsTabIds !== null || quoted;
-  const careText = carePrice(carePlan, careWithDatabase, billing);
-  const firstCare = careFirstPayment(carePlan, careWithDatabase, billing);
+  const careText = carePrice(carePlan, careWithDatabase, billing, careTier);
+  const firstCare = careFirstPayment(
+    carePlan,
+    careWithDatabase,
+    billing,
+    careTier
+  );
   const grandTotal = quoted
     ? formatRMRange(
         afterSale + quotedFrom + firstCare.amount,
@@ -165,7 +174,7 @@ export default function TemplateOrder({
         ...quotedChosen.map(
           (addOn) => `• ${addOn.name}: ${rangeOf(addOn)} (to be quoted)`
         ),
-        `• ${carePlan.name}: ${careText} (first ${firstCare.period} included)`,
+        `• ${careLabel}: ${careText} (first ${firstCare.period} included)`,
         ...(sale && saleAmount
           ? [`• Deal (${sale.title || sale.code}): −${formatRM(saleAmount)}`]
           : []),
@@ -379,7 +388,7 @@ export default function TemplateOrder({
                 value: rangeOf(addOn),
               })),
               {
-                label: carePlan.name,
+                label: careLabel,
                 value: careText,
                 detail: (
                   <BillingSwitch

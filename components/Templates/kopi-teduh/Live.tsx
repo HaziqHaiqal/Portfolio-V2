@@ -177,3 +177,23 @@ export function Menu() {
     </div>
   );
 }
+
+/** Short hours list for the footer, with today in full colour. */
+export function HoursCompact({ className = '' }: { className?: string }) {
+  const now = useKlTime();
+  return (
+    <dl className={`space-y-2 text-sm ${className}`}>
+      {HOURS.map((row) => (
+        <div
+          key={row.label}
+          className={now && row.days.includes(now.day) ? '' : 'text-tpl-muted'}
+        >
+          <dt>{row.label}</dt>
+          <dd className="font-medium">
+            {formatHour(row.open)} to {formatHour(row.close)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
