@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
@@ -21,6 +22,14 @@ export interface ServiceTab {
 
 const number = (index: number) => String(index + 1).padStart(2, '0');
 
+const FADE = '40px';
+
+/** Which sides of the phone row have tabs scrolled out of view. */
+const hiddenSides = (scroller: HTMLElement) => ({
+  start: scroller.scrollLeft > 1,
+  end: scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1,
+});
+
 export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
   const [activeId, setActiveId] = useState(tabs[0]?.id);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -32,6 +41,7 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
     left: number;
     width: number;
   } | null>(null);
+  const [fade, setFade] = useState({ start: false, end: false });
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
 
   useEffect(
@@ -50,8 +60,10 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
     const list = listRef.current;
     const label = labelRefs.current[activeId];
     if (!scroller || !list || !label) return;
-    const measure = () =>
+    const measure = () => {
       setUnderline({ left: label.offsetLeft, width: label.offsetWidth });
+      setFade(hiddenSides(scroller));
+    };
     const frame = requestAnimationFrame(measure);
     scroller.scrollTo({
       left: label.offsetLeft - (scroller.clientWidth - label.offsetWidth) / 2,
@@ -76,17 +88,33 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
     tabRefs.current[next.id]?.focus();
   };
 
+  const onScroll = () => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const next = hiddenSides(scroller);
+    setFade((prev) =>
+      prev.start === next.start && prev.end === next.end ? prev : next
+    );
+  };
+
   return (
     <div ref={rootRef} id={SERVICES_ANCHOR_ID} className="scroll-mt-28">
       <div
         ref={scrollerRef}
-        className="overflow-x-auto shadow-[inset_0_-1px_0_theme(colors.gray.200)] [mask-image:linear-gradient(to_right,#000_80%,transparent)] [scrollbar-width:none] dark:shadow-[inset_0_-1px_0_rgb(55_65_81/0.7)] lg:overflow-visible lg:[mask-image:none] [&::-webkit-scrollbar]:hidden"
+        onScroll={onScroll}
+        style={
+          {
+            '--fade-start': fade.start ? FADE : '0px',
+            '--fade-end': fade.end ? FADE : '0px',
+          } as CSSProperties
+        }
+        className="overflow-x-auto shadow-[inset_0_-1px_0_theme(colors.gray.200)] [mask-image:linear-gradient(to_right,transparent,#000_var(--fade-start),#000_calc(100%_-_var(--fade-end)),transparent)] [scrollbar-width:none] dark:shadow-[inset_0_-1px_0_rgb(55_65_81/0.7)] lg:overflow-visible lg:[mask-image:none] [&::-webkit-scrollbar]:hidden"
       >
         <div
           ref={listRef}
           role="tablist"
           aria-label="Services"
-          className="relative flex w-max gap-6 pr-16 lg:grid lg:w-auto lg:grid-cols-4 lg:pr-0"
+          className="relative flex w-max gap-6 lg:grid lg:w-auto lg:grid-cols-4"
         >
           {tabs.map((tab, index) => {
             const selected = tab.id === activeId;
