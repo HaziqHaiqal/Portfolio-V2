@@ -30,6 +30,14 @@ const config: Config = {
           from: { transform: 'translateX(0)' },
           to: { transform: 'translateX(-100%)' },
         },
+        'tpl-draw': {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
+        },
+        'tpl-scan': {
+          '0%, 100%': { top: '0%' },
+          '50%': { top: 'calc(100% - 4px)' },
+        },
         'tpl-rise': {
           from: { opacity: '0', transform: 'translateY(16px)' },
           to: { opacity: '1', transform: 'none' },

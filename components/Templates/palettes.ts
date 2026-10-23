@@ -96,4 +96,32 @@ export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
     light('pandan', 'Pandan', '#4D7C0F', '#F3F7EC', { ink: '#18210D' }),
     dark('malam', 'Malam', '#F2B34B', { bg: '#0F1A15', surface: '#16241D' }),
   ],
+  ruang: [
+    light('lime', 'Lime', '#C8EF4A', '#F5F5F2', {
+      bg: '#ECECE8',
+      ink: '#141414',
+      muted: '#686864',
+      'on-accent': '#141414',
+      line: '#E2E2DE',
+    }),
+    light('tangerine', 'Tangerine', '#FF7A3D', '#F5F5F2', {
+      bg: '#EEECE8',
+      ink: '#161412',
+      muted: '#6B6661',
+      'on-accent': '#161412',
+      line: '#E4E1DC',
+    }),
+    light('cobalt', 'Cobalt', '#3358F4', '#F4F5F7', {
+      bg: '#EBECEF',
+      ink: '#121521',
+      muted: '#646976',
+      line: '#E0E2E8',
+    }),
+    dark('night', 'Night', '#C8EF4A', {
+      bg: '#0E0E0E',
+      surface: '#191919',
+      tint: '#222222',
+      line: '#2C2C2C',
+    }),
+  ],
 };

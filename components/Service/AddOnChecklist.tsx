@@ -79,7 +79,7 @@ function Row({
       }`}
     >
       <label
-        className={`flex items-start gap-3 px-4 py-3.5 ${locked ? 'cursor-default' : 'cursor-pointer'} has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset has-[:focus-visible]:ring-green-500/40 sm:px-5`}
+        className={`relative flex items-start gap-3 px-4 py-3.5 ${locked ? 'cursor-default' : 'cursor-pointer'} has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset has-[:focus-visible]:ring-green-500/40 sm:px-5`}
       >
         <input
           type="checkbox"
@@ -277,7 +277,7 @@ function DashboardRow({
                 return (
                   <label
                     key={tab.id}
-                    className="-mx-2 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-gray-900/[0.04] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-500/40 dark:hover:bg-white/[0.04]"
+                    className="relative -mx-2 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-gray-900/[0.04] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-500/40 dark:hover:bg-white/[0.04]"
                   >
                     <input
                       type="checkbox"
@@ -303,7 +303,7 @@ function DashboardRow({
   );
 }
 
-/** Add-ons as one compact checklist, grouped by site type then every site. */
+/** Add-ons as one compact checklist, grouped by business type then any business. */
 export default function AddOnChecklist({
   groups,
   selected,

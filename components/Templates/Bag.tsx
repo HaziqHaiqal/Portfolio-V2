@@ -43,11 +43,13 @@ export function QtyStepper({
   name,
   onChange,
   min = 0,
+  max,
 }: {
   qty: number;
   name: string;
   onChange: (delta: number) => void;
   min?: number;
+  max?: number;
 }) {
   return (
     <div className="inline-flex h-10 w-fit items-center rounded-full border border-tpl-line">
@@ -66,8 +68,9 @@ export function QtyStepper({
       <button
         type="button"
         onClick={() => onChange(1)}
+        disabled={max !== undefined && qty >= max}
         aria-label={`One more ${name}`}
-        className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-tpl-tint"
+        className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-tpl-tint disabled:opacity-30"
       >
         <Plus size={14} />
       </button>

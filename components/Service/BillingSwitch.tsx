@@ -27,7 +27,7 @@ export default function BillingSwitch({
           return (
             <label
               key={option.id}
-              className={`flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-500/40 ${
+              className={`relative flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-500/40 ${
                 checked
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
                   : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'

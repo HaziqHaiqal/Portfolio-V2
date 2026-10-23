@@ -71,21 +71,31 @@ saved, so the admin portal cannot show orders, amounts, payments or renewal date
 - [ ] Link promo code redemptions to orders (count uses on confirm, not on apply).
 - [ ] Export orders and payments to CSV for accounting.
 
-## Online store demo with a sandbox payment gateway
+## Online store demo
 
 So clients can test a real checkout before ordering a custom online store.
 
-- [ ] Full store demo under `/templates/`: catalogue with categories and
-      variants, cart, checkout, order confirmation page and email.
-- [ ] Sandbox payment gateway (test mode only, no real money): pick a Malaysian
-      gateway with FPX test banks (e.g. Billplz or ToyyibPay sandbox), or Stripe
-      test mode for cards.
-- [ ] Clear "Demo: use test payment details" notice at checkout, with the test
-      bank or card details to use.
-- [ ] Admin side of the demo: orders list with status (paid, packed, shipped)
-      and stock that goes down after payment, so clients see both ends.
-- [ ] Payment webhook that marks the order paid; reset demo data daily.
-- [ ] Link it from the Custom package's online store build ("Try the demo").
+- [x] Full store demo at `/templates/ruang`: catalogue with categories,
+      variants and stock, cart, checkout, order confirmation page and an email
+      preview.
+- [x] Simulated payments on a "DemoPay" test page instead of a gateway sandbox:
+      FPX demo banks, test cards (with a one-time password case), DuitNow QR
+      and cash on delivery, each ending on a success or failed page.
+- [x] Clear demo notice at checkout and on the payment page, with the test
+      details to use.
+- [x] Admin side of the demo: orders with status (paid, packed, shipped,
+      delivered), failed payments and stock that goes down after payment. Data
+      stays in the visitor's browser, with a reset button.
+- [x] Linked from the Custom package's online store build ("Try the live
+      demo"); the demo bar's "Get a quote" opens that build on /services.
+- [x] Sold as the Ruang template (RM20,000 vs RM26,500 custom, Online store category), with
+      "Use this template" in the demo bar and gallery.
+- [ ] Before the first Ruang sale is delivered, build the real backend the
+      demo simulates: Supabase tables for products, options, stock and
+      orders; product editing in the Admin portal (the demo only packs and
+      ships); admin sign-in; one Malaysian gateway (Billplz, ToyyibPay or
+      Stripe) with a payment webhook; order emails. Build it once so later
+      sales reuse it.
 
 ## Math solving game demo
 

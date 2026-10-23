@@ -26,7 +26,6 @@ import {
   PAYMENT_TERMS,
   promoTargetsOf,
   startingPriceOf,
-  TEMPLATE_SECTION,
   TEMPLATE_SUMMARY,
   WEBSITE_CMS,
   WEBSITE_ESTIMATOR,
@@ -110,7 +109,7 @@ const CARE_PLANS: {
   })),
   {
     name: 'With a database',
-    for: 'Admin dashboard or online payments',
+    for: 'Admin portal or online payments',
     price: `+${formatRM(webCare.databasePrice ?? 0)}/month`,
     text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}.`,
   },
@@ -150,7 +149,7 @@ const FAQS: FaqItem[] = [
       .map((pkg) => `${formatRM(pkg.price ?? 0)} (${pkg.name})`)
       .join(
         ' or '
-      )}, and stores, bookings and portals start at ${formatRM(customFrom)}. Mobile apps are quoted after a short chat. The ${webCare.name} is paid monthly or yearly, from ${formatRM(webCare.monthlyPrice)} a month.`,
+      )}, and stores, bookings and portals start at ${formatRM(customFrom)}${WEBSITE_ESTIMATOR.customAdmin ? `, plus an ${WEBSITE_ESTIMATOR.customAdmin.name} from ${formatRM(WEBSITE_ESTIMATOR.customAdmin.price)}, priced by the features you pick` : ''}. Mobile apps are quoted after a short chat. The ${webCare.name} is paid monthly or yearly, from ${formatRM(webCare.monthlyPrice)} a month.`,
   },
   {
     id: 'care-plan',
@@ -209,7 +208,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'How do I update my content after launch?',
     answer:
-      'With the admin dashboard, you update the parts you chose yourself, at no extra cost. Without it, every content change, even a new photo, price or line of text, is done for you and charged by how complex it is. The cost is confirmed before any work starts.',
+      'With the Admin portal, you update the parts you chose yourself, at no extra cost. Without it, every content change, even a new photo, price or line of text, is done for you and charged by how complex it is. The cost is confirmed before any work starts.',
   },
   {
     question: 'Who owns the website or app?',
@@ -223,7 +222,7 @@ const FAQS: FaqItem[] = [
   },
   {
     question: 'What does a template include?',
-    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: ${lowerFirst(TEMPLATE_SECTION.name)}s at ${formatRM(TEMPLATE_SECTION.price)} each, add-ons that fit your type of site${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an admin dashboard from ${formatRM(WEBSITE_CMS.price)}.${payments ? ` Shop templates can add online payments by FPX, card or e-wallet as a quoted add-on, from ${formatRM(payments.price)}.` : ''}`,
+    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: add-ons that fit your type of business${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an Admin portal from ${formatRM(WEBSITE_CMS.price)}.${payments ? ` Shop templates can add online payments by FPX, card or e-wallet as a quoted add-on, from ${formatRM(payments.price)}.` : ''}`,
   },
   ...(pwa
     ? [

@@ -45,6 +45,8 @@ export interface PackageOption {
   bestFor?: string;
   custom?: boolean;
   careTier?: CareTierId;
+  /** A live demo of what this package builds. */
+  demo?: { href: string; label: string };
 }
 
 export interface CustomPackage {
@@ -65,7 +67,7 @@ export interface CmsTab {
   siteTypes?: SiteType[];
 }
 
-/** The admin dashboard add-on: `price` is the base, and each tab adds to it. */
+/** The Admin portal add-on: `price` is the base, and each tab adds to it. */
 export interface CmsConfig {
   name: string;
   description: string;
@@ -76,12 +78,36 @@ export interface CmsConfig {
   tabs: CmsTab[];
 }
 
+export interface AdminFeature {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  /** The heart of a build, listed first; other features support several builds. */
+  core?: boolean;
+  /** Builds it fits; offered with every build when absent. */
+  builds?: string[];
+  /** Wording for a particular build. */
+  variants?: Record<string, { name?: string; description?: string }>;
+}
+
+/** The Custom package's Admin portal: a base price plus each feature picked. */
+export interface CustomAdminConfig {
+  name: string;
+  description: string;
+  price: number;
+  base: string[];
+  features: AdminFeature[];
+  /** Labelled as suggested for each build; only the client ticks them. */
+  suggested: Record<string, string[]>;
+}
+
 /** Required for every project: everything runs on the developer's accounts. */
 export interface CarePlan {
   name: string;
   summary: string;
   monthlyPrice: number;
-  /** Added when the project needs a database (admin dashboard, payments, custom builds). */
+  /** Added when the project needs a database (Admin portal, payments, custom builds). */
   databasePrice?: number;
   databaseIncludes?: string[];
   /** Confirmed in the project quote; monthlyPrice is the starting price. */
@@ -98,6 +124,7 @@ export interface EstimatorConfig {
   multiLanguage?: boolean;
   /** Offered with a custom build; websites also get the every-site add-ons. */
   customAddOns: AddOn[];
+  customAdmin?: CustomAdminConfig;
   customPackages: CustomPackage[];
   carePlan: CarePlan;
   /** Prices stay internal; the page and messages show "By quotation". */
@@ -193,7 +220,7 @@ export const careTierForPages = (pages?: string | null): CareTier =>
 
 const CMS_RUNNING_COST = `Adds a database to the ${CARE_PLAN}: +${formatRM(DATABASE_PRICE)}/month`;
 const INCLUDED_IN_CARE = `Included in the ${CARE_PLAN}`;
-const GATEWAY_RUNNING_COST =
+export const GATEWAY_RUNNING_COST =
   'Payment gateway fees per transaction, paid to the provider';
 
 export const CARE_RESPONSE =
@@ -202,10 +229,10 @@ export const CARE_RESPONSE =
 export const PAYMENT_TERMS =
   'A 40% deposit to start, and 60% when the site or app goes live';
 
-const ADMIN_DASHBOARD = 'Admin dashboard';
+const ADMIN_PORTAL = 'Admin portal';
 
 export const WEBSITE_CMS: CmsConfig = {
-  name: ADMIN_DASHBOARD,
+  name: ADMIN_PORTAL,
   description: 'Update your site yourself, and see how many people visit it.',
   price: 200,
   dashboard: 'Visitor stats',
@@ -253,6 +280,186 @@ export function cmsLabel(cms: CmsConfig, tabIds: string[]): string {
     .filter((tab) => tabIds.includes(tab.id))
     .map((tab) => tab.name);
   return `${cms.name} (${names.length ? names.join(', ') : cms.dashboard.toLowerCase()})`;
+}
+
+export const WEBSITE_CUSTOM_ADMIN: CustomAdminConfig = {
+  name: ADMIN_PORTAL,
+  description:
+    'Your own back office. Pick what it manages, and your staff sign in to use it.',
+  price: 4000,
+  base: ['Sign-in for you and your staff', 'Overview of the day'],
+  features: [
+    {
+      id: 'products',
+      name: 'Products and stock',
+      description:
+        'Add products, options and photos. Stock goes down as orders come in.',
+      price: 4000,
+      core: true,
+      builds: ['online-store'],
+    },
+    {
+      id: 'orders',
+      name: 'Orders and delivery',
+      description: 'Order list, packing, delivery status and tracking numbers.',
+      price: 4000,
+      core: true,
+      builds: ['online-store'],
+    },
+    {
+      id: 'promotions',
+      name: 'Discount codes and sales',
+      description: 'Create codes, flash sales and free-delivery rules.',
+      price: 2500,
+      core: true,
+      builds: ['online-store'],
+    },
+    {
+      id: 'bookings',
+      name: 'Bookings calendar',
+      description: 'See, move and cancel bookings by day, week or staff.',
+      price: 5000,
+      core: true,
+      builds: ['booking-system'],
+    },
+    {
+      id: 'services',
+      name: 'Services and time slots',
+      description: 'Edit services, prices, staff and opening hours.',
+      price: 2500,
+      core: true,
+      builds: ['booking-system'],
+    },
+    {
+      id: 'members',
+      name: 'Members and access',
+      description:
+        'Approve members, choose what each can see, and manage their plans.',
+      price: 4000,
+      core: true,
+      builds: ['member-portal'],
+    },
+    {
+      id: 'customers',
+      name: 'Customers',
+      description: 'Customer list with contact details and their orders.',
+      price: 3000,
+      // A member portal's members already are its customer list.
+      builds: ['online-store', 'booking-system'],
+      variants: {
+        'booking-system': {
+          name: 'Clients',
+          description:
+            'Client list with contact details, past bookings and notes.',
+        },
+      },
+    },
+    {
+      id: 'content',
+      name: 'Pages, blog and banners',
+      description: 'Edit page text, post news and change homepage banners.',
+      price: 2500,
+      variants: {
+        'member-portal': {
+          name: 'Member content',
+          description: 'Post updates, files and pages only members can see.',
+        },
+      },
+    },
+    {
+      id: 'reports',
+      name: 'Reports and exports',
+      description: 'Charts of your records, and CSV exports.',
+      price: 4000,
+      variants: {
+        'online-store': {
+          name: 'Sales reports and exports',
+          description: 'Sales by day, product or staff, and CSV exports.',
+        },
+        'booking-system': {
+          name: 'Booking reports and exports',
+          description:
+            'Bookings by day, service or staff, no-shows, and CSV exports.',
+        },
+        'member-portal': {
+          name: 'Member reports and exports',
+          description: 'Sign-ups, renewals and activity, and CSV exports.',
+        },
+      },
+    },
+    {
+      id: 'roles',
+      name: 'Staff roles and permissions',
+      description: 'Decide what each staff member can see and change.',
+      price: 2500,
+    },
+    {
+      id: 'alerts',
+      name: 'Staff alerts',
+      description: 'Email or WhatsApp alerts when something needs attention.',
+      price: 1500,
+      variants: {
+        'online-store': {
+          description: 'Email or WhatsApp alerts for new orders and low stock.',
+        },
+        'booking-system': {
+          description:
+            'Email or WhatsApp alerts for new bookings and cancellations.',
+        },
+        'member-portal': {
+          description:
+            'Email or WhatsApp alerts for new sign-ups and renewals.',
+        },
+      },
+    },
+  ],
+  suggested: {
+    'online-store': ['products', 'orders'],
+    'booking-system': ['bookings', 'services'],
+    'member-portal': ['members', 'content'],
+  },
+};
+
+/** `null` means no Admin portal; an empty list is the base on its own. */
+export function adminPrice(
+  admin: CustomAdminConfig,
+  featureIds: string[] | null
+): number {
+  if (!featureIds) return 0;
+  return (
+    admin.price +
+    admin.features
+      .filter((feature) => featureIds.includes(feature.id))
+      .reduce((sum, feature) => sum + feature.price, 0)
+  );
+}
+
+/** The features offered with a build, in its own wording; without a build, those that fit any. */
+export function adminFeaturesFor(
+  admin: CustomAdminConfig,
+  buildId: string | null
+): AdminFeature[] {
+  return admin.features
+    .filter((feature) =>
+      buildId
+        ? !feature.builds || feature.builds.includes(buildId)
+        : !feature.builds
+    )
+    .map((feature) => ({
+      ...feature,
+      ...(buildId ? feature.variants?.[buildId] : undefined),
+    }));
+}
+
+export function adminLabel(
+  admin: CustomAdminConfig,
+  featureIds: string[],
+  buildId: string | null
+): string {
+  const names = adminFeaturesFor(admin, buildId)
+    .filter((feature) => featureIds.includes(feature.id))
+    .map((feature) => feature.name);
+  return `${admin.name} (${names.length ? names.join(', ') : 'sign-in and overview'})`;
 }
 
 const REQUEST_ONLY = 'A request only: you confirm each one.';
@@ -371,36 +578,103 @@ export const TEMPLATE_PROMO_TARGET: PromoTarget = {
 /** Promo target for one template, next to the all-templates target. */
 export const templatePromoTarget = (slug: string) => `template:${slug}`;
 
+const RUANG_DEMO_HREF = '/templates/ruang';
+
 /** Site types: template categories, and what filters the add-ons. */
 export const SITE_TYPES = [
   {
     id: 'ecommerce',
-    label: 'WhatsApp shop',
-    description: 'Cosmetics, boutiques and online shops with a WhatsApp cart',
-  },
-  {
-    id: 'company',
-    label: 'Company profile',
-    description: 'Corporate sites and company portfolios',
+    label: 'Shop',
+    description: 'Boutiques, beauty and home brands taking orders on WhatsApp',
+    heading: 'For your shop',
   },
   {
     id: 'food',
-    label: 'Food & beverage',
-    description: 'Cafés, restaurants and home bakers',
+    label: 'Café & restaurant',
+    description: 'Cafés, restaurants, caterers and home bakers',
+    heading: 'For your café or restaurant',
   },
   {
     id: 'services',
-    label: 'Services',
-    description: 'Salons, clinics and workshops',
+    label: 'Clinic, salon & studio',
+    description: 'Clinics, salons, studios and workshops that take bookings',
+    heading: 'For your clinic, salon or studio',
+  },
+  {
+    id: 'company',
+    label: 'Company',
+    description: 'Contractors, firms and agencies',
+    heading: 'For your company',
   },
   {
     id: 'personal',
-    label: 'Personal portfolio',
-    description: 'Freelancers and creatives',
+    label: 'Freelancer & creative',
+    description: 'Freelancers, creatives and personal brands',
+    heading: 'For your freelance work',
   },
 ] as const;
 
 export type SiteType = (typeof SITE_TYPES)[number]['id'];
+
+/** Template kinds beyond the site types: a full store with real checkout. */
+export const TEMPLATE_KINDS = [
+  {
+    id: 'store',
+    label: 'Online store',
+    description:
+      'A full store with checkout, online payments and an Admin portal',
+  },
+] as const;
+
+export const TEMPLATE_CATEGORIES = [...SITE_TYPES, ...TEMPLATE_KINDS];
+
+export const templateCategoryLabel = (id: string) =>
+  TEMPLATE_CATEGORIES.find((category) => category.id === id)?.label ??
+  'Template';
+
+export const isStoreTemplate = (category: string) => category === 'store';
+
+/** Store templates run on a database, so they take the Custom care tier. */
+export const careTierForTemplate = (template: {
+  category: string;
+  pages?: string | null;
+}): CareTier =>
+  isStoreTemplate(template.category)
+    ? CARE_TIERS.custom
+    : careTierForPages(template.pages);
+
+/** Admin portal features a store template comes with, on top of the base. */
+export const STORE_TEMPLATE_ADMIN_INCLUDED = [
+  'products',
+  'orders',
+  'promotions',
+];
+
+/** The rest of the Admin portal, sold with a store template at Custom prices. */
+export const STORE_TEMPLATE_ADMIN_ADD_ONS: AddOn[] = adminFeaturesFor(
+  WEBSITE_CUSTOM_ADMIN,
+  'online-store'
+)
+  .filter((feature) => !STORE_TEMPLATE_ADMIN_INCLUDED.includes(feature.id))
+  .map((feature) => ({
+    id: `admin-${feature.id}`,
+    name: `${ADMIN_PORTAL}: ${feature.name}`,
+    description: feature.description,
+    price: feature.price,
+  }));
+
+/** Other add-ons offered with a store template; payments are included. */
+export const STORE_TEMPLATE_ADD_ONS: AddOn[] = [
+  {
+    id: 'product-builder',
+    name: 'Interactive product builder',
+    description:
+      'A set builder like "Build Your Table Set", made for your own products. The final price is confirmed in a quote.',
+    price: 1500,
+    priceTo: 3000,
+  },
+  ...ADD_ONS.filter((addOn) => addOn.id === 'pwa'),
+];
 
 export const TEMPLATE_SUMMARY =
   'Every template is set up with your logo, colours and content, and launched on your domain. Lifetime bug fixes included.';
@@ -411,14 +685,6 @@ export const TEMPLATE_INCLUDES = [
   'Launched on your domain',
   'Lifetime bug fixes',
 ];
-
-export const TEMPLATE_SECTION = {
-  name: 'Extra section',
-  description:
-    'Sections the template does not have, such as FAQ, team or testimonials.',
-  price: 50,
-  max: 10,
-};
 
 export const MULTI_LANGUAGE = {
   name: 'Multi-Language',
@@ -490,16 +756,18 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Online store, booking system or member portal',
         'Sign-in for customers or staff',
-        `${ADMIN_DASHBOARD} for orders, bookings and members`,
         'Any number of pages',
+        `Optional ${ADMIN_PORTAL}, priced by the features you pick`,
       ],
       bestFor:
         'customers or staff need to sign in, book, order or pay, and those records must be saved.',
+      demo: { href: RUANG_DEMO_HREF, label: 'See a live online store' },
     },
   ],
   addOns: ADD_ONS,
   cms: WEBSITE_CMS,
   multiLanguage: true,
+  customAdmin: WEBSITE_CUSTOM_ADMIN,
   customAddOns: [
     { ...ONLINE_PAYMENTS, includedInBuilds: ['online-store'] },
     {
@@ -522,36 +790,36 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       id: 'online-store',
       name: 'Online store',
       from: 12000,
-      to: 25000,
+      to: 21000,
       includes: [
-        'Product catalogue with categories',
+        'Product catalogue with categories and options',
         'Cart and checkout with online payments',
-        'Order email notifications',
-        `${ADMIN_DASHBOARD} for products and orders`,
+        'Delivery options and rates',
+        'Order and payment emails',
       ],
       runningCost: GATEWAY_RUNNING_COST,
     },
     {
       id: 'booking-system',
       name: 'Booking system',
-      from: 9000,
-      to: 17000,
+      from: 7000,
+      to: 12000,
       includes: [
         'Services, staff and time slots',
         'Online booking with confirmations',
-        `${ADMIN_DASHBOARD} with a bookings calendar`,
+        'Reminder emails before each booking',
       ],
       runningCost: INCLUDED_IN_CARE,
     },
     {
       id: 'member-portal',
       name: 'Member portal',
-      from: 10000,
-      to: 20000,
+      from: 8000,
+      to: 15000,
       includes: [
         'Sign-in for members or customers',
         'Private pages for each member',
-        `${ADMIN_DASHBOARD} for members and content`,
+        'Welcome and update emails',
       ],
       runningCost: INCLUDED_IN_CARE,
     },
@@ -580,7 +848,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Android and iOS from one codebase',
         'Custom design for your brand',
-        `Backend and ${ADMIN_DASHBOARD.toLowerCase()} when needed`,
+        `Backend and ${ADMIN_PORTAL.toLowerCase()} when needed`,
         'Push notifications',
         'Tested on real devices',
         'App Store and Google Play submission',
@@ -609,7 +877,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
     },
     {
       id: 'admin-dashboard',
-      name: ADMIN_DASHBOARD,
+      name: ADMIN_PORTAL,
       description:
         'Update your app content without a new release, and manage users, orders or bookings.',
       price: 600,
@@ -674,7 +942,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Sign-in for members, with profiles',
         'Points or stamps with rewards',
-        `${ADMIN_DASHBOARD} for members and rewards`,
+        `${ADMIN_PORTAL} for members and rewards`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
@@ -686,7 +954,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
       includes: [
         'Services and time slots',
         'Bookings with push reminders',
-        `${ADMIN_DASHBOARD} for bookings`,
+        `${ADMIN_PORTAL} for bookings`,
       ],
       runningCost: INCLUDED_IN_CARE,
     },
@@ -699,7 +967,7 @@ export const MOBILE_APP_ESTIMATOR: EstimatorConfig = {
         'Product catalogue',
         'Cart and checkout with online payments',
         'Order status updates',
-        `${ADMIN_DASHBOARD} for orders and products`,
+        `${ADMIN_PORTAL} for orders and products`,
       ],
       runningCost: GATEWAY_RUNNING_COST,
     },
@@ -827,7 +1095,7 @@ export function getServiceGroups(whatsappHref: string): ServiceGroup[] {
             'Take repetitive work off your plate: WhatsApp orders that save themselves, chatbots for your website, WhatsApp or Telegram, approval flows for leave and claims, automated forms and spreadsheets, and reports that send themselves.',
           icon: 'automation',
           highlights: [
-            'WhatsApp orders saved to your admin dashboard or Google Sheets automatically, with a confirmation sent to the customer',
+            'WhatsApp orders saved to your Admin portal or Google Sheets automatically, with a confirmation sent to the customer',
             'Website, WhatsApp and Telegram chatbots',
             'Approval flows, forms and spreadsheet automation',
             'Scheduled reports and notifications',

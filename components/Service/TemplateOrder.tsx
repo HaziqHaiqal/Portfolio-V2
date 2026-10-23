@@ -1,14 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  ArrowUpRight,
-  Check,
-  ChevronDown,
-  LayoutTemplate,
-  Minus,
-  Plus,
-} from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown, LayoutTemplate } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
@@ -16,22 +9,26 @@ import {
   careFirstPayment,
   careName,
   carePrice,
-  careTierForPages,
+  careTierForTemplate,
   type CareBilling,
   cmsLabel,
   cmsPrice,
+  GATEWAY_RUNNING_COST,
+  isStoreTemplate,
   MULTI_LANGUAGE,
   offeredFor,
   SITE_TYPES,
+  STORE_TEMPLATE_ADD_ONS,
+  STORE_TEMPLATE_ADMIN_ADD_ONS,
+  templateCategoryLabel,
   TEMPLATE_INCLUDES,
   TEMPLATE_PROMO_TARGET,
   templatePromoTarget,
-  TEMPLATE_SECTION,
   toggleAddOn,
   WEBSITE_CMS,
   WEBSITE_ESTIMATOR,
 } from '@constants/services';
-import { formatRM, formatRMRange, pluralize } from '@lib/format';
+import { formatRM, formatRMRange } from '@lib/format';
 import UniversalImage from '@components/Media/UniversalImage';
 import PromoField from '@components/Promo/PromoField';
 import { PromoPerks } from '@components/Promo/PromoParts';
@@ -43,9 +40,6 @@ import OrderDialog from './OrderDialog';
 import DealSuggestion from '@components/Promo/DealSuggestion';
 import type { FeaturedDeal } from '@lib/data';
 import AddOnChecklist from './AddOnChecklist';
-
-const STEPPER_BUTTON =
-  'flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-green-500/60 hover:text-green-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 disabled:pointer-events-none disabled:opacity-40 dark:border-gray-600 dark:text-gray-200 dark:hover:text-green-400';
 
 export default function TemplateOrder({
   template,
@@ -63,12 +57,12 @@ export default function TemplateOrder({
   onClose: () => void;
 }) {
   const [showExtras, setShowExtras] = useState(false);
-  const [sections, setSections] = useState(0);
   const [featureIds, setFeatureIds] = useState<string[]>([]);
   const [cmsTabIds, setCmsTabIds] = useState<string[] | null>(null);
   const [languages, setLanguages] = useState<string[]>([]);
   const carePlan = WEBSITE_ESTIMATOR.carePlan;
-  const careTier = careTierForPages(template.pages);
+  const store = isStoreTemplate(template.category);
+  const careTier = careTierForTemplate(template);
   const careLabel = careName(carePlan, careTier);
   const [billing, setBilling] = useState<CareBilling>('monthly');
 
@@ -76,7 +70,7 @@ export default function TemplateOrder({
     (type) => type.id === template.category
   );
   const siteType = siteTypeEntry?.id ?? null;
-  const categoryLabel = siteTypeEntry?.label ?? 'Template';
+  const categoryLabel = templateCategoryLabel(template.category);
   const saving =
     template.compare_price != null && template.compare_price > template.price
       ? template.compare_price - template.price
@@ -86,9 +80,13 @@ export default function TemplateOrder({
     (addOn) => siteType !== null && addOn.includedIn?.includes(siteType)
   );
   const includedIds = includedFeatures.map((addOn) => addOn.id);
-  const optionalFeatures = ADD_ONS.filter(
-    (addOn) => offeredFor(addOn, siteType) && !includedIds.includes(addOn.id)
-  );
+  // A store already takes payments and has its dashboard, so it offers its own add-ons.
+  const optionalFeatures = store
+    ? [...STORE_TEMPLATE_ADMIN_ADD_ONS, ...STORE_TEMPLATE_ADD_ONS]
+    : ADD_ONS.filter(
+        (addOn) =>
+          offeredFor(addOn, siteType) && !includedIds.includes(addOn.id)
+      );
   const typedOptional = optionalFeatures.filter((addOn) => addOn.siteTypes);
   const everyOptional = optionalFeatures.filter((addOn) => !addOn.siteTypes);
   const chosen = optionalFeatures.filter((addOn) =>
@@ -108,14 +106,6 @@ export default function TemplateOrder({
 
   const lines = [
     { label: `${template.name} template`, price: template.price },
-    ...(sections > 0
-      ? [
-          {
-            label: pluralize(sections, 'extra section'),
-            price: sections * TEMPLATE_SECTION.price,
-          },
-        ]
-      : []),
     ...fixedChosen.map((addOn) => ({ label: addOn.name, price: addOn.price })),
     ...(languages.length
       ? [
@@ -256,7 +246,9 @@ export default function TemplateOrder({
           <h4 className="mt-6 text-sm font-semibold">What&apos;s included</h4>
           <ul className="mt-3 space-y-2">
             {[
-              ...includedFeatures.map((feature) => feature.name),
+              ...(store
+                ? template.features
+                : includedFeatures.map((feature) => feature.name)),
               ...TEMPLATE_INCLUDES,
             ].map((item) => (
               <li
@@ -272,6 +264,12 @@ export default function TemplateOrder({
               </li>
             ))}
           </ul>
+          {store && (
+            <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+              {GATEWAY_RUNNING_COST}. You sign up with the gateway in your
+              business name, and we connect it.
+            </p>
+          )}
 
           <div className="mt-6 border-t border-gray-200 dark:border-gray-700">
             <button
@@ -305,65 +303,36 @@ export default function TemplateOrder({
               <div id="template-extras" className="pb-4">
                 <AddOnChecklist
                   idPrefix="template"
-                  groups={[
-                    ...(typedOptional.length
-                      ? [{ label: categoryLabel, addOns: typedOptional }]
-                      : []),
-                    { label: 'Other add-ons', addOns: everyOptional },
-                  ]}
+                  groups={
+                    store
+                      ? [
+                          {
+                            label: 'Add to the Admin portal',
+                            addOns: STORE_TEMPLATE_ADMIN_ADD_ONS,
+                          },
+                          {
+                            label: 'Other add-ons',
+                            addOns: STORE_TEMPLATE_ADD_ONS,
+                          },
+                        ]
+                      : [
+                          ...(typedOptional.length
+                            ? [
+                                {
+                                  label:
+                                    siteTypeEntry?.heading ?? categoryLabel,
+                                  addOns: typedOptional,
+                                },
+                              ]
+                            : []),
+                          { label: 'Other add-ons', addOns: everyOptional },
+                        ]
+                  }
                   selected={featureIds}
                   onToggle={toggle}
-                  leadingRows={
-                    <li className="flex items-center justify-between gap-4 px-4 py-3.5 sm:px-5">
-                      <span className="min-w-0">
-                        <span
-                          id="template-sections-label"
-                          className="flex items-baseline gap-2 text-sm font-semibold"
-                        >
-                          {TEMPLATE_SECTION.name}s
-                          <span className="text-xs font-semibold text-green-700 dark:text-green-400">
-                            {formatRM(TEMPLATE_SECTION.price)} each
-                          </span>
-                        </span>
-                        <span className="mt-0.5 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                          {TEMPLATE_SECTION.description}
-                        </span>
-                      </span>
-                      <span
-                        role="group"
-                        aria-labelledby="template-sections-label"
-                        className="flex shrink-0 items-center gap-2"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setSections((count) => count - 1)}
-                          disabled={sections === 0}
-                          aria-label="Remove a section"
-                          className={STEPPER_BUTTON}
-                        >
-                          <Minus size={15} aria-hidden="true" />
-                        </button>
-                        <output
-                          aria-live="polite"
-                          className="w-5 text-center font-mono font-semibold"
-                        >
-                          {sections}
-                        </output>
-                        <button
-                          type="button"
-                          onClick={() => setSections((count) => count + 1)}
-                          disabled={sections === TEMPLATE_SECTION.max}
-                          aria-label="Add a section"
-                          className={STEPPER_BUTTON}
-                        >
-                          <Plus size={15} aria-hidden="true" />
-                        </button>
-                      </span>
-                    </li>
-                  }
                   languages={languages}
                   onLanguagesChange={setLanguages}
-                  cms={WEBSITE_CMS}
+                  cms={store ? undefined : WEBSITE_CMS}
                   cmsSelection={cmsTabIds}
                   onCmsChange={setCmsTabIds}
                   siteType={siteType}

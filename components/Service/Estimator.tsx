@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, ShieldCheck, Wallet } from 'lucide-react';
+import { ArrowUpRight, Check, ShieldCheck, Wallet } from 'lucide-react';
+import Link from 'next/link';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   type AddOn,
+  adminLabel,
+  adminPrice,
   CARE_TIERS,
   careName,
   cmsLabel,
@@ -29,6 +32,7 @@ import { PromoPerks, PromoPrice } from '@components/Promo/PromoParts';
 import HostingCare from './HostingCare';
 import OrderSummary, { type SummaryLine } from './OrderSummary';
 import AddOnChecklist from './AddOnChecklist';
+import AdminPortalPicker from './AdminPortalPicker';
 import SiteTypePicker from './SiteTypePicker';
 import { useServicePick } from './servicePick';
 import { openFaq } from './FaqTabs';
@@ -76,6 +80,8 @@ function Indicator({
     </span>
   );
 }
+
+const NO_BUILD = 'none';
 
 function GroupTitle({ title, hint }: { title: string; hint?: string }) {
   return (
@@ -125,7 +131,7 @@ function PackageCard({
 
   return (
     <Wrapper
-      className={`flex h-full flex-col rounded-3xl border bg-white/70 p-6 shadow-xl backdrop-blur-sm transition-all duration-200 dark:bg-gray-800/70 sm:p-7 ${
+      className={`relative flex h-full flex-col rounded-3xl border bg-white/70 p-6 shadow-xl backdrop-blur-sm transition-all duration-200 dark:bg-gray-800/70 sm:p-7 ${
         single
           ? 'border-gray-200 dark:border-gray-700'
           : `cursor-pointer has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-green-500/20 ${
@@ -197,6 +203,17 @@ function PackageCard({
             </span>
           ))}
         </span>
+        {pkg.demo && (
+          <Link
+            href={pkg.demo.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex min-h-9 items-center gap-1 rounded text-sm font-semibold text-purple-700 transition-colors hover:text-purple-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/40 dark:text-purple-300 dark:hover:text-purple-200"
+          >
+            {pkg.demo.label}
+            <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
+        )}
       </span>
 
       {pkg.bestFor && (
@@ -239,6 +256,11 @@ export default function Estimator({
   const [quoteIds, setQuoteIds] = useState<string[]>([]);
   const [buildId, setBuildId] = useState<string | null>(null);
   const [other, setOther] = useState('');
+  // Each build keeps its own Admin portal picks; NO_BUILD is before one is chosen.
+  const [adminByBuild, setAdminByBuild] = useState<
+    Record<string, string[] | null>
+  >({});
+  const [extraByBuild, setExtraByBuild] = useState<Record<string, string>>({});
 
   useEffect(
     () =>
@@ -249,6 +271,8 @@ export default function Estimator({
         setAddOnIds(pick.addOnIds ?? []);
         setCmsTabIds(pick.cmsTabIds ?? null);
         setBuildId(pick.buildId ?? null);
+        setAdminByBuild({ [pick.buildId ?? NO_BUILD]: pick.adminIds ?? null });
+        setExtraByBuild({});
       }),
     [config.id]
   );
@@ -269,7 +293,8 @@ export default function Estimator({
     (sum, addOn) => sum + (addOn.priceTo ?? addOn.price),
     0
   );
-  const siteTypeLabel = SITE_TYPES.find((type) => type.id === siteType)?.label;
+  const siteTypeEntry = SITE_TYPES.find((type) => type.id === siteType);
+  const siteTypeLabel = siteTypeEntry?.label;
   const hasSiteTypes = config.addOns.some((addOn) => addOn.siteTypes);
   const typeAddOns = config.addOns.filter(
     (addOn) =>
@@ -289,6 +314,13 @@ export default function Estimator({
     : null;
   const customBuild =
     config.customPackages.find((build) => build.id === buildId) ?? null;
+  const buildKey = buildId ?? NO_BUILD;
+  const adminIds = adminByBuild[buildKey] ?? null;
+  const adminExtra = extraByBuild[buildKey] ?? '';
+  const setAdminIds = (next: string[] | null) =>
+    setAdminByBuild((prev) => ({ ...prev, [buildKey]: next }));
+  const setAdminExtra = (next: string) =>
+    setExtraByBuild((prev) => ({ ...prev, [buildKey]: next }));
   const customAddOns = [
     ...config.customAddOns,
     ...config.addOns.filter((addOn) => !addOn.siteTypes),
@@ -300,10 +332,16 @@ export default function Estimator({
   );
   const pricedCustom = chosenCustom.filter((addOn) => !includedInBuild(addOn));
   const customDetails = other.trim();
+  const { customAdmin } = config;
+  const adminTotal =
+    isCustom && customAdmin ? adminPrice(customAdmin, adminIds) : 0;
+  const adminDetails = adminExtra.trim();
+  const adminOn = Boolean(isCustom && customAdmin && adminIds !== null);
   const hasCustomDetails =
     Boolean(customBuild) ||
     chosenCustom.length > 0 ||
     languages.length > 0 ||
+    adminOn ||
     Boolean(customDetails);
 
   // A custom request without a listed build starts from the cheapest build.
@@ -313,14 +351,16 @@ export default function Estimator({
   const rangeFrom =
     (customBuild?.from ?? customFloor) +
     pricedCustom.reduce((total, addOn) => total + addOn.price, 0) +
-    languageTotal;
+    languageTotal +
+    adminTotal;
   const rangeTo =
     (customBuild?.to ?? customFloor) +
     pricedCustom.reduce(
       (total, addOn) => total + (addOn.priceTo ?? addOn.price),
       0
     ) +
-    languageTotal;
+    languageTotal +
+    adminTotal;
   const rangeText = (extra: number) =>
     customBuild
       ? formatRMRange(rangeFrom + extra, rangeTo + extra)
@@ -416,6 +456,22 @@ export default function Estimator({
                 },
               ]
             : []),
+        ...(adminOn && customAdmin
+          ? [
+              {
+                label: adminLabel(customAdmin, adminIds ?? [], buildId),
+                value: formatRM(adminTotal),
+              },
+              ...(adminDetails
+                ? [
+                    {
+                      label: `Other ${customAdmin.name} features`,
+                      value: 'Quoted on WhatsApp',
+                    },
+                  ]
+                : []),
+            ]
+          : []),
         ...chosenCustom.map((addOn) => ({
           label: addOn.name,
           value: includedInBuild(addOn)
@@ -484,7 +540,7 @@ export default function Estimator({
       ? `Hi Haziq, I'd like a quote for this ${config.label.toLowerCase()}.`
       : config.messageIntro,
     `Package: ${pkg.name} (${formatRM(pkg.price ?? 0)})`,
-    ...(siteTypeLabel ? [`Site type: ${siteTypeLabel}`] : []),
+    ...(siteTypeLabel ? [`Business type: ${siteTypeLabel}`] : []),
     `Add-ons: ${extras.length ? extras.join(', ') : 'none'}`,
     `Build price: ${formatRM(afterPromo)}${eligiblePromo ? ` with promo ${eligiblePromo.code}` : ''}${quoted ? ', plus the quoted items' : ''}`,
     ...careLine,
@@ -502,6 +558,16 @@ export default function Estimator({
           quoteOnly
             ? `Build: ${customBuild.name}`
             : `Build: ${customBuild.name} (${formatRMRange(customBuild.from, customBuild.to)})`,
+        ]
+      : []),
+    ...(adminOn && customAdmin
+      ? [
+          `${adminLabel(customAdmin, adminIds ?? [], buildId)}: +${formatRM(adminTotal)}`,
+          ...(adminDetails
+            ? [
+                `Other ${customAdmin.name} features (price to discuss): ${adminDetails}`,
+              ]
+            : []),
         ]
       : []),
     ...(chosenCustom.length
@@ -527,6 +593,27 @@ export default function Estimator({
     ...careLine,
     'Please let me know the final price and timeline.',
   ]);
+
+  // The first build chosen takes what was picked before any build, minus
+  // other builds' features; after that, each build keeps its own picks.
+  const chooseBuild = (next: string | null) => {
+    setBuildId(next);
+    const before = adminByBuild[NO_BUILD];
+    const firstBuild = Object.keys(adminByBuild).every(
+      (key) => key === NO_BUILD
+    );
+    if (!customAdmin || next === null || before === undefined || !firstBuild)
+      return;
+    setAdminByBuild((prev) => ({
+      ...prev,
+      [next]:
+        before?.filter((id) => {
+          const feature = customAdmin.features.find((item) => item.id === id);
+          return !feature?.builds || feature.builds.includes(next);
+        }) ?? null,
+    }));
+    setExtraByBuild((prev) => ({ ...prev, [next]: prev[NO_BUILD] ?? '' }));
+  };
 
   const changeSiteType = (next: SiteType) => {
     setSiteType(next);
@@ -591,7 +678,7 @@ export default function Estimator({
                   ...(typeAddOns.length
                     ? [
                         {
-                          label: siteTypeLabel ?? 'Your site',
+                          label: siteTypeEntry?.heading ?? 'For your site',
                           addOns: typeAddOns,
                         },
                       ]
@@ -631,7 +718,7 @@ export default function Estimator({
                         key={build.id}
                         type="button"
                         aria-pressed={selected}
-                        onClick={() => setBuildId(selected ? null : build.id)}
+                        onClick={() => chooseBuild(selected ? null : build.id)}
                         className={`flex h-full flex-col rounded-2xl border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/20 ${
                           selected ? OPTION_SELECTED_CUSTOM : OPTION_IDLE
                         }`}
@@ -667,6 +754,25 @@ export default function Estimator({
                   })}
                 </div>
               </fieldset>
+            )}
+
+            {customAdmin && (
+              <div>
+                <GroupTitle
+                  title={customAdmin.name}
+                  hint="Optional, priced by the features you pick"
+                />
+                <AdminPortalPicker
+                  admin={customAdmin}
+                  selection={adminIds}
+                  onChange={setAdminIds}
+                  extra={adminExtra}
+                  onExtraChange={setAdminExtra}
+                  buildId={buildId}
+                  buildName={customBuild?.name}
+                  idPrefix={config.id}
+                />
+              </div>
             )}
 
             <div>

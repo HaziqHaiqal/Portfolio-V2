@@ -8,6 +8,8 @@ export interface ServicePick {
   addOnIds?: string[];
   cmsTabIds?: string[] | null;
   buildId?: string | null;
+  /** Custom Admin portal features; null leaves it off. */
+  adminIds?: string[] | null;
 }
 
 interface ServicePickState {

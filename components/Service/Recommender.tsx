@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import {
+  adminPrice,
   addOnById,
   CARE_TIERS,
   type CareTierId,
@@ -159,20 +160,28 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
       portal: 'member-portal',
     }[a.need];
     const item = build(id);
+    const admin = WEBSITE_ESTIMATOR.customAdmin;
     const why = {
       booking:
         'Customers book a time slot online, and you manage every booking from an admin calendar.',
       store:
-        'Customers buy and pay online by FPX, card or e-wallet, and you manage orders from a dashboard.',
+        'Customers buy and pay online by FPX, card or e-wallet, and you manage orders from your Admin portal.',
       portal:
-        'Members sign in to their own private area, and you manage them from an admin dashboard.',
+        'Members sign in to their own private area, and you manage them from an Admin portal.',
     }[a.need];
     return {
       name: `Custom website: ${item?.name ?? 'custom build'}`,
-      price: item ? `Starting at ${formatRM(item.from)}` : 'By quotation',
+      price: item
+        ? `Starting at ${formatRM(item.from + (admin ? adminPrice(admin, admin.suggested[id] ?? []) : 0))}`
+        : 'By quotation',
       care: care('custom', true),
       why,
-      pick: { tab: WEBSITE_ESTIMATOR.id, packageId: 'custom', buildId: id },
+      pick: {
+        tab: WEBSITE_ESTIMATOR.id,
+        packageId: 'custom',
+        buildId: id,
+        adminIds: admin?.suggested[id] ?? null,
+      },
     };
   }
 
@@ -220,7 +229,7 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
     if (a.design === 'ready') {
       const pick = template(
         a.amount === 'changing'
-          ? 'A ready-made design set up with your content. Add the admin dashboard so you can update prices and promotions yourself.'
+          ? 'A ready-made design set up with your content. Add the Admin portal so you can update prices and promotions yourself.'
           : 'A ready-made design set up with your content. The quickest and most affordable way to look professional online.',
         a.amount === 'changing'
       );
@@ -237,12 +246,12 @@ function suggest(a: Answers, templatesFrom: number | null): Suggestion | null {
         'Up to 7 pages, so each service, your gallery and your story get their own page.'
       );
     return {
-      name: 'Advanced website + admin dashboard',
+      name: 'Advanced website + Admin portal',
       price: formatRM(
         pkgPrice('advanced') + cmsPrice(WEBSITE_CMS, UPDATE_TABS)
       ),
       care: care('business', true),
-      why: 'Update your prices, menus and promotions yourself from a private dashboard, without paying for every change.',
+      why: 'Update your prices, menus and promotions yourself from a private Admin portal, without paying for every change.',
       pick: {
         tab: WEBSITE_ESTIMATOR.id,
         packageId: 'advanced',
