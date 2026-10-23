@@ -137,7 +137,7 @@ export default function TemplateOrder({
   const afterPromo = eligiblePromo
     ? discountedPrice(afterSale, eligiblePromo)
     : afterSale;
-  const careWithDatabase = cmsTabIds !== null || quoted;
+  const careWithDatabase = cmsTabIds !== null;
   const careText = carePrice(carePlan, careWithDatabase, billing, careTier);
   const firstCare = careFirstPayment(
     carePlan,

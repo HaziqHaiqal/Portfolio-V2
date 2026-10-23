@@ -45,8 +45,6 @@ export interface PackageOption {
   bestFor?: string;
   custom?: boolean;
   careTier?: CareTierId;
-  /** A live demo of what this package builds. */
-  demo?: { href: string; label: string };
 }
 
 export interface CustomPackage {
@@ -233,7 +231,8 @@ const ADMIN_PORTAL = 'Admin portal';
 
 export const WEBSITE_CMS: CmsConfig = {
   name: ADMIN_PORTAL,
-  description: 'Update your site yourself, and see how many people visit it.',
+  description:
+    'Update your text, photos and prices yourself, and see how many people visit. To run orders, bookings or members, choose Custom.',
   price: 200,
   dashboard: 'Visitor stats',
   groups: { pages: 'Your pages', sell: 'What you sell', show: 'What you show' },
@@ -285,7 +284,7 @@ export function cmsLabel(cms: CmsConfig, tabIds: string[]): string {
 export const WEBSITE_CUSTOM_ADMIN: CustomAdminConfig = {
   name: ADMIN_PORTAL,
   description:
-    'Your own back office. Pick what it manages, and your staff sign in to use it.',
+    'A back office to run your orders, bookings or members. Pick what it manages, and your staff sign in to use it.',
   price: 4000,
   base: ['Sign-in for you and your staff', 'Overview of the day'],
   features: [
@@ -489,7 +488,7 @@ export const ADD_ONS: AddOn[] = [
     id: 'product-options',
     name: 'Product options',
     description:
-      'Customers pick a size, colour or variant. Comes with the WhatsApp cart.',
+      'Customers pick a size, colour or variant. Adds the WhatsApp cart.',
     price: 150,
     siteTypes: ['ecommerce'],
     requires: 'whatsapp-cart',
@@ -498,12 +497,22 @@ export const ADD_ONS: AddOn[] = [
     id: 'delivery-fee',
     name: 'Delivery fee by area',
     description:
-      "The delivery fee for the customer's area is added to the order. Comes with the WhatsApp cart.",
+      "The delivery fee for the customer's area is added to the order. Adds the WhatsApp cart.",
     price: 150,
     siteTypes: ['ecommerce'],
     requires: 'whatsapp-cart',
   },
-  { ...ONLINE_PAYMENTS, siteTypes: ['ecommerce'], requires: 'whatsapp-cart' },
+  {
+    id: 'payment-link',
+    name: 'Payment link',
+    description:
+      'After a WhatsApp order, the customer gets a link to pay by FPX, card or e-wallet. No checkout or stock; for a full online store, choose Custom. Adds the WhatsApp cart.',
+    price: 500,
+    priceTo: 1000,
+    runningCost: GATEWAY_RUNNING_COST,
+    siteTypes: ['ecommerce', 'food'],
+    requires: 'whatsapp-cart',
+  },
   {
     id: 'table-reservation',
     name: 'Table reservation request',
@@ -523,7 +532,7 @@ export const ADD_ONS: AddOn[] = [
     name: 'Appointment request',
     description: `Customers pick a service, date and time and send it to your WhatsApp. ${REQUEST_ONLY} For a full booking calendar, choose Custom.`,
     price: 100,
-    siteTypes: ['services'],
+    siteTypes: ['services', 'personal'],
   },
   {
     id: 'quotation-form',
@@ -531,7 +540,7 @@ export const ADD_ONS: AddOn[] = [
     description:
       'A detailed quote request form, sent to your WhatsApp or email.',
     price: 100,
-    siteTypes: ['company'],
+    siteTypes: ['company', 'personal'],
   },
   {
     id: 'pwa',
@@ -577,8 +586,6 @@ export const TEMPLATE_PROMO_TARGET: PromoTarget = {
 
 /** Promo target for one template, next to the all-templates target. */
 export const templatePromoTarget = (slug: string) => `template:${slug}`;
-
-const RUANG_DEMO_HREF = '/templates/ruang';
 
 /** Site types: template categories, and what filters the add-ons. */
 export const SITE_TYPES = [
@@ -738,7 +745,7 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       careTier: 'business',
       includesFrom: 'standard',
       includes: [
-        'Up to 7 pages with unlimited sections',
+        'Up to 5 pages with unlimited sections',
         'Full SEO: titles, descriptions and a sitemap for every page',
         'Google Search Console setup',
         'Link previews when shared on WhatsApp and social media',
@@ -761,7 +768,6 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       ],
       bestFor:
         'customers or staff need to sign in, book, order or pay, and those records must be saved.',
-      demo: { href: RUANG_DEMO_HREF, label: 'See a live online store' },
     },
   ],
   addOns: ADD_ONS,
@@ -778,9 +784,10 @@ export const WEBSITE_ESTIMATOR: EstimatorConfig = {
       priceTo: 3000,
     },
     {
-      id: 'large-site',
-      name: 'Large or content-heavy site',
-      description: 'Many pages or long content.',
+      id: 'content-loading',
+      name: 'Content loading',
+      description:
+        'We add your products, pages or posts for you when there are a lot of them.',
       price: 1000,
       priceTo: 4000,
     },

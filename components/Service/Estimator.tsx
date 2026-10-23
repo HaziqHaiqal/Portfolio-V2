@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, Check, ShieldCheck, Wallet } from 'lucide-react';
-import Link from 'next/link';
+import { Check, ShieldCheck, Wallet } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   type AddOn,
@@ -203,17 +202,6 @@ function PackageCard({
             </span>
           ))}
         </span>
-        {pkg.demo && (
-          <Link
-            href={pkg.demo.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-9 items-center gap-1 rounded text-sm font-semibold text-purple-700 transition-colors hover:text-purple-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/40 dark:text-purple-300 dark:hover:text-purple-200"
-          >
-            {pkg.demo.label}
-            <ArrowUpRight size={14} aria-hidden="true" />
-          </Link>
-        )}
       </span>
 
       {pkg.bestFor && (
@@ -408,7 +396,7 @@ export default function Estimator({
     return url.toString();
   };
 
-  const withDatabase = isCustom || cmsTabIds !== null || quoted;
+  const withDatabase = isCustom || cmsTabIds !== null;
   const careFrom = quoteOnly
     ? 'by quotation'
     : `from ${formatRM(config.carePlan.monthlyPrice)}/month`;
@@ -672,6 +660,11 @@ export default function Estimator({
 
             <div>
               <GroupTitle title="Add-ons" hint="Optional" />
+              {hasSiteTypes && !siteType && (
+                <p className="-mt-1 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  Pick your type of business above to see add-ons made for it.
+                </p>
+              )}
               <AddOnChecklist
                 idPrefix={config.id}
                 groups={[
@@ -781,9 +774,11 @@ export default function Estimator({
                 idPrefix={`${config.id}-custom`}
                 groups={[
                   {
-                    label: everySiteAddOns.length
-                      ? 'For your build'
-                      : 'Features',
+                    label: !everySiteAddOns.length
+                      ? 'Features'
+                      : customBuild
+                        ? `For your ${customBuild.name.toLowerCase()}`
+                        : 'For any build',
                     addOns: config.customAddOns,
                   },
                   ...(everySiteAddOns.length

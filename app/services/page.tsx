@@ -82,7 +82,7 @@ const customFrom = Math.min(
 const pwa = addOnById('pwa');
 const cart = addOnById('whatsapp-cart');
 const appointments = addOnById('appointment-request');
-const payments = addOnById('online-payments');
+const paymentLink = addOnById('payment-link');
 
 const lowerFirst = (text: string) =>
   /^[A-Z][a-z]*\b/.test(text)
@@ -109,7 +109,7 @@ const CARE_PLANS: {
   })),
   {
     name: 'With a database',
-    for: 'Admin portal or online payments',
+    for: 'Standard or Advanced with an Admin portal',
     price: `+${formatRM(webCare.databasePrice ?? 0)}/month`,
     text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}.`,
   },
@@ -222,7 +222,7 @@ const FAQS: FaqItem[] = [
   },
   {
     question: 'What does a template include?',
-    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: add-ons that fit your type of business${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an Admin portal from ${formatRM(WEBSITE_CMS.price)}.${payments ? ` Shop templates can add online payments by FPX, card or e-wallet as a quoted add-on, from ${formatRM(payments.price)}.` : ''}`,
+    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: add-ons that fit your type of business${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an Admin portal from ${formatRM(WEBSITE_CMS.price)}.${paymentLink ? ` Shop and café templates can add a payment link, so customers pay by FPX, card or e-wallet after a WhatsApp order, as a quoted add-on from ${formatRM(paymentLink.price)}.` : ''}`,
   },
   ...(pwa
     ? [
