@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { Plus, Heart, Star, Loader2, Save } from 'lucide-react';
@@ -100,30 +100,37 @@ export default function InterestsEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<InterestData>();
 
-  const loadInterests = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('interests')
-      .select('*')
-      .order('sort_order', { ascending: true });
-
-    if (error) {
-      console.error('Error loading interests:', error);
-      toast.error('Could not load interests');
-    } else {
-      setInterests(data || []);
-    }
-    setLoading(false);
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadInterests = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadInterests();
-  }, [loadInterests]);
+    let active = true;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('interests')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (!active) return;
+
+      if (error) {
+        console.error('Error loading interests:', error);
+        toast.error('Could not load interests');
+      } else {
+        setInterests(data || []);
+      }
+      setLoading(false);
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleDelete = async (interest: InterestData) => {
     try {
       await deleteInterestAction(interest.id!);
       toast.success(`Deleted "${interest.name}"`);
-      await loadInterests();
+      reloadInterests();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not delete interest');
@@ -146,7 +153,7 @@ export default function InterestsEditor() {
       );
       setShowForm(false);
       setEditingInterest(null);
-      await loadInterests();
+      reloadInterests();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not save interest');
@@ -166,11 +173,11 @@ export default function InterestsEditor() {
         id: interest.id,
         is_featured: !interest.is_featured,
       });
-      await loadInterests();
+      reloadInterests();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not update interest');
-      await loadInterests();
+      reloadInterests();
     }
   };
 

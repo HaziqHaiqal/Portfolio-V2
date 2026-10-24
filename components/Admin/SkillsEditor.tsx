@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Plus, Sparkles, Star, Loader2, Save } from 'lucide-react';
 
@@ -77,25 +77,32 @@ export default function SkillsEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<SkillData>();
 
-  const loadSkills = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('skills')
-      .select('*')
-      .order('is_featured', { ascending: false })
-      .order('name', { ascending: true });
-
-    if (error) {
-      console.error('Error loading skills:', error);
-      toast.error('Could not load skills');
-    } else {
-      setSkills(data || []);
-    }
-    setLoading(false);
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadSkills = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadSkills();
-  }, [loadSkills]);
+    let active = true;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('skills')
+        .select('*')
+        .order('is_featured', { ascending: false })
+        .order('name', { ascending: true });
+      if (!active) return;
+
+      if (error) {
+        console.error('Error loading skills:', error);
+        toast.error('Could not load skills');
+      } else {
+        setSkills(data || []);
+      }
+      setLoading(false);
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const closeForm = () => {
     setShowForm(false);
@@ -106,7 +113,7 @@ export default function SkillsEditor() {
     try {
       await deleteSkillAction(skill.id!);
       toast.success(`Deleted "${skill.name}"`);
-      await loadSkills();
+      reloadSkills();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not delete skill');
@@ -126,7 +133,7 @@ export default function SkillsEditor() {
       await upsertSkillAction(payload);
       toast.success(editingSkill?.id ? 'Skill updated' : 'Skill created');
       closeForm();
-      await loadSkills();
+      reloadSkills();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not save skill');
@@ -146,11 +153,11 @@ export default function SkillsEditor() {
         id: skill.id,
         is_featured: !skill.is_featured,
       });
-      await loadSkills();
+      reloadSkills();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not update skill');
-      await loadSkills();
+      reloadSkills();
     }
   };
 
@@ -376,12 +383,13 @@ function SkillFormModal({
   saving,
 }: SkillFormModalProps) {
   const [formData, setFormData] = useState<SkillData>(skill);
+  const [seeded, setSeeded] = useState({ open, id: skill.id });
 
   // The modal stays mounted between opens, so re-seed when a different skill opens.
-  useEffect(() => {
+  if (seeded.open !== open || seeded.id !== skill.id) {
+    setSeeded({ open, id: skill.id });
     if (open) setFormData(skill);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, skill.id]);
+  }
 
   const set = <K extends keyof SkillData>(field: K, value: SkillData[K]) =>
     setFormData((prev) => ({ ...prev, [field]: value }));

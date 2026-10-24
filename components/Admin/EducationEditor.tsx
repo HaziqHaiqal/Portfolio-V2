@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -150,38 +150,45 @@ export default function EducationEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<EducationData>();
 
-  const loadEducations = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('education')
-        .select('*')
-        .order('is_current', { ascending: false })
-        .order('start_date', { ascending: false });
-
-      if (error) {
-        console.error('Error loading educations:', error);
-        toast.error('Could not load education');
-        return;
-      }
-
-      setEducations((data || []).map(normalizeEducationData));
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Could not load education');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadEducations = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadEducations();
-  }, [loadEducations]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('education')
+          .select('*')
+          .order('is_current', { ascending: false })
+          .order('start_date', { ascending: false });
+        if (!active) return;
+
+        if (error) {
+          console.error('Error loading educations:', error);
+          toast.error('Could not load education');
+          return;
+        }
+
+        setEducations((data || []).map(normalizeEducationData));
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('Could not load education');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleDelete = async (education: EducationData) => {
     try {
       await deleteEducationAction(education.id!);
       toast.success('Programme deleted');
-      await loadEducations();
+      reloadEducations();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not delete programme');
@@ -204,7 +211,7 @@ export default function EducationEditor() {
       );
       setShowForm(false);
       setEditingEducation(null);
-      await loadEducations();
+      reloadEducations();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not save programme');

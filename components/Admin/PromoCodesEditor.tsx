@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -157,40 +157,47 @@ export default function PromoCodesEditor() {
     [templateTargets]
   );
 
-  const loadCodes = useCallback(async () => {
-    try {
-      const [{ data, error }, templates] = await Promise.all([
-        supabase
-          .from('promo_codes')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('website_templates')
-          .select('slug, name')
-          .order('sort_order', { ascending: true }),
-      ]);
-      if (error) throw error;
-      setCodes((data ?? []) as PromoCode[]);
-      setTemplateTargets(
-        ((templates.data ?? []) as { slug: string; name: string }[]).map(
-          (template) => ({
-            id: templatePromoTarget(template.slug),
-            label: `Template: ${template.name}`,
-          })
-        )
-      );
-      setNow(Date.now());
-    } catch (error) {
-      console.error('Error loading promo codes:', error);
-      toast.error('Failed to load promo codes');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadCodes = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadCodes();
-  }, [loadCodes]);
+    let active = true;
+    const load = async () => {
+      try {
+        const [{ data, error }, templates] = await Promise.all([
+          supabase
+            .from('promo_codes')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('website_templates')
+            .select('slug, name')
+            .order('sort_order', { ascending: true }),
+        ]);
+        if (!active) return;
+        if (error) throw error;
+        setCodes((data ?? []) as PromoCode[]);
+        setTemplateTargets(
+          ((templates.data ?? []) as { slug: string; name: string }[]).map(
+            (template) => ({
+              id: templatePromoTarget(template.slug),
+              label: `Template: ${template.name}`,
+            })
+          )
+        );
+        setNow(Date.now());
+      } catch (error) {
+        console.error('Error loading promo codes:', error);
+        toast.error('Failed to load promo codes');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const replaceCode = (next: PromoCode) =>
     setCodes((prev) => prev.map((c) => (c.id === next.id ? next : c)));
@@ -236,7 +243,7 @@ export default function PromoCodesEditor() {
     try {
       await deletePromoCodeAction(promo.id);
       toast.success(`Deleted ${promo.code}`);
-      await loadCodes();
+      reloadCodes();
     } catch (error) {
       console.error('Error deleting promo code:', error);
       toast.error(
@@ -263,7 +270,7 @@ export default function PromoCodesEditor() {
       toast.success(editing ? 'Promo code updated' : 'Promo code created');
       setShowForm(false);
       setEditing(null);
-      await loadCodes();
+      reloadCodes();
     } catch (error) {
       console.error('Error saving promo code:', error);
       const msg =

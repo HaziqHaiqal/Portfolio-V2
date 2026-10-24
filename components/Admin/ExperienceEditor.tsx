@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
@@ -114,60 +114,67 @@ export default function ExperienceEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<ExperienceData>();
 
-  const loadExperiences = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('experience')
-        .select('*, companies(*)')
-        .order('is_current', { ascending: false })
-        .order('start_date', { ascending: false });
-
-      if (error) {
-        console.error('Error loading experiences:', error);
-        toast.error('Failed to load experiences');
-        return;
-      }
-
-      setExperiences(
-        (data || []).map((experience) => ({
-          id: experience.id,
-          company_id: experience.company_id || '',
-          position: experience.position || '',
-          start_date: experience.start_date || '',
-          end_date: experience.end_date || '',
-          location: experience.location || '',
-          description: experience.description || '',
-          responsibilities: Array.isArray(experience.responsibilities)
-            ? experience.responsibilities
-            : [],
-          technologies: Array.isArray(experience.technologies)
-            ? experience.technologies
-            : [],
-          achievements: Array.isArray(experience.achievements)
-            ? experience.achievements
-            : [],
-          is_current: Boolean(experience.is_current),
-          is_visible: experience.is_visible !== false,
-          companies: experience.companies || undefined,
-        }))
-      );
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('An unexpected error occurred while loading experiences');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadExperiences = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadExperiences();
-  }, [loadExperiences]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('experience')
+          .select('*, companies(*)')
+          .order('is_current', { ascending: false })
+          .order('start_date', { ascending: false });
+        if (!active) return;
+
+        if (error) {
+          console.error('Error loading experiences:', error);
+          toast.error('Failed to load experiences');
+          return;
+        }
+
+        setExperiences(
+          (data || []).map((experience) => ({
+            id: experience.id,
+            company_id: experience.company_id || '',
+            position: experience.position || '',
+            start_date: experience.start_date || '',
+            end_date: experience.end_date || '',
+            location: experience.location || '',
+            description: experience.description || '',
+            responsibilities: Array.isArray(experience.responsibilities)
+              ? experience.responsibilities
+              : [],
+            technologies: Array.isArray(experience.technologies)
+              ? experience.technologies
+              : [],
+            achievements: Array.isArray(experience.achievements)
+              ? experience.achievements
+              : [],
+            is_current: Boolean(experience.is_current),
+            is_visible: experience.is_visible !== false,
+            companies: experience.companies || undefined,
+          }))
+        );
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('An unexpected error occurred while loading experiences');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleDelete = async (experience: ExperienceData) => {
     try {
       await deleteExperienceAction(experience.id!);
       toast.success('Role deleted');
-      await loadExperiences();
+      reloadExperiences();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to delete role');
@@ -212,7 +219,7 @@ export default function ExperienceEditor() {
       toast.success(isUpdate ? 'Role updated' : 'Role created');
       setShowForm(false);
       setEditingExperience(null);
-      await loadExperiences();
+      reloadExperiences();
     } catch (error) {
       console.error('Error:', error);
       toast.error(
@@ -243,7 +250,7 @@ export default function ExperienceEditor() {
       console.error('Error:', error);
       toast.error('Could not update role');
     }
-    await loadExperiences();
+    reloadExperiences();
   };
 
   const filteredExperiences = useMemo(() => {

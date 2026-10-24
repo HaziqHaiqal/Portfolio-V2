@@ -4,3 +4,5 @@ onlyBuiltDependencies:
   - '@vercel/speed-insights'
   - sharp
   - unrs-resolver
+overrides:
+  'postcss-selector-parser@<7.1.6': ^7.1.7

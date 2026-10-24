@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
 import {
@@ -63,26 +63,33 @@ export default function CompanySelector({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const loadCompanies = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-      setCompanies(data || []);
-    } catch (error) {
-      console.error('Error loading companies:', error);
-      toast.error('Failed to load companies');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadCompanies = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    void loadCompanies();
-  }, [loadCompanies]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .order('name', { ascending: true });
+        if (!active) return;
+
+        if (error) throw error;
+        setCompanies(data || []);
+      } catch (error) {
+        console.error('Error loading companies:', error);
+        toast.error('Failed to load companies');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const openCreateForm = () => {
     setFormData({ ...emptyForm, id: crypto.randomUUID(), name: searchQuery });
@@ -157,7 +164,7 @@ export default function CompanySelector({
       );
 
       toast.success(isEditing ? 'Company updated' : 'Company created');
-      await loadCompanies();
+      reloadCompanies();
 
       if (!isEditing || value?.id === formData.id) onChange(saved);
 

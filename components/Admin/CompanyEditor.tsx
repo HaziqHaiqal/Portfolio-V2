@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { isEmpty } from 'lodash';
@@ -47,32 +47,39 @@ export default function CompanyEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<Company>();
 
-  const loadCompanies = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-      setCompanies(data || []);
-    } catch (error) {
-      console.error('Error loading companies:', error);
-      toast.error('Failed to load companies');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadCompanies = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadCompanies();
-  }, [loadCompanies]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .order('name', { ascending: true });
+        if (!active) return;
+
+        if (error) throw error;
+        setCompanies(data || []);
+      } catch (error) {
+        console.error('Error loading companies:', error);
+        toast.error('Failed to load companies');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleDelete = async (company: Company) => {
     try {
       await deleteCompanyAction(company.id);
       toast.success(`Deleted ${company.name}`);
-      await loadCompanies();
+      reloadCompanies();
     } catch (error: unknown) {
       console.error('Error deleting company:', error);
       const msg =
@@ -126,7 +133,7 @@ export default function CompanyEditor() {
 
       setShowForm(false);
       setEditingCompany(null);
-      await loadCompanies();
+      reloadCompanies();
     } catch (error: unknown) {
       console.error('Error saving company:', error);
       const msg =

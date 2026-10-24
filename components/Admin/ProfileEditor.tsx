@@ -223,60 +223,64 @@ export default function ProfileEditor() {
 
   const supabase = useMemo(() => createBrowserSupabase(), []);
 
-  const loadProfile = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profile')
-        .select('*')
-        .single();
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profile')
+          .select('*')
+          .single();
+        if (!active) return;
 
-      if (error && error.code !== 'PGRST116') {
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading profile:', error);
+          toast.error('Could not load profile');
+          return;
+        }
+
+        if (data) {
+          const normalized: ProfileData = {
+            ...initialProfileData,
+            ...data,
+            full_name: data.full_name || '',
+            title: data.title || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            location: data.location || '',
+            bio: data.bio || '',
+            about: data.about || '',
+            website_url: data.website_url || '',
+            github_url: data.github_url || '',
+            linkedin_url: data.linkedin_url || '',
+            whatsapp_url: data.whatsapp_url || '',
+            twitter_url: data.twitter_url || '',
+            profile_image_url: data.profile_image_url || '',
+            resume_url: data.resume_url || '',
+            date_of_birth: data.date_of_birth || '',
+            hourly_rate: data.hourly_rate || '',
+            preferred_contact: data.preferred_contact || 'email',
+            timezone: data.timezone || '',
+            availability_status: data.availability_status || 'Available',
+            languages: data.languages || [],
+            years_of_experience: data.years_of_experience || 0,
+            is_freelance_available: data.is_freelance_available || false,
+          };
+          setProfileData(normalized);
+          setSavedSnapshot(JSON.stringify(normalized));
+        }
+      } catch (error) {
         console.error('Error loading profile:', error);
         toast.error('Could not load profile');
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      if (data) {
-        const normalized: ProfileData = {
-          ...initialProfileData,
-          ...data,
-          full_name: data.full_name || '',
-          title: data.title || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          location: data.location || '',
-          bio: data.bio || '',
-          about: data.about || '',
-          website_url: data.website_url || '',
-          github_url: data.github_url || '',
-          linkedin_url: data.linkedin_url || '',
-          whatsapp_url: data.whatsapp_url || '',
-          twitter_url: data.twitter_url || '',
-          profile_image_url: data.profile_image_url || '',
-          resume_url: data.resume_url || '',
-          date_of_birth: data.date_of_birth || '',
-          hourly_rate: data.hourly_rate || '',
-          preferred_contact: data.preferred_contact || 'email',
-          timezone: data.timezone || '',
-          availability_status: data.availability_status || 'Available',
-          languages: data.languages || [],
-          years_of_experience: data.years_of_experience || 0,
-          is_freelance_available: data.is_freelance_available || false,
-        };
-        setProfileData(normalized);
-        setSavedSnapshot(JSON.stringify(normalized));
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      toast.error('Could not load profile');
-    } finally {
-      setLoading(false);
-    }
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, [supabase]);
-
-  useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
 
   const isDirty = JSON.stringify(profileData) !== savedSnapshot;
 

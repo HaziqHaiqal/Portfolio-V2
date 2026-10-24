@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -80,33 +80,40 @@ export default function TemplatesEditor() {
   const supabase = createBrowserSupabase();
   const confirmDelete = useConfirm<WebsiteTemplate>();
 
-  const loadTemplates = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('website_templates')
-        .select('*')
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      setTemplates(
-        (data ?? []).map((row) => ({
-          ...row,
-          price: Number(row.price),
-          compare_price:
-            row.compare_price === null ? null : Number(row.compare_price),
-        })) as WebsiteTemplate[]
-      );
-    } catch (error) {
-      console.error('Error loading templates:', error);
-      toast.error('Failed to load templates');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadTemplates = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_templates')
+          .select('*')
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: true });
+        if (!active) return;
+        if (error) throw error;
+        setTemplates(
+          (data ?? []).map((row) => ({
+            ...row,
+            price: Number(row.price),
+            compare_price:
+              row.compare_price === null ? null : Number(row.compare_price),
+          })) as WebsiteTemplate[]
+        );
+      } catch (error) {
+        console.error('Error loading templates:', error);
+        toast.error('Failed to load templates');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleSave = async (row: TemplateRow) => {
     const duplicate = templates.find(
@@ -123,7 +130,7 @@ export default function TemplatesEditor() {
       toast.success(editing ? 'Template updated' : 'Template created');
       setShowForm(false);
       setEditing(null);
-      await loadTemplates();
+      reloadTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
       const msg =
@@ -142,7 +149,7 @@ export default function TemplatesEditor() {
     try {
       await deleteTemplateAction(template.id);
       toast.success(`Deleted ${template.name}`);
-      await loadTemplates();
+      reloadTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
       toast.error(

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -186,37 +186,44 @@ export default function ProjectsEditor() {
     })
   );
 
-  const loadProjects = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
-      if (error) {
-        console.error('Error loading projects:', error);
-        toast.error('Could not load projects');
-        return;
-      }
-
-      setProjects((data || []).map(normalizeProjectData));
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Could not load projects');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadProjects = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('sort_order', { ascending: true });
+        if (!active) return;
+
+        if (error) {
+          console.error('Error loading projects:', error);
+          toast.error('Could not load projects');
+          return;
+        }
+
+        setProjects((data || []).map(normalizeProjectData));
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('Could not load projects');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase, reloadKey]);
 
   const handleDelete = async (project: ProjectData) => {
     try {
       await deleteProjectAction(project.id!);
       toast.success(`Deleted "${project.title}"`);
-      await loadProjects();
+      reloadProjects();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not delete project');
@@ -239,7 +246,7 @@ export default function ProjectsEditor() {
       toast.success(editingProject?.id ? 'Project updated' : 'Project created');
       setShowForm(false);
       setEditingProject(null);
-      await loadProjects();
+      reloadProjects();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not save project');
@@ -259,11 +266,11 @@ export default function ProjectsEditor() {
         id: project.id,
         is_visible: !project.is_visible,
       });
-      await loadProjects();
+      reloadProjects();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not update project');
-      await loadProjects();
+      reloadProjects();
     }
   };
 
@@ -282,7 +289,7 @@ export default function ProjectsEditor() {
     } catch (error) {
       console.error('Error:', error);
       toast.error('Could not save the new order');
-      await loadProjects();
+      reloadProjects();
     }
   };
 
