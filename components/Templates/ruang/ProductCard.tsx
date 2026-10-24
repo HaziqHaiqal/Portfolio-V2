@@ -123,8 +123,13 @@ export default function ProductCard({
             </span>
           )}
         </Link>
-        <span className="absolute left-2.5 top-2.5">
+        <span className="absolute left-2.5 top-2.5 flex gap-1.5">
           <Badge product={product} />
+          {product.model && (
+            <span className="rounded-full bg-tpl-surface px-2.5 py-1 text-[11px] font-semibold text-tpl-ink">
+              3D
+            </span>
+          )}
         </span>
         <HeartButton
           slug={product.slug}

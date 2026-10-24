@@ -1,11 +1,5 @@
 import type { Metadata } from 'next';
-import {
-  BriefcaseBusiness,
-  Check,
-  CircleHelp,
-  Sparkles,
-  Tag,
-} from 'lucide-react';
+import { Calculator, CircleHelp, PlayCircle } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   getCachedFeaturedDeals,
@@ -13,207 +7,99 @@ import {
   getCachedTemplates,
 } from '@lib/data';
 import {
-  addOnById,
-  CARE_RESPONSE,
-  CARE_TIERS,
-  CARE_YEARLY_SAVING,
-  careMonthly,
-  careYearly,
-  getPromoTargets,
-  getServiceGroups,
-  MOBILE_APP_ESTIMATOR,
-  MULTI_LANGUAGE,
+  BLUEPRINT,
+  CARE,
+  CARE_PLAN,
+  carePrice,
   PAYMENT_TERMS,
-  promoTargetsOf,
+  PRICING_TABS,
   startingPriceOf,
-  TEMPLATE_SUMMARY,
-  WEBSITE_CMS,
-  WEBSITE_ESTIMATOR,
 } from '@constants/services';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { themeClasses } from '@constants/theme';
+import { PAGE_ACCENTS } from '@constants/colors';
 import { formatRM } from '@lib/format';
-import { isTemplateSale } from '@lib/promo';
 import GridBackground from '@components/Layout/GridBackground';
 import FloatingElements from '@components/Layout/FloatingElements';
 import NavBar from '@components/Layout/NavBar';
 import Footer from '@components/Layout/Footer';
+import SplashScreen from '@components/Layout/SplashScreen';
 import SectionHeader from '@components/Common/SectionHeader';
-import PageHeader from '@components/Common/PageHeader';
-import Estimator from '@components/Service/Estimator';
+import Packages from '@components/Service/Packages';
 import ServiceTabs, { type ServiceTab } from '@components/Service/ServiceTabs';
 import TemplateGallery from '@components/Service/TemplateGallery';
-import Recommender from '@components/Service/Recommender';
-import FaqTabs, { type FaqItem } from '@components/Service/FaqTabs';
+import FaqList, { type FaqItem } from '@components/Service/FaqList';
 import { PromoProvider } from '@components/Promo/PromoProvider';
-import { PromoLink } from '@components/Promo/PromoParts';
-import DealList from '@components/Promo/DealList';
+
+const GREEN = PAGE_ACCENTS.green;
+
+const FROM = formatRM(Math.min(...PRICING_TABS.map(startingPriceOf)));
 
 export const metadata: Metadata = {
   title: 'Services | Haziq Haiqal',
-  description:
-    'Ready-made website templates, custom websites, mobile apps and business automation, with clear prices.',
+  description: `Custom and ready-made websites from ${FROM}, online stores, mobile apps and business automation, with clear prices.`,
 };
 
-const SOLID_BUTTON =
-  'inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 px-6 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30';
-
-const OUTLINE_BUTTON =
-  'inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white/60 px-6 text-sm font-medium text-gray-800 backdrop-blur-sm transition-all duration-200 hover:border-green-500/60 hover:text-green-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-200 dark:hover:text-green-400';
-
-const STEPS = [
-  'Choose a template or package, or describe a custom build.',
-  'Send your choices in one WhatsApp message.',
-  'Pages, features, price and timeline are agreed before work starts.',
-  'Go live with lifetime bug fixes, kept online by the Care Plan.',
-];
-
-const formatStartingPrice = (config: typeof WEBSITE_ESTIMATOR) => {
-  const from = startingPriceOf(config);
-  return from === null ? 'By quotation' : `From ${formatRM(from)}`;
-};
-
-const fixedPackages = WEBSITE_ESTIMATOR.packages.filter(
-  (pkg) => pkg.price !== undefined
-);
-const customFrom = Math.min(
-  ...WEBSITE_ESTIMATOR.customPackages.map((build) => build.from)
-);
-const pwa = addOnById('pwa');
-const cart = addOnById('whatsapp-cart');
-const appointments = addOnById('appointment-request');
-const paymentLink = addOnById('payment-link');
-
-const lowerFirst = (text: string) =>
-  /^[A-Z][a-z]*\b/.test(text)
-    ? text.charAt(0).toLowerCase() + text.slice(1)
-    : text;
-
-const webCare = WEBSITE_ESTIMATOR.carePlan;
-const careIncludes = `${webCare.includes
-  .map((item, index) => (index ? lowerFirst(item) : item))
-  .join(', ')}.`;
-const CARE_PLANS: {
-  name: string;
-  for: string;
-  price: string;
-  yearly?: string;
-  text: string;
-}[] = [
-  ...(['basic', 'business'] as const).map((id) => ({
-    name: CARE_TIERS[id].name,
-    for: CARE_TIERS[id].for,
-    price: `${formatRM(careMonthly(webCare, false, CARE_TIERS[id]))}/month`,
-    yearly: `${formatRM(careYearly(webCare, false, CARE_TIERS[id]))}/year`,
-    text: careIncludes,
-  })),
-  {
-    name: 'With a database',
-    for: 'Standard or Advanced with an Admin portal',
-    price: `+${formatRM(webCare.databasePrice ?? 0)}/month`,
-    text: `Adds ${(webCare.databaseIncludes ?? []).map(lowerFirst).join(' and ')}.`,
-  },
-  {
-    name: CARE_TIERS.custom.name,
-    for: CARE_TIERS.custom.for,
-    price: `From ${formatRM(CARE_TIERS.custom.monthlyPrice)}/month`,
-    text: 'Database and backups included. Confirmed in your quote.',
-  },
-  {
-    name: 'Mobile app',
-    for: 'Android and iOS apps',
-    price: 'By quotation',
-    text: 'Confirmed in your app quote.',
-  },
+const CARE_LIST = [
+  CARE.starter,
+  CARE.business,
+  CARE.premium,
+  CARE.store,
+  CARE.system,
+  CARE.app,
+  CARE.automation,
 ];
 
 const FAQS: FaqItem[] = [
   {
-    question: 'How does it work?',
-    answer: (
-      <ol className="space-y-3">
-        {STEPS.map((step, index) => (
-          <li key={step} className="flex gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500/10 text-xs font-bold text-green-700 dark:text-green-400">
-              {index + 1}
-            </span>
-            {step}
-          </li>
-        ))}
-      </ol>
-    ),
-  },
-  {
-    question: 'How much does a website or app cost?',
-    answer: `Templates show their price on each design. Custom websites are ${fixedPackages
-      .map((pkg) => `${formatRM(pkg.price ?? 0)} (${pkg.name})`)
-      .join(
-        ' or '
-      )}, and stores, bookings and portals start at ${formatRM(customFrom)}${WEBSITE_ESTIMATOR.customAdmin ? `, plus an ${WEBSITE_ESTIMATOR.customAdmin.name} from ${formatRM(WEBSITE_ESTIMATOR.customAdmin.price)}, priced by the features you pick` : ''}. Mobile apps are quoted after a short chat. The ${webCare.name} is paid monthly or yearly, from ${formatRM(webCare.monthlyPrice)} a month.`,
-  },
-  {
-    id: 'care-plan',
-    question: `What is the ${webCare.name}?`,
+    question: `What is the ${CARE_PLAN}?`,
     answer: (
       <>
         <p>
-          Every project needs a plan to stay online. The price depends on how
-          much there is to look after. Pay monthly, or yearly and save{' '}
-          {CARE_YEARLY_SAVING}%.
+          Every website, system and app needs one to stay online. It covers
+          hosting, SSL, security updates and backups, and the price depends on
+          how much there is to look after.
         </p>
         <ul className="mt-4 divide-y divide-gray-200 rounded-2xl bg-gray-100/80 px-4 dark:divide-gray-700/70 dark:bg-gray-900/40">
-          {CARE_PLANS.map((plan) => (
-            <li key={plan.name} className="py-3">
-              <p className="flex flex-wrap items-baseline justify-between gap-x-4">
-                <span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {plan.name}
-                  </span>
-                  <span className="text-gray-500 dark:text-gray-400">
-                    {' '}
-                    · {plan.for}
-                  </span>
-                </span>
-                <span className="text-sm">
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {plan.price}
-                  </span>
-                  {plan.yearly && ` or ${plan.yearly}`}
-                </span>
-              </p>
-              <p className="mt-0.5 text-sm">{plan.text}</p>
+          {CARE_LIST.map((tier) => (
+            <li
+              key={tier.for}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 py-3"
+            >
+              <span>{tier.for}</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                {carePrice(tier)}
+              </span>
             </li>
           ))}
         </ul>
         <p className="mt-4">
-          {CARE_RESPONSE} If the plan stops, the site or app goes offline, and
-          the code is yours to host elsewhere.
+          Pay yearly and get 2 months free. Replies come within 1 working day,
+          with same-day help when your site or app is down, where possible. If
+          the plan stops, the site or app goes offline, and the code is yours to
+          host elsewhere.
         </p>
       </>
     ),
   },
   {
-    question: 'What else will I pay for?',
-    answer:
-      'Your domain name, and any fees from other companies, which you pay to them directly: Apple Developer (USD 99 a year) and Google Play (USD 25 once) for mobile apps, payment gateway fees, WhatsApp or SMS charges and paid APIs. Prices on this page are in Malaysian Ringgit (RM).',
+    question: 'How does payment work?',
+    answer: `${PAYMENT_TERMS}. Systems and apps start with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.name}: ${BLUEPRINT.description.charAt(0).toLowerCase()}${BLUEPRINT.description.slice(1)} If you decide not to go ahead, the written scope is still yours.`,
   },
   {
-    question: 'How does payment work?',
-    answer: `${PAYMENT_TERMS}. Terms are negotiable, and the final price and timeline are confirmed before work starts.`,
+    question: 'What if I need something that is not listed?',
+    answer:
+      'Ask on WhatsApp. Extra pages, languages and features are quoted, and the price is agreed in writing before any work starts. Have a promo code? Enter it when you order a template, or add it to your message.',
+  },
+  {
+    question: 'What else will I pay for?',
+    answer:
+      'Your domain name, and fees you pay directly to other companies: payment gateway fees, WhatsApp message fees to Meta, AI usage fees, and for apps, Apple Developer (USD 99 a year) and Google Play (USD 25 once). Prices on this page are in Malaysian Ringgit (RM).',
   },
   {
     question: 'What happens after launch?',
-    answer: `Bug fixes are free for life: if the delivered work stops working as agreed, it is fixed free. This excludes problems caused by other people's changes or third-party services. New pages and features are quoted, and the cost is confirmed before any work starts.`,
-  },
-  {
-    question: 'How do I update my content after launch?',
     answer:
-      'With the Admin portal, you update the parts you chose yourself, at no extra cost. Without it, every content change, even a new photo, price or line of text, is done for you and charged by how complex it is. The cost is confirmed before any work starts.',
-  },
-  {
-    question: 'Who owns the website or app?',
-    answer:
-      'You do. Your domain and app store accounts are in your name from the start, and the code and content are yours once the final payment is made. Hosting is managed for you as part of the Care Plan.',
+      'Bug fixes are free for life: if the delivered work stops working as agreed, it is fixed free. This excludes problems caused by other people’s changes or third-party services. Business and Premium websites come with a Site editor, so you update text, photos and prices yourself, and systems come with an Admin portal. Other changes are quoted before any work starts.',
   },
   {
     question: 'What do I need to provide?',
@@ -221,60 +107,9 @@ const FAQS: FaqItem[] = [
       'Your text, logo and photos. Copywriting can be quoted separately if you need help with the words.',
   },
   {
-    question: 'What does a template include?',
-    answer: `${TEMPLATE_SUMMARY} Add-ons have fixed prices: add-ons that fit your type of business${cart && appointments ? `, such as a ${lowerFirst(cart.name)} at ${formatRM(cart.price)} or ${lowerFirst(appointments.name)}s at ${formatRM(appointments.price)}` : ''}, extra languages at ${formatRM(MULTI_LANGUAGE.pricePerLanguage)} each, and an Admin portal from ${formatRM(WEBSITE_CMS.price)}.${paymentLink ? ` Shop and café templates can add a payment link, so customers pay by FPX, card or e-wallet after a WhatsApp order, as a quoted add-on from ${formatRM(paymentLink.price)}.` : ''}`,
-  },
-  ...(pwa
-    ? [
-        {
-          question: 'What is an installable app (PWA)?',
-          answer: `Your website, installed on the phone home screen like an app. It opens full screen and works on a weak signal, without the App Store or Google Play. It costs ${formatRM(pwa.price)} on top of any website or template, much less than a mobile app.`,
-        },
-      ]
-    : []),
-  {
-    question: 'Can I use a promo code?',
+    question: 'Who owns the website or app?',
     answer:
-      'Yes, on templates and on Standard and Advanced packages, depending on the code. Enter it before sending your order and it is added to your WhatsApp message.',
-  },
-];
-
-const faq = (question: string) => {
-  const item = FAQS.find((entry) => entry.question === question);
-  if (!item) throw new Error(`Missing FAQ: ${question}`);
-  return item;
-};
-
-const FAQ_GROUPS = [
-  {
-    id: 'start',
-    label: 'Getting started',
-    items: [
-      faq('How does it work?'),
-      faq('What do I need to provide?'),
-      faq('What does a template include?'),
-      ...FAQS.filter((item) => item.question.includes('(PWA)')),
-    ],
-  },
-  {
-    id: 'pricing',
-    label: 'Pricing',
-    items: [
-      faq('How much does a website or app cost?'),
-      faq('What else will I pay for?'),
-      faq('How does payment work?'),
-      faq('Can I use a promo code?'),
-    ],
-  },
-  {
-    id: 'after-launch',
-    label: 'After launch',
-    items: [
-      faq(`What is the ${webCare.name}?`),
-      faq('What happens after launch?'),
-      faq('How do I update my content after launch?'),
-      faq('Who owns the website or app?'),
-    ],
+      'You do. Your domain and app store accounts are in your name from the start, and the code and content are yours once the final payment is made.',
   },
 ];
 
@@ -291,108 +126,19 @@ export default async function ServicePage() {
     getCachedFeaturedDeals().catch(() => []),
   ]);
   const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
-  const promoTargets = getPromoTargets();
-  const vouchers = deals.filter((deal) => !isTemplateSale(deal));
-  const automation = getServiceGroups(whatsappUrl)
-    .flatMap((group) => group.items)
-    .find((service) => service.id === 'automation');
 
-  const templatesFrom = templates.length
-    ? Math.min(...templates.map((template) => template.price))
-    : null;
-
-  const tabs: ServiceTab[] = [
-    ...(templates.length
-      ? [
-          {
-            id: 'templates',
-            label: 'Templates',
-            tagline: 'Ready-made designs, your content',
-            price: `From ${formatRM(templatesFrom ?? 0)}`,
-            panel: (
-              <TemplateGallery
-                templates={templates}
-                whatsappHref={whatsappUrl}
-                deals={deals}
-              />
-            ),
-          },
-        ]
-      : []),
-    ...[WEBSITE_ESTIMATOR, MOBILE_APP_ESTIMATOR].map((config) => ({
-      id: config.id,
-      label: config.label,
-      tagline:
-        config.id === 'website'
-          ? 'Designed for your brand'
-          : 'Android and iOS apps',
-      price: formatStartingPrice(config),
-      panel: (
-        <Estimator
-          config={config}
-          whatsappHref={whatsappUrl}
-          promoTargets={promoTargets}
-        />
-      ),
-    })),
-    ...(automation
-      ? [
-          {
-            id: 'automation',
-            label: 'Automation',
-            tagline: 'Chatbots, WhatsApp orders and workflows',
-            price: 'By quotation',
-            panel: (
-              <div className="mx-auto grid max-w-5xl items-center gap-8 rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-10 md:grid-cols-[1fr_auto]">
-                <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">
-                    {automation.title}
-                  </h3>
-                  <p className="mt-3 max-w-xl leading-relaxed text-gray-600 dark:text-gray-400">
-                    {automation.description}
-                  </p>
-                  <ul className="mt-6 space-y-2.5">
-                    {automation.highlights?.map((item) => (
-                      <li
-                        key={item}
-                        className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
-                      >
-                        <Check
-                          size={16}
-                          aria-hidden="true"
-                          className="mt-0.5 shrink-0 text-green-500"
-                        />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  {automation.note && (
-                    <p className="mt-6 max-w-xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      {automation.note}
-                    </p>
-                  )}
-                </div>
-                {automation.cta && (
-                  <PromoLink
-                    href={automation.cta.href}
-                    targets={promoTargetsOf(automation).map(
-                      (target) => target.id
-                    )}
-                    className={SOLID_BUTTON}
-                  >
-                    Request a quote
-                    <SiWhatsapp size={15} aria-hidden="true" />
-                  </PromoLink>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
-  ];
+  const tabs: ServiceTab[] = PRICING_TABS.map((tab) => ({
+    id: tab.id,
+    label: tab.label,
+    shortLabel: tab.shortLabel,
+    tagline: tab.tagline,
+    price: `From ${formatRM(startingPriceOf(tab))}`,
+    panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
+  }));
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      <SplashScreen />
       <div className={`relative ${themeClasses.bg.primary}`}>
         <GridBackground />
         <FloatingElements />
@@ -400,79 +146,66 @@ export default async function ServicePage() {
 
         <PromoProvider>
           <main className="relative z-10">
+            <h1 className="sr-only">Services & Pricing</h1>
             <section className="px-6 pb-20 pt-28 sm:px-10 md:pb-28 md:pt-40 lg:px-16">
               <div className="mx-auto max-w-6xl">
-                <PageHeader
-                  icon={BriefcaseBusiness}
-                  title="Services & Pricing"
-                  subtitle="Pick a service to see what you get and what it costs."
+                <SectionHeader
+                  icon={PlayCircle}
+                  title="Try a Live Demo"
+                  accentClass={GREEN.icon}
+                  gradientClass={GREEN.bar}
                 />
-
-                <ServiceTabs tabs={tabs} />
+                <TemplateGallery
+                  templates={templates}
+                  whatsappHref={whatsappUrl}
+                  deals={deals}
+                  limit={6}
+                  seeAllHref="/services/demos"
+                />
               </div>
             </section>
 
-            {vouchers.length > 0 && (
-              <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
-                <div className="mx-auto max-w-3xl">
-                  <SectionHeader
-                    icon={Tag}
-                    title="Deals"
-                    accentClass="text-green-500"
-                    gradientClass="from-green-600 to-green-400"
-                  />
-                  <DealList
-                    deals={vouchers}
-                    templateNames={Object.fromEntries(
-                      templates.map((template) => [
-                        template.slug,
-                        template.name,
-                      ])
-                    )}
-                  />
-                </div>
-              </section>
-            )}
+            <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
+              <div className="mx-auto max-w-6xl">
+                <SectionHeader
+                  icon={Calculator}
+                  title="Pricing"
+                  accentClass={GREEN.icon}
+                  gradientClass={GREEN.bar}
+                />
+                <ServiceTabs tabs={tabs} />
+              </div>
+            </section>
 
             <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
               <div className="mx-auto max-w-3xl">
                 <SectionHeader
                   icon={CircleHelp}
                   title="Good to Know"
-                  accentClass="text-purple-500"
-                  gradientClass="from-purple-600 to-purple-400"
+                  accentClass={GREEN.icon}
+                  gradientClass={GREEN.bar}
                 />
-                <FaqTabs groups={FAQ_GROUPS} />
+                <FaqList items={FAQS} />
 
                 <div className="mt-16 text-center">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 sm:text-2xl">
                     Not sure which to pick?
                   </h2>
                   <p className="mt-2 text-gray-600 dark:text-gray-400">
-                    Answer a few quick questions for a suggestion, or ask on
-                    WhatsApp.
+                    Tell me about your business and I&apos;ll suggest one.
                   </p>
-                  <div className="mt-6 grid gap-3 sm:flex sm:justify-center">
-                    <Recommender
-                      templatesFrom={templatesFrom}
-                      className={SOLID_BUTTON}
-                    >
-                      <Sparkles size={15} aria-hidden="true" />
-                      Get a suggestion
-                    </Recommender>
-                    <a
-                      href={withMessage(
-                        whatsappUrl,
-                        "Hi Haziq, I'd like to discuss a project."
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={OUTLINE_BUTTON}
-                    >
-                      Chat on WhatsApp
-                      <SiWhatsapp size={15} aria-hidden="true" />
-                    </a>
-                  </div>
+                  <a
+                    href={withMessage(
+                      whatsappUrl,
+                      "Hi Haziq, I'm not sure which package fits my business. Can you suggest one?"
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 px-6 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30"
+                  >
+                    <SiWhatsapp size={15} aria-hidden="true" />
+                    Chat on WhatsApp
+                  </a>
                 </div>
               </div>
             </section>

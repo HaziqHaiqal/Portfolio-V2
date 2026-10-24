@@ -1,45 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowUpRight, Check, ChevronDown, LayoutTemplate } from 'lucide-react';
+import { ArrowUpRight, Check, LayoutTemplate } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
-  ADD_ONS,
-  careFirstPayment,
-  careName,
+  CARE_PLAN,
+  careForTemplate,
   carePrice,
-  careTierForTemplate,
-  type CareBilling,
-  cmsLabel,
-  cmsPrice,
-  GATEWAY_RUNNING_COST,
+  countLabel,
+  GATEWAY_FEES,
   isStoreTemplate,
-  MULTI_LANGUAGE,
-  offeredFor,
-  SITE_TYPES,
-  STORE_TEMPLATE_ADD_ONS,
-  STORE_TEMPLATE_ADMIN_ADD_ONS,
+  pageCount,
+  PAYMENT_TERMS,
   templateCategoryLabel,
   TEMPLATE_INCLUDES,
   TEMPLATE_PROMO_TARGET,
   templatePromoTarget,
-  toggleAddOn,
-  WEBSITE_CMS,
-  WEBSITE_ESTIMATOR,
 } from '@constants/services';
-import { formatRM, formatRMRange } from '@lib/format';
+import { formatRM } from '@lib/format';
 import UniversalImage from '@components/Media/UniversalImage';
 import PromoField from '@components/Promo/PromoField';
 import { PromoPerks } from '@components/Promo/PromoParts';
 import { usePromo } from '@components/Promo/PromoProvider';
-import { type AppliedPromo, discountedPrice, promoAppliesTo } from '@lib/promo';
-import BillingSwitch from './BillingSwitch';
+import DealSuggestion from '@components/Promo/DealSuggestion';
+import { discountedPrice, promoAppliesTo } from '@lib/promo';
+import type { FeaturedDeal } from '@lib/data';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
-import DealSuggestion from '@components/Promo/DealSuggestion';
-import type { FeaturedDeal } from '@lib/data';
-import AddOnChecklist from './AddOnChecklist';
 
 export default function TemplateOrder({
   template,
@@ -56,72 +43,17 @@ export default function TemplateOrder({
   whatsappHref: string;
   onClose: () => void;
 }) {
-  const [showExtras, setShowExtras] = useState(false);
-  const [featureIds, setFeatureIds] = useState<string[]>([]);
-  const [cmsTabIds, setCmsTabIds] = useState<string[] | null>(null);
-  const [languages, setLanguages] = useState<string[]>([]);
-  const carePlan = WEBSITE_ESTIMATOR.carePlan;
+  const { promo } = usePromo();
   const store = isStoreTemplate(template.category);
-  const careTier = careTierForTemplate(template);
-  const careLabel = careName(carePlan, careTier);
-  const [billing, setBilling] = useState<CareBilling>('monthly');
-
-  const siteTypeEntry = SITE_TYPES.find(
-    (type) => type.id === template.category
-  );
-  const siteType = siteTypeEntry?.id ?? null;
-  const categoryLabel = templateCategoryLabel(template.category);
+  const care = careForTemplate(template);
+  const careLabel = `${CARE_PLAN} (${care.name})`;
+  const careText = `${carePrice(care)} after launch`;
+  const pages = pageCount(template.pages);
   const saving =
     template.compare_price != null && template.compare_price > template.price
       ? template.compare_price - template.price
       : 0;
 
-  const includedFeatures = ADD_ONS.filter(
-    (addOn) => siteType !== null && addOn.includedIn?.includes(siteType)
-  );
-  const includedIds = includedFeatures.map((addOn) => addOn.id);
-  // A store already takes payments and has its dashboard, so it offers its own add-ons.
-  const optionalFeatures = store
-    ? [...STORE_TEMPLATE_ADMIN_ADD_ONS, ...STORE_TEMPLATE_ADD_ONS]
-    : ADD_ONS.filter(
-        (addOn) =>
-          offeredFor(addOn, siteType) && !includedIds.includes(addOn.id)
-      );
-  const typedOptional = optionalFeatures.filter((addOn) => addOn.siteTypes);
-  const everyOptional = optionalFeatures.filter((addOn) => !addOn.siteTypes);
-  const chosen = optionalFeatures.filter((addOn) =>
-    featureIds.includes(addOn.id)
-  );
-  const fixedChosen = chosen.filter((addOn) => !addOn.priceTo);
-  const quotedChosen = chosen.filter((addOn) => addOn.priceTo);
-  const quoted = quotedChosen.length > 0;
-  const quotedFrom = quotedChosen.reduce((sum, addOn) => sum + addOn.price, 0);
-  const quotedTo = quotedChosen.reduce(
-    (sum, addOn) => sum + (addOn.priceTo ?? addOn.price),
-    0
-  );
-  const rangeOf = (addOn: (typeof ADD_ONS)[number]) =>
-    formatRMRange(addOn.price, addOn.priceTo ?? addOn.price);
-  const cmsTotal = cmsPrice(WEBSITE_CMS, cmsTabIds);
-
-  const lines = [
-    { label: `${template.name} template`, price: template.price },
-    ...fixedChosen.map((addOn) => ({ label: addOn.name, price: addOn.price })),
-    ...(languages.length
-      ? [
-          {
-            label: `${MULTI_LANGUAGE.name}: ${languages.join(', ')}`,
-            price: languages.length * MULTI_LANGUAGE.pricePerLanguage,
-          },
-        ]
-      : []),
-    ...(cmsTotal
-      ? [{ label: cmsLabel(WEBSITE_CMS, cmsTabIds ?? []), price: cmsTotal }]
-      : []),
-  ];
-  const total = lines.reduce((sum, line) => sum + line.price, 0);
-  const extrasCount = lines.length - 1 + quotedChosen.length;
-  const { promo } = usePromo();
   const thisTemplateTarget = {
     id: templatePromoTarget(template.slug),
     name: template.name,
@@ -131,73 +63,44 @@ export default function TemplateOrder({
   const saleAmount = sale
     ? template.price - discountedPrice(template.price, sale)
     : 0;
-  const afterSale = total - saleAmount;
+  const afterSale = template.price - saleAmount;
   const eligiblePromo =
-    promo && !quoted && promoAppliesTo(promo, promoTargetIds) ? promo : null;
-  const afterPromo = eligiblePromo
+    promo && promoAppliesTo(promo, promoTargetIds) ? promo : null;
+  const total = eligiblePromo
     ? discountedPrice(afterSale, eligiblePromo)
     : afterSale;
-  const careWithDatabase = cmsTabIds !== null;
-  const careText = carePrice(carePlan, careWithDatabase, billing, careTier);
-  const firstCare = careFirstPayment(
-    carePlan,
-    careWithDatabase,
-    billing,
-    careTier
-  );
-  const grandTotal = quoted
-    ? formatRMRange(
-        afterSale + quotedFrom + firstCare.amount,
-        afterSale + quotedTo + firstCare.amount
-      )
-    : formatRM(afterPromo + firstCare.amount);
+  const promoAmount = afterSale - total;
 
   const href = (() => {
     const url = new URL(whatsappHref);
     url.searchParams.set(
       'text',
       [
-        quoted
-          ? `Hi Haziq, I'd like a quote for the ${template.name} template with ${quotedChosen.map((addOn) => addOn.name.toLowerCase()).join(' and ')}.`
-          : `Hi Haziq, I'd like the ${template.name} template.`,
-        ...lines.map((line) => `• ${line.label}: ${formatRM(line.price)}`),
-        ...quotedChosen.map(
-          (addOn) => `• ${addOn.name}: ${rangeOf(addOn)} (to be quoted)`
-        ),
-        `• ${careLabel}: ${careText} (first ${firstCare.period} included)`,
+        `Hi Haziq, I'd like the ${template.name} template.`,
+        `• ${template.name} template: ${formatRM(template.price)}`,
         ...(sale && saleAmount
           ? [`• Deal (${sale.title || sale.code}): −${formatRM(saleAmount)}`]
           : []),
-        ...(eligiblePromo && afterPromo < afterSale
-          ? [
-              `• Promo ${eligiblePromo.code}: −${formatRM(afterSale - afterPromo)}`,
-            ]
+        ...(eligiblePromo && promoAmount
+          ? [`• Promo ${eligiblePromo.code}: −${formatRM(promoAmount)}`]
           : []),
-        `${quoted ? 'Estimated total' : 'Total'}: ${grandTotal}`,
-        quoted
-          ? 'Please confirm the final quote and what you need from me.'
-          : 'Please let me know what you need from me to get started.',
+        `• ${careLabel}: ${careText}`,
+        `Total: ${formatRM(total)}`,
+        'Please let me know what you need from me to get started.',
       ].join('\n')
     );
     return url.toString();
   })();
-
-  const toggle = (id: string) =>
-    setFeatureIds((ids) => toggleAddOn(ids, id, includedIds));
 
   const orderButton = (className = '') => (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-4 ${
-        quoted
-          ? 'bg-purple-600 shadow-purple-600/20 hover:bg-purple-700 focus-visible:ring-purple-500/30'
-          : 'bg-green-600 shadow-green-600/20 hover:bg-green-700 focus-visible:ring-green-500/30'
-      } ${className}`}
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 px-5 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30 ${className}`}
     >
       <SiWhatsapp size={16} aria-hidden="true" />
-      {quoted ? 'Request a quote' : 'Order on WhatsApp'}
+      Order on WhatsApp
     </a>
   );
 
@@ -227,8 +130,8 @@ export default function TemplateOrder({
 
           <div className="mt-4 flex items-baseline justify-between gap-4">
             <p className="min-w-0 text-sm text-gray-500 dark:text-gray-400">
-              {categoryLabel}
-              {template.pages && ` · ${template.pages}`}
+              {templateCategoryLabel(template.category)}
+              {pages !== null && ` · ${countLabel(pages, 'page')}`}
             </p>
             {template.demo_url && (
               <a
@@ -245,12 +148,7 @@ export default function TemplateOrder({
 
           <h4 className="mt-6 text-sm font-semibold">What&apos;s included</h4>
           <ul className="mt-3 space-y-2">
-            {[
-              ...(store
-                ? template.features
-                : includedFeatures.map((feature) => feature.name)),
-              ...TEMPLATE_INCLUDES,
-            ].map((item) => (
+            {[...template.features, ...TEMPLATE_INCLUDES].map((item) => (
               <li
                 key={item}
                 className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
@@ -264,167 +162,62 @@ export default function TemplateOrder({
               </li>
             ))}
           </ul>
-          {store && (
-            <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-              {GATEWAY_RUNNING_COST}. You sign up with the gateway in your
-              business name, and we connect it.
-            </p>
-          )}
-
-          <div className="mt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              aria-expanded={showExtras}
-              aria-controls="template-extras"
-              onClick={() => setShowExtras((value) => !value)}
-              className="flex w-full items-center justify-between gap-3 py-4 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
-            >
-              <span>
-                Add-ons{' '}
-                <span className="font-normal text-gray-500 dark:text-gray-400">
-                  (optional)
-                </span>
-                {extrasCount > 0 && (
-                  <span className="font-medium text-green-700 dark:text-green-400">
-                    {' '}
-                    · {extrasCount} added
-                  </span>
-                )}
-              </span>
-              <ChevronDown
-                size={18}
-                aria-hidden="true"
-                className={`shrink-0 text-gray-500 transition-transform duration-200 ${
-                  showExtras ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-            {showExtras && (
-              <div id="template-extras" className="pb-4">
-                <AddOnChecklist
-                  idPrefix="template"
-                  groups={
-                    store
-                      ? [
-                          {
-                            label: 'Add to the Admin portal',
-                            addOns: STORE_TEMPLATE_ADMIN_ADD_ONS,
-                          },
-                          {
-                            label: 'Other add-ons',
-                            addOns: STORE_TEMPLATE_ADD_ONS,
-                          },
-                        ]
-                      : [
-                          ...(typedOptional.length
-                            ? [
-                                {
-                                  label:
-                                    siteTypeEntry?.heading ?? categoryLabel,
-                                  addOns: typedOptional,
-                                },
-                              ]
-                            : []),
-                          { label: 'Other add-ons', addOns: everyOptional },
-                        ]
-                  }
-                  selected={featureIds}
-                  onToggle={toggle}
-                  languages={languages}
-                  onLanguagesChange={setLanguages}
-                  cms={store ? undefined : WEBSITE_CMS}
-                  cmsSelection={cmsTabIds}
-                  onCmsChange={setCmsTabIds}
-                  siteType={siteType}
-                />
-              </div>
-            )}
-          </div>
+          <p className="mt-4 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            {store &&
+              `${GATEWAY_FEES}. You sign up with the gateway in your business name, and it is connected for you. `}
+            Anything not listed is quoted on WhatsApp before any work starts.
+          </p>
         </>
       }
       order={
-        <>
-          <OrderSummary
-            id="template-order-summary"
-            plain
-            lines={[
-              ...lines.map((line) => ({
-                label: line.label,
-                value: formatRM(line.price),
-              })),
-              ...quotedChosen.map((addOn) => ({
-                label: `${addOn.name} (quoted)`,
-                value: rangeOf(addOn),
-              })),
-              {
-                label: careLabel,
-                value: careText,
-                detail: (
-                  <BillingSwitch
-                    name="template-billing"
-                    value={billing}
-                    onChange={setBilling}
-                    label={`Pay the ${carePlan.name}`}
-                  />
-                ),
-              },
-            ]}
-            discount={[
-              ...(sale && saleAmount
-                ? [
-                    {
-                      label: `Deal: ${sale.title || 'Sale'}`,
-                      amount: saleAmount,
-                    },
-                  ]
-                : []),
-              ...(eligiblePromo && afterPromo < afterSale
-                ? [
-                    {
-                      label: `Promo ${eligiblePromo.code}`,
-                      amount: afterSale - afterPromo,
-                    },
-                  ]
-                : []),
-            ]}
-            totalLabel={quoted ? 'Estimated total' : 'Total'}
-            total={grandTotal}
-            note={`Includes ${formatRM(firstCare.amount)} for the first ${firstCare.period}, then ${careText}`}
-            quoted={quoted}
-            action={orderButton('hidden w-full md:inline-flex')}
-            footnote={
-              saving > 0 && (
-                <p className="mt-3 text-xs font-medium text-green-700 dark:text-green-400 md:text-center">
-                  {formatRM(saving)} less than a custom build
-                </p>
-              )
-            }
-          >
-            <ul className="space-y-2 empty:hidden">
-              <PromoPerks target={promoTargetIds} quoted={false} />
-            </ul>
-            <DealSuggestion deal={suggestion} />
-            <PromoField
-              targets={[TEMPLATE_PROMO_TARGET, thisTemplateTarget]}
-              inputId="template-promo-code"
-            />
-          </OrderSummary>
-        </>
+        <OrderSummary
+          id="template-order-summary"
+          plain
+          lines={[
+            {
+              label: `${template.name} template`,
+              value: formatRM(template.price),
+            },
+            { label: careLabel, value: careText },
+          ]}
+          discount={[
+            ...(sale && saleAmount
+              ? [{ label: `Deal: ${sale.title || 'Sale'}`, amount: saleAmount }]
+              : []),
+            ...(eligiblePromo && promoAmount
+              ? [{ label: `Promo ${eligiblePromo.code}`, amount: promoAmount }]
+              : []),
+          ]}
+          totalLabel="Total"
+          total={formatRM(total)}
+          note={PAYMENT_TERMS}
+          action={orderButton('hidden w-full md:inline-flex')}
+          footnote={
+            saving > 0 && (
+              <p className="mt-3 text-xs font-medium text-green-700 dark:text-green-400 md:text-center">
+                {formatRM(saving)} less than a custom build
+              </p>
+            )
+          }
+        >
+          <ul className="space-y-2 empty:hidden">
+            <PromoPerks target={promoTargetIds} quoted={false} />
+          </ul>
+          <DealSuggestion deal={suggestion} />
+          <PromoField
+            targets={[TEMPLATE_PROMO_TARGET, thisTemplateTarget]}
+            inputId="template-promo-code"
+          />
+        </OrderSummary>
       }
       bar={
         <>
           <div className="min-w-0">
-            <p
-              className={`truncate font-black tracking-tight ${
-                quoted
-                  ? 'text-base text-purple-700 dark:text-purple-300'
-                  : 'text-xl'
-              }`}
-            >
-              {grandTotal}
+            <p className="truncate text-xl font-black tracking-tight">
+              {formatRM(total)}
             </p>
             <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              then {careText}
+              then {carePrice(care)}
             </p>
           </div>
           {orderButton('shrink-0')}

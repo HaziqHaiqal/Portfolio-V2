@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, RotateCcw, ShieldCheck, Store, Truck } from 'lucide-react';
+import { Box, Plus, RotateCcw, ShieldCheck, Store, Truck } from 'lucide-react';
 import Photo from '@components/Templates/Photo';
 import { QtyStepper, rm } from '@components/Templates/Bag';
 import {
@@ -32,6 +33,16 @@ import {
 } from './ui';
 
 const LOW_STOCK = 5;
+
+// three.js loads only when someone opens the 3D view.
+const Product3D = dynamic(() => import('./Product3D'), {
+  ssr: false,
+  loading: () => (
+    <span className="absolute inset-0 flex items-center justify-center text-sm text-tpl-muted">
+      Loading 3D…
+    </span>
+  ),
+});
 
 function Fold({
   title,
@@ -74,7 +85,17 @@ export default function ProductDetail({ product }: { product: Product }) {
     () => variants.find((combo) => stockOf(combo) > 0) ?? variants[0]
   );
   const [imageIndex, setImageIndex] = useState(0);
+  const [show3d, setShow3d] = useState(false);
   const [qty, setQty] = useState(1);
+
+  // "?view=3d" opens the 3D view straight away, as the services page links it.
+  useEffect(() => {
+    if (!product.model) return;
+    if (new URLSearchParams(window.location.search).get('view') !== '3d')
+      return;
+    const frame = requestAnimationFrame(() => setShow3d(true));
+    return () => cancelAnimationFrame(frame);
+  }, [product.model]);
 
   const stock = hydrated ? stockOf(values) : null;
   const unit = unitPrice(product, values);
@@ -96,6 +117,11 @@ export default function ProductDetail({ product }: { product: Product }) {
       option.values.filter((value) => value.label === values[index])
     )
     .find((value) => value.swatch)?.swatch;
+
+  const modelScale =
+    values
+      .map((value) => product.model?.sizes?.[value])
+      .find((scale) => scale !== undefined) ?? 1;
 
   const pick = (index: number, label: string) => {
     setValues(values.map((value, i) => (i === index ? label : value)));
@@ -139,15 +165,31 @@ export default function ProductDetail({ product }: { product: Product }) {
             className="self-start rounded-[28px] bg-tpl-surface p-3 transition-colors duration-700 lg:sticky lg:top-36"
           >
             <div className="relative aspect-square overflow-hidden rounded-[22px] bg-tpl-tint">
-              <Photo
-                key={product.images[imageIndex]}
-                src={product.images[imageIndex]}
-                alt={product.name}
-                fill
-                loading="eager"
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="animate-[tpl-rise_500ms_ease-out] object-cover"
-              />
+              {show3d && product.model ? (
+                <>
+                  <div className="absolute inset-0">
+                    <Product3D
+                      model={product.model}
+                      color={stage ?? product.model.color}
+                      scale={modelScale}
+                      label={product.name}
+                    />
+                  </div>
+                  <span className="pointer-events-none absolute bottom-3 left-1/2 w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 rounded-full bg-tpl-surface/90 px-3 py-1.5 text-center text-xs font-medium backdrop-blur">
+                    Drag to turn · glaze and size follow your choice
+                  </span>
+                </>
+              ) : (
+                <Photo
+                  key={product.images[imageIndex]}
+                  src={product.images[imageIndex]}
+                  alt={product.name}
+                  fill
+                  loading="eager"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="animate-[tpl-rise_500ms_ease-out] object-cover"
+                />
+              )}
               <span className="absolute left-3 top-3">
                 <Badge product={product} />
               </span>
@@ -157,17 +199,20 @@ export default function ProductDetail({ product }: { product: Product }) {
                 className="absolute right-3 top-3 h-11 w-11"
               />
             </div>
-            {product.images.length > 1 && (
+            {(product.images.length > 1 || product.model) && (
               <div className="mt-3 flex gap-3">
                 {product.images.map((image, index) => (
                   <button
                     key={image}
                     type="button"
-                    onClick={() => setImageIndex(index)}
+                    onClick={() => {
+                      setImageIndex(index);
+                      setShow3d(false);
+                    }}
                     aria-label={`Photo ${index + 1}`}
-                    aria-pressed={imageIndex === index}
+                    aria-pressed={!show3d && imageIndex === index}
                     className={`relative h-20 w-20 overflow-hidden rounded-[16px] bg-tpl-tint transition-opacity ${
-                      imageIndex === index
+                      !show3d && imageIndex === index
                         ? 'ring-2 ring-tpl-ink'
                         : 'opacity-60 hover:opacity-100'
                     }`}
@@ -181,6 +226,22 @@ export default function ProductDetail({ product }: { product: Product }) {
                     />
                   </button>
                 ))}
+                {product.model && (
+                  <button
+                    type="button"
+                    onClick={() => setShow3d(true)}
+                    aria-label="View in 3D"
+                    aria-pressed={show3d}
+                    className={`flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-[16px] bg-tpl-ink text-tpl-surface transition-opacity ${
+                      show3d
+                        ? 'ring-2 ring-tpl-ink ring-offset-2 ring-offset-tpl-surface'
+                        : 'opacity-85 hover:opacity-100'
+                    }`}
+                  >
+                    <Box size={22} aria-hidden="true" />
+                    <span className="text-xs font-semibold">3D</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

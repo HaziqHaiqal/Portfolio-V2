@@ -5,6 +5,7 @@ export async function getExperience(db: DB): Promise<Experience[]> {
   const { data, error } = await db
     .from('experience')
     .select('*, companies(*)')
+    .eq('is_visible', true)
     .order('is_current', { ascending: false })
     .order('start_date', { ascending: false });
   if (error) throw error;

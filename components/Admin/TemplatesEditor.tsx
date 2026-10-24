@@ -543,7 +543,7 @@ function TemplateForm({
           <Field
             label="Pages"
             htmlFor="pages"
-            hint="Short label, e.g. One page or Up to 5 pages."
+            hint="Number of pages, e.g. 1 page or 5 pages."
           >
             <Input
               id="pages"

@@ -29,6 +29,16 @@ export interface ProductOption {
   values: OptionValue[];
 }
 
+/** A piece shown in 3D, turned from a profile in code rather than a model file. */
+export interface Model3D {
+  shape: 'cup' | 'plate' | 'bowl' | 'vase';
+  finish: 'speckled' | 'matte';
+  /** The glaze when no glaze option is picked. */
+  color: string;
+  /** Scale for each size option, the largest being 1. */
+  sizes?: Record<string, number>;
+}
+
 export interface Product {
   slug: string;
   name: string;
@@ -42,6 +52,7 @@ export interface Product {
   care: string;
   /** Floor for every option's starting stock, for pieces the table builder sells in fours. */
   minStock?: number;
+  model?: Model3D;
   rating: number;
   reviews: number;
   tag?: 'Bestseller' | 'New' | 'Set';
@@ -87,6 +98,7 @@ export const PRODUCTS: Product[] = [
     ],
     care: STONEWARE_CARE,
     minStock: 12,
+    model: { shape: 'cup', finish: 'speckled', color: '#D8CBB6' },
     rating: 4.9,
     reviews: 186,
     tag: 'Bestseller',
@@ -119,6 +131,12 @@ export const PRODUCTS: Product[] = [
     ],
     care: STONEWARE_CARE,
     minStock: 12,
+    model: {
+      shape: 'plate',
+      finish: 'matte',
+      color: '#EEEBE4',
+      sizes: { '21 cm': 0.78, '27 cm': 1 },
+    },
     rating: 4.8,
     reviews: 241,
     tag: 'Bestseller',
@@ -165,6 +183,12 @@ export const PRODUCTS: Product[] = [
       ['Made in', 'Selangor'],
     ],
     care: STONEWARE_CARE,
+    model: {
+      shape: 'bowl',
+      finish: 'speckled',
+      color: '#E4DDD0',
+      sizes: { '14 cm': 0.6, '18 cm': 0.76, '24 cm': 1 },
+    },
     rating: 4.8,
     reviews: 132,
   },
@@ -494,6 +518,12 @@ export const PRODUCTS: Product[] = [
       ['Size', '14 cm or 22 cm tall'],
     ],
     care: 'Watertight. Hand wash.',
+    model: {
+      shape: 'vase',
+      finish: 'matte',
+      color: '#ECE9E3',
+      sizes: { Small: 0.66, Large: 1 },
+    },
     rating: 4.8,
     reviews: 117,
     tag: 'New',

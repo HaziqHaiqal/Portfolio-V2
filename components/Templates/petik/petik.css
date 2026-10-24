@@ -1,0 +1,79 @@
+@keyframes petik-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+.petik-rise {
+  animation: petik-rise 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes petik-float {
+  50% {
+    translate: 0 -10px;
+  }
+}
+.petik-float {
+  animation: petik-float 6s ease-in-out infinite;
+}
+
+@keyframes petik-drift {
+  from {
+    transform: scale(1.08) translate3d(-1.5%, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(1.5%, -1%, 0);
+  }
+}
+.petik-drift {
+  animation: petik-drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes petik-from-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+.petik-drawer {
+  animation: petik-from-right 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes petik-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+.petik-menu {
+  animation: petik-from-left 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes petik-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.petik-pop {
+  animation: petik-pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes petik-fade {
+  from {
+    opacity: 0;
+  }
+}
+.petik-fade {
+  animation: petik-fade 400ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petik-rise,
+  .petik-float,
+  .petik-drift,
+  .petik-drawer,
+  .petik-menu,
+  .petik-pop,
+  .petik-fade {
+    animation: none;
+  }
+}

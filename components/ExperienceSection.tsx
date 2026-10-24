@@ -304,7 +304,7 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
 
                                             return (
                                               <ul
-                                                className={`mb-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300`}
+                                                className={`mb-4 mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300`}
                                               >
                                                 {points.map((point, idx) => (
                                                   <li

@@ -6,6 +6,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from '@components/Provider/ThemeProvider';
 import { themeClasses } from '@constants/theme';
+import { PAGE_ACCENTS } from '@constants/colors';
 import { useUIStore } from '@lib/stores';
 import { useCurrentTime } from '@hooks/useCommon';
 
@@ -39,30 +40,22 @@ const NAV_ITEMS = [
   {
     href: '/',
     label: 'About',
-    hoverTextClass: 'hover:text-blue-600',
-    underlineClass: 'bg-blue-600',
-    decorationClass: 'decoration-blue-600',
+    accent: 'blue',
   },
   {
     href: '/projects',
     label: 'Projects',
-    hoverTextClass: 'hover:text-purple-600',
-    underlineClass: 'bg-purple-600',
-    decorationClass: 'decoration-purple-600',
+    accent: 'purple',
   },
   {
     href: '/services',
     label: 'Services',
-    hoverTextClass: 'hover:text-green-600',
-    underlineClass: 'bg-green-600',
-    decorationClass: 'decoration-green-600',
+    accent: 'green',
   },
   {
     href: '/contact',
     label: 'Contact',
-    hoverTextClass: 'hover:text-yellow-600',
-    underlineClass: 'bg-yellow-600',
-    decorationClass: 'decoration-yellow-600',
+    accent: 'yellow',
   },
 ] as const;
 
@@ -103,11 +96,11 @@ const NavBar = () => {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`${item.hoverTextClass} group relative whitespace-nowrap font-medium transition-all duration-300 ${themeClasses.text.secondary}`}
+                  className={`${PAGE_ACCENTS[item.accent].hoverText} group relative whitespace-nowrap font-medium transition-all duration-300 ${themeClasses.text.secondary}`}
                 >
                   {item.label}
                   <span
-                    className={`absolute -bottom-1 left-0 h-0.5 ${active ? 'w-full' : 'w-0'} ${item.underlineClass} transition-all duration-300 group-hover:w-full`}
+                    className={`absolute -bottom-1 left-0 h-0.5 ${active ? 'w-full' : 'w-0'} ${PAGE_ACCENTS[item.accent].underline} transition-all duration-300 group-hover:w-full`}
                   />
                 </Link>
               );
@@ -189,7 +182,7 @@ const NavBar = () => {
                           <span
                             className={
                               active
-                                ? `underline decoration-2 underline-offset-[6px] ${item.decorationClass}`
+                                ? `underline decoration-2 underline-offset-[6px] ${PAGE_ACCENTS[item.accent].decoration}`
                                 : undefined
                             }
                           >

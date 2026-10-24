@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ComponentType } from 'react';
 import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
-import { SiGithub, SiLinkedin, SiWhatsapp } from 'react-icons/si';
+import { SiWhatsapp } from 'react-icons/si';
 import type { Profile } from '@lib/supabase';
 import { DEFAULT_CONTACT } from '@constants/contact';
 
@@ -44,25 +44,13 @@ export default function ContactOptions({
           },
         ]
       : []),
-    {
-      label: 'LinkedIn',
-      detail: 'Connect professionally',
-      href: profile?.linkedin_url || DEFAULT_CONTACT.linkedin,
-      icon: SiLinkedin,
-      external: true,
-    },
-    {
-      label: 'GitHub',
-      detail: 'See the code',
-      href: profile?.github_url || DEFAULT_CONTACT.github,
-      icon: SiGithub,
-      external: true,
-    },
   ];
 
   return (
     <div className="mx-auto max-w-4xl">
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul
+        className={`grid gap-4 ${options.length === 3 ? 'md:grid-cols-3' : 'sm:grid-cols-2'}`}
+      >
         {options.map((option) => {
           const Icon = option.icon;
           return (
@@ -106,7 +94,7 @@ export default function ContactOptions({
         })}
       </ul>
 
-      <div className="mt-10 flex flex-col items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+      <div className="mt-8 flex flex-col items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-400 sm:flex-row">
         {profile?.location && (
           <p className="inline-flex items-center gap-1.5">
             <MapPin size={15} aria-hidden="true" />
@@ -117,7 +105,7 @@ export default function ContactOptions({
           href="/services"
           className="group inline-flex items-center gap-1 font-medium underline-offset-4 hover:text-green-700 hover:underline dark:hover:text-green-400"
         >
-          Want to see prices first? See pricing
+          See services and prices
           <ArrowRight
             size={15}
             aria-hidden="true"

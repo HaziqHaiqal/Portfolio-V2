@@ -56,6 +56,7 @@ export interface Experience {
   responsibilities?: string[];
   technologies?: string[];
   achievements?: string[];
+  is_visible: boolean;
   created_at?: string;
   updated_at?: string;
   companies?: Company;

@@ -2,6 +2,8 @@
 // stays free of #fragments.
 export const HANDOFF = {
   templateOrder: 'handoff:template-order',
+  /** A ServicePick as JSON: the pricing tab to open. */
+  servicePick: 'handoff:service-pick',
 } as const;
 
 export function giveHandoff(key: string, value: string) {

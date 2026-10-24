@@ -9,6 +9,8 @@ import {
   Briefcase,
   Building2,
   Calendar,
+  Eye,
+  EyeOff,
   Loader2,
   MapPin,
   Plus,
@@ -38,6 +40,7 @@ import {
   FormActions,
   FormGrid,
   FormSection,
+  IconAction,
   ListSkeleton,
   MediaTile,
   PageHeader,
@@ -63,6 +66,7 @@ interface ExperienceData {
   responsibilities: string[];
   technologies: string[];
   achievements: string[];
+  is_visible: boolean;
   companies?: Company;
 }
 
@@ -77,6 +81,7 @@ const initialExperienceData: ExperienceData = {
   responsibilities: [],
   technologies: [],
   achievements: [],
+  is_visible: true,
 };
 
 const formatDate = (value?: string) => {
@@ -142,6 +147,7 @@ export default function ExperienceEditor() {
             ? experience.achievements
             : [],
           is_current: Boolean(experience.is_current),
+          is_visible: experience.is_visible !== false,
           companies: experience.companies || undefined,
         }))
       );
@@ -182,6 +188,7 @@ export default function ExperienceEditor() {
       responsibilities: data.responsibilities,
       technologies: data.technologies,
       achievements: data.achievements,
+      is_visible: data.is_visible,
       ...(forUpdate && { updated_at: new Date().toISOString() }),
     };
 
@@ -214,6 +221,29 @@ export default function ExperienceEditor() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleVisible = async (experience: ExperienceData) => {
+    setExperiences((prev) =>
+      prev.map((item) =>
+        item.id === experience.id
+          ? { ...item, is_visible: !item.is_visible }
+          : item
+      )
+    );
+    try {
+      await upsertExperienceAction({
+        id: experience.id,
+        is_visible: !experience.is_visible,
+      });
+      toast.success(
+        experience.is_visible ? 'Role hidden' : 'Role shown on portfolio'
+      );
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Could not update role');
+    }
+    await loadExperiences();
   };
 
   const filteredExperiences = useMemo(() => {
@@ -452,6 +482,15 @@ export default function ExperienceEditor() {
                                 Current
                               </Badge>
                             )}
+                            {!role.is_visible && (
+                              <Badge
+                                variant="outline"
+                                className="gap-1 px-1.5 py-0 text-[10px] font-normal text-muted-foreground"
+                              >
+                                <EyeOff className="h-3 w-3" />
+                                Hidden
+                              </Badge>
+                            )}
                           </div>
                           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1.5">
@@ -478,6 +517,22 @@ export default function ExperienceEditor() {
                               setShowForm(true);
                             }}
                             onDelete={() => confirmDelete.ask(role)}
+                            extra={
+                              <IconAction
+                                label={
+                                  role.is_visible
+                                    ? 'Hide from portfolio'
+                                    : 'Show on portfolio'
+                                }
+                                onClick={() => toggleVisible(role)}
+                              >
+                                {role.is_visible ? (
+                                  <Eye className="h-3.5 w-3.5" />
+                                ) : (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                )}
+                              </IconAction>
+                            }
                           />
                         </div>
                       </div>
@@ -599,6 +654,7 @@ function ExperienceForm({
       ? experience.achievements
       : [],
     is_current: Boolean(experience.is_current),
+    is_visible: experience.is_visible !== false,
   }));
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(
@@ -762,6 +818,19 @@ function ExperienceForm({
             placeholder="Cut p95 latency by 40%..."
             icon={Award}
             accent="copper"
+          />
+        </FormSection>
+
+        <FormSection title="Visibility">
+          <ToggleRow
+            label="Show on portfolio"
+            description="Turn off to keep this role in admin only."
+            control={
+              <Switch
+                checked={formData.is_visible}
+                onCheckedChange={(checked) => set('is_visible', checked)}
+              />
+            }
           />
         </FormSection>
       </EditorPanel>

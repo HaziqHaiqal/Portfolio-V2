@@ -19,12 +19,15 @@ interface HomeShellProps {
   profile: Profile | null;
   children: ReactNode;
   footer: ReactNode;
+  /** The floating code shapes behind the page; off where they crowd the content. */
+  decorations?: boolean;
 }
 
 export default function HomeShell({
   profile,
   children,
   footer,
+  decorations = true,
 }: HomeShellProps) {
   const { selectedProject, isProjectModalOpen, closeProjectModal } =
     useUIStore();
@@ -38,7 +41,7 @@ export default function HomeShell({
     >
       <div className={`relative ${classes.bg.primary}`}>
         <GridBackground />
-        <FloatingElements />
+        {decorations && <FloatingElements />}
         <NavBar />
         {children}
       </div>

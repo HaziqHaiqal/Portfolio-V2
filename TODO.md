@@ -86,9 +86,10 @@ So clients can test a real checkout before ordering a custom online store.
 - [x] Admin side of the demo: orders with status (paid, packed, shipped,
       delivered), failed payments and stock that goes down after payment. Data
       stays in the visitor's browser, with a reset button.
-- [x] Linked from the Custom package's online store build ("Try the live
-      demo"); the demo bar's "Get a quote" opens that build on /services.
-- [x] Sold as the Ruang template (RM20,000 vs RM26,500 custom, Online store category), with
+- [x] Reached from the template gallery only; the links from the old Custom
+      package were removed.
+- [x] Sold as the Ruang template (RM20,000 vs RM24,000 for the same store on the
+      Systems tab, Online store category), with
       "Use this template" in the demo bar and gallery.
 - [ ] Before the first Ruang sale is delivered, build the real backend the
       demo simulates: Supabase tables for products, options, stock and
