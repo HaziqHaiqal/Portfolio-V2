@@ -44,6 +44,12 @@ export interface CareTier {
   from?: boolean;
 }
 
+export type CareBillingPeriod = 'monthly' | 'yearly';
+
+/** A yearly payment covers ten months instead of twelve. */
+export const CARE_YEARLY_MONTHS = 10;
+export const CARE_YEARLY_SAVING = 17;
+
 /** Every project needs one to stay online; priced by how much there is to look after. */
 export const CARE: Record<CareId, CareTier> = {
   starter: {
@@ -73,11 +79,19 @@ export const CARE: Record<CareId, CareTier> = {
   },
 };
 
-export const CARE_PLAN = 'Basic maintenance';
+export const CARE_PLAN = 'Maintenance';
 
-/** "RM80/month", or "from RM150/month" for a quoted tier. */
-export const carePrice = (tier: CareTier) =>
-  `${tier.from ? 'from ' : ''}${formatRM(tier.monthly)}/month`;
+/** The displayed monthly or yearly hosting price. */
+export const carePrice = (
+  tier: CareTier,
+  billing: CareBillingPeriod = 'monthly'
+) => {
+  const amount =
+    billing === 'yearly' ? tier.monthly * CARE_YEARLY_MONTHS : tier.monthly;
+  return `${tier.from ? 'from ' : ''}${formatRM(amount)}/${
+    billing === 'yearly' ? 'year' : 'month'
+  }`;
+};
 
 export const PAYMENT_TERMS =
   'A 40% deposit to start, and 60% when it goes live';
@@ -108,7 +122,7 @@ export interface Bundle {
   runningCost?: string;
   /** Completes "Choose this if …". */
   bestFor?: string;
-  /** The Basic maintenance tier it needs after launch. */
+  /** The hosting tier it needs after launch. */
   care?: CareId;
 }
 

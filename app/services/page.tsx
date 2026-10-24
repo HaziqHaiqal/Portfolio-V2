@@ -53,7 +53,7 @@ const FAQS: FaqItem[] = [
     category: 'Costs and ownership',
     question: 'What will I pay after launch?',
     answer:
-      'The agreed hosting cost, including database hosting if needed, plus your domain renewal and any third-party service fees. There is no separate fee just for using a database.',
+      'Choose monthly, or pay yearly for ten months and save 17%. The shown maintenance price includes database hosting when needed; domain renewals and third-party service fees are separate.',
   },
   {
     category: 'Starting a project',

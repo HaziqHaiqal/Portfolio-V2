@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowUpRight, Check, LayoutTemplate } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
   CARE_PLAN,
+  CARE_YEARLY_SAVING,
+  type CareBillingPeriod,
   careForTemplate,
   carePrice,
   countLabel,
@@ -44,10 +47,11 @@ export default function TemplateOrder({
   onClose: () => void;
 }) {
   const { promo } = usePromo();
+  const [billing, setBilling] = useState<CareBillingPeriod>('monthly');
   const store = isStoreTemplate(template.category);
   const care = careForTemplate(template);
   const careLabel = CARE_PLAN;
-  const careText = `${carePrice(care)} after launch`;
+  const careText = `${carePrice(care, billing)} after launch`;
   const pages = pageCount(template.pages);
   const saving =
     template.compare_price != null && template.compare_price > template.price
@@ -84,7 +88,9 @@ export default function TemplateOrder({
         ...(eligiblePromo && promoAmount
           ? [`• Promo ${eligiblePromo.code}: −${formatRM(promoAmount)}`]
           : []),
-        `• ${careLabel}: ${careText}`,
+        `• ${careLabel}: ${careText}${
+          billing === 'yearly' ? ` (Save ${CARE_YEARLY_SAVING}%)` : ''
+        }`,
         `Total: ${formatRM(total)}`,
         'Please let me know what you need from me to get started.',
       ].join('\n')
@@ -178,7 +184,30 @@ export default function TemplateOrder({
               label: `${template.name} template`,
               value: formatRM(template.price),
             },
-            { label: careLabel, value: careText },
+            {
+              label: careLabel,
+              value: careText,
+              detail: (
+                <label className="flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-400">
+                  <span>Billing</span>
+                  <select
+                    value={billing}
+                    onChange={(event) =>
+                      setBilling(event.target.value as CareBillingPeriod)
+                    }
+                    className="min-h-9 rounded-lg border border-gray-300 bg-white px-2 text-xs font-semibold text-gray-900 outline-none transition-colors focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                  >
+                    <option value="monthly">
+                      Monthly · {carePrice(care)}
+                    </option>
+                    <option value="yearly">
+                      Yearly · {carePrice(care, 'yearly')} (Save{' '}
+                      {CARE_YEARLY_SAVING}%)
+                    </option>
+                  </select>
+                </label>
+              ),
+            },
           ]}
           discount={[
             ...(sale && saleAmount
@@ -217,7 +246,7 @@ export default function TemplateOrder({
               {formatRM(total)}
             </p>
             <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              then {carePrice(care)}
+              then {carePrice(care, billing)}
             </p>
           </div>
           {orderButton('shrink-0')}

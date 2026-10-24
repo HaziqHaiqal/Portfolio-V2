@@ -7,6 +7,7 @@ import {
   BLUEPRINT,
   type Bundle,
   CARE,
+  CARE_YEARLY_SAVING,
   CARE_PLAN,
   carePrice,
   type PricingTab,
@@ -31,7 +32,14 @@ function messageFor(tab: PricingTab, bundle: Bundle) {
         : tab.blueprint
           ? `Hi Haziq, I'd like to book a ${BLUEPRINT.name} (${formatRM(BLUEPRINT.price)}) for: ${bundle.name}, from ${price}.`
           : `Hi Haziq, I'd like a quote for: ${bundle.name}, from ${price}.`,
-    ...(care ? [`${CARE_PLAN}: ${carePrice(care)} after launch.`] : []),
+    ...(care
+      ? [
+          `${CARE_PLAN} after launch: ${carePrice(care)} or ${carePrice(
+            care,
+            'yearly'
+          )} (Save ${CARE_YEARLY_SAVING}%).`,
+        ]
+      : []),
     'Please let me know what you need from me.',
   ].join('\n');
 }
@@ -130,13 +138,21 @@ function BundleCard({
 
       <div className="mt-5">
         {care && (
-          <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
-            Plus {CARE_PLAN},{' '}
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {carePrice(care)}
-            </span>{' '}
-            after launch
-          </p>
+          <div className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+            <p>{CARE_PLAN} after launch</p>
+            <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                {carePrice(care)}
+              </span>
+              <span>or</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                {carePrice(care, 'yearly')}
+              </span>
+              <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700 dark:bg-green-400/15 dark:text-green-300">
+                Save {CARE_YEARLY_SAVING}%
+              </span>
+            </p>
+          </div>
         )}
         <PromoLink
           href={href}
