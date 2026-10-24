@@ -46,7 +46,7 @@ export default function TemplateOrder({
   const { promo } = usePromo();
   const store = isStoreTemplate(template.category);
   const care = careForTemplate(template);
-  const careLabel = `${CARE_PLAN} (${care.name})`;
+  const careLabel = CARE_PLAN;
   const careText = `${carePrice(care)} after launch`;
   const pages = pageCount(template.pages);
   const saving =

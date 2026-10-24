@@ -112,7 +112,7 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setActiveId(tab.id)}
                 onKeyDown={onKeyDown}
-                className={`relative min-h-11 flex-auto whitespace-nowrap rounded-full px-2.5 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 sm:px-6 sm:text-sm ${
+                className={`relative min-h-11 flex-auto whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 sm:px-4 md:px-5 md:text-sm ${
                   selected
                     ? 'text-white'
                     : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -120,8 +120,8 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
               >
                 {tab.shortLabel ? (
                   <>
-                    <span className="sm:hidden">{tab.shortLabel}</span>
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="md:hidden">{tab.shortLabel}</span>
+                    <span className="hidden md:inline">{tab.label}</span>
                   </>
                 ) : (
                   tab.label

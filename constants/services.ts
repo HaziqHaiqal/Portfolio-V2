@@ -73,7 +73,7 @@ export const CARE: Record<CareId, CareTier> = {
   },
 };
 
-export const CARE_PLAN = 'Care Plan';
+export const CARE_PLAN = 'Basic maintenance';
 
 /** "RM80/month", or "from RM150/month" for a quoted tier. */
 export const carePrice = (tier: CareTier) =>
@@ -108,7 +108,8 @@ export interface Bundle {
   runningCost?: string;
   /** Completes "Choose this if …". */
   bestFor?: string;
-  care: CareId;
+  /** The Basic maintenance tier it needs after launch. */
+  care?: CareId;
 }
 
 export interface PricingTab {
@@ -127,6 +128,8 @@ export interface PricingTab {
   promoTarget?: string;
   /** "website", "online store", used in the WhatsApp message. */
   noun: string;
+  /** Prices are per month, such as maintenance. */
+  monthly?: boolean;
 }
 
 const BLUEPRINT_NOTE = `Starts with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.name}: we map what you need, then you get a fixed quote. The ${formatRM(BLUEPRINT.price)} comes off the build.`;
@@ -134,6 +137,7 @@ const BLUEPRINT_NOTE = `Starts with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.n
 export const WEBSITES: PricingTab = {
   id: 'website',
   label: 'Websites',
+  shortLabel: 'Web',
   tagline: 'Designed for your brand',
   noun: 'website',
   promoTarget: WEBSITE_PROMO_TARGET.id,
@@ -332,6 +336,7 @@ export const MOBILE_APPS: PricingTab = {
 export const AUTOMATION: PricingTab = {
   id: 'automation',
   label: 'Automation',
+  shortLabel: 'Automate',
   tagline: 'Reports, WhatsApp orders, chatbots and approvals',
   noun: 'automation',
   note: 'Each one works with the tools you already use, and is tested with your real data before it goes live.',
@@ -395,7 +400,12 @@ export const AUTOMATION: PricingTab = {
   ],
 };
 
-export const PRICING_TABS = [WEBSITES, SYSTEMS, MOBILE_APPS, AUTOMATION];
+export const PRICING_TABS = [
+  WEBSITES,
+  SYSTEMS,
+  MOBILE_APPS,
+  AUTOMATION,
+];
 
 export const startingPriceOf = (tab: PricingTab) =>
   Math.min(...tab.bundles.map((bundle) => bundle.price));

@@ -31,6 +31,7 @@ import { giveHandoff, HANDOFF, takeHandoff } from '@lib/handoff';
 import UniversalImage from '@components/Media/UniversalImage';
 import { PromoPrice } from '@components/Promo/PromoParts';
 import TemplateOrder from './TemplateOrder';
+import CardCarousel from './CardCarousel';
 import { useServicePick } from './servicePick';
 
 const ALL = 'all';
@@ -44,7 +45,7 @@ const LAYOUT_KEY = 'demo-layout';
 type Layout = 'grid' | 'list';
 
 const CARD =
-  'flex flex-col rounded-3xl border border-gray-200 bg-white/70 p-3 shadow-sm backdrop-blur-sm transition-shadow duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800/70';
+  'flex h-full flex-col rounded-3xl border border-gray-200 bg-white/70 p-3 shadow-sm backdrop-blur-sm transition-shadow duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800/70';
 const PHOTO =
   'group relative block aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-gray-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/40 dark:bg-gray-900 dark:ring-white/10';
 const SECONDARY =
@@ -295,6 +296,142 @@ export default function TemplateGallery({
     setShown(PAGE_SIZE);
   };
 
+  const cards = visible.map((item, index) => {
+    if (item.kind === 'demo') {
+      const { demo } = item;
+      return (
+        <div
+          key={demo.id}
+          className={`${CARD} ${layout === 'list' ? 'sm:flex-row sm:gap-2' : ''}`}
+        >
+          <a
+            href={demo.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open the ${demo.name} demo`}
+            className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
+          >
+            <UniversalImage
+              src={demo.image}
+              alt={`${demo.name} demo preview`}
+              width={0}
+              height={0}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            />
+          </a>
+          <CardBody
+            layout={layout}
+            eyebrow={<Meta item={item} />}
+            name={demo.name}
+            description={demo.description}
+            highlights={demo.highlights}
+            price={formatRM(demo.price)}
+            priceNote="Starting price"
+            actions={
+              <>
+                <a
+                  href={demo.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={SECONDARY}
+                >
+                  Try it
+                  <ArrowUpRight size={15} aria-hidden="true" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => seePrice(demo)}
+                  className={PRIMARY}
+                >
+                  <PrimaryLabel>See price</PrimaryLabel>
+                </button>
+              </>
+            }
+          />
+        </div>
+      );
+    }
+
+    const { template } = item;
+    const offer = bestOffer(deals, template, true);
+    return (
+      <div
+        key={template.id}
+        className={`${CARD} ${layout === 'list' ? 'sm:flex-row sm:gap-2' : ''}`}
+      >
+        <a
+          href={template.demo_url ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open the ${template.name} live demo`}
+          className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
+        >
+          {offer && (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-2.5 py-1 text-xs text-white shadow-lg">
+              <span className="font-bold uppercase tracking-wider">Deal</span>
+              {formatRM(offer.saving)} off
+            </span>
+          )}
+          {template.preview_image_url ? (
+            <UniversalImage
+              src={template.preview_image_url}
+              alt={`${template.name} template preview`}
+              width={0}
+              height={0}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+              loading={index < EAGER_PREVIEWS ? 'eager' : undefined}
+            />
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center text-gray-400">
+              <LayoutTemplate size={28} aria-hidden="true" />
+            </span>
+          )}
+        </a>
+        <CardBody
+          layout={layout}
+          eyebrow={<Meta item={item} />}
+          name={template.name}
+          description={template.description}
+          highlights={template.features.slice(0, HIGHLIGHTS)}
+          price={
+            <PromoPrice
+              target={[
+                TEMPLATE_PROMO_TARGET.id,
+                templatePromoTarget(template.slug),
+              ]}
+              price={template.price}
+              salePrice={offer ? template.price - offer.saving : undefined}
+            />
+          }
+          priceNote="One-time price"
+          actions={
+            <>
+              <a
+                href={template.demo_url ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={SECONDARY}
+              >
+                Try it
+                <ArrowUpRight size={15} aria-hidden="true" />
+              </a>
+              <button
+                type="button"
+                onClick={() => setOrdering(template)}
+                className={PRIMARY}
+              >
+                <PrimaryLabel>Use template</PrimaryLabel>
+              </button>
+            </>
+          }
+        />
+      </div>
+    );
+  });
+
+  // The Services page shows a preview, which swipes on phones.
+  const carousel = Boolean(limit) && layout === 'grid';
+
   return (
     <div ref={root} className="scroll-mt-28">
       <div className="mb-8 flex items-center gap-3">
@@ -407,150 +544,28 @@ export default function TemplateGallery({
         </div>
       </div>
 
-      <ul
-        className={
-          layout === 'grid'
-            ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
-            : 'space-y-4'
-        }
-      >
-        {visible.map((item, index) => {
-          if (item.kind === 'demo') {
-            const { demo } = item;
-            return (
-              <li
-                key={demo.id}
-                className={`${CARD} ${layout === 'list' ? 'sm:flex-row sm:gap-2' : ''}`}
-              >
-                <a
-                  href={demo.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Open the ${demo.name} demo`}
-                  className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
-                >
-                  <UniversalImage
-                    src={demo.image}
-                    alt={`${demo.name} demo preview`}
-                    width={0}
-                    height={0}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                  />
-                </a>
-                <CardBody
-                  layout={layout}
-                  eyebrow={<Meta item={item} />}
-                  name={demo.name}
-                  description={demo.description}
-                  highlights={demo.highlights}
-                  price={formatRM(demo.price)}
-                  priceNote="Starting price"
-                  actions={
-                    <>
-                      <a
-                        href={demo.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={SECONDARY}
-                      >
-                        Try it
-                        <ArrowUpRight size={15} aria-hidden="true" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => seePrice(demo)}
-                        className={PRIMARY}
-                      >
-                        <PrimaryLabel>See price</PrimaryLabel>
-                      </button>
-                    </>
-                  }
-                />
-              </li>
-            );
+      {carousel ? (
+        <CardCarousel
+          label="Live demos"
+          className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:p-0 lg:grid-cols-3"
+          itemClassName="w-[85%] shrink-0 snap-start sm:w-auto"
+          dotsClassName="sm:hidden"
+        >
+          {cards}
+        </CardCarousel>
+      ) : (
+        <ul
+          className={
+            layout === 'grid'
+              ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
+              : 'space-y-4'
           }
-
-          const { template } = item;
-          const offer = bestOffer(deals, template, true);
-          return (
-            <li
-              key={template.id}
-              className={`${CARD} ${layout === 'list' ? 'sm:flex-row sm:gap-2' : ''}`}
-            >
-              <a
-                href={template.demo_url ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Open the ${template.name} live demo`}
-                className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
-              >
-                {offer && (
-                  <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-2.5 py-1 text-xs text-white shadow-lg">
-                    <span className="font-bold uppercase tracking-wider">
-                      Deal
-                    </span>
-                    {formatRM(offer.saving)} off
-                  </span>
-                )}
-                {template.preview_image_url ? (
-                  <UniversalImage
-                    src={template.preview_image_url}
-                    alt={`${template.name} template preview`}
-                    width={0}
-                    height={0}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                    loading={index < EAGER_PREVIEWS ? 'eager' : undefined}
-                  />
-                ) : (
-                  <span className="absolute inset-0 flex items-center justify-center text-gray-400">
-                    <LayoutTemplate size={28} aria-hidden="true" />
-                  </span>
-                )}
-              </a>
-              <CardBody
-                layout={layout}
-                eyebrow={<Meta item={item} />}
-                name={template.name}
-                description={template.description}
-                highlights={template.features.slice(0, HIGHLIGHTS)}
-                price={
-                  <PromoPrice
-                    target={[
-                      TEMPLATE_PROMO_TARGET.id,
-                      templatePromoTarget(template.slug),
-                    ]}
-                    price={template.price}
-                    salePrice={
-                      offer ? template.price - offer.saving : undefined
-                    }
-                  />
-                }
-                priceNote="One-time price"
-                actions={
-                  <>
-                    <a
-                      href={template.demo_url ?? undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={SECONDARY}
-                    >
-                      Try it
-                      <ArrowUpRight size={15} aria-hidden="true" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setOrdering(template)}
-                      className={PRIMARY}
-                    >
-                      <PrimaryLabel>Use template</PrimaryLabel>
-                    </button>
-                  </>
-                }
-              />
-            </li>
-          );
-        })}
-      </ul>
+        >
+          {cards.map((card) => (
+            <li key={card.key}>{card}</li>
+          ))}
+        </ul>
+      )}
 
       {hidden > 0 && (
         <div className="mt-10 flex justify-center">

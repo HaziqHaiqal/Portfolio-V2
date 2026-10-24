@@ -8,10 +8,6 @@ import {
 } from '@lib/data';
 import {
   BLUEPRINT,
-  CARE,
-  CARE_PLAN,
-  carePrice,
-  PAYMENT_TERMS,
   PRICING_TABS,
   startingPriceOf,
 } from '@constants/services';
@@ -40,76 +36,42 @@ export const metadata: Metadata = {
   description: `Custom and ready-made websites from ${FROM}, online stores, mobile apps and business automation, with clear prices.`,
 };
 
-const CARE_LIST = [
-  CARE.starter,
-  CARE.business,
-  CARE.premium,
-  CARE.store,
-  CARE.system,
-  CARE.app,
-  CARE.automation,
-];
-
 const FAQS: FaqItem[] = [
   {
-    question: `What is the ${CARE_PLAN}?`,
-    answer: (
-      <>
-        <p>
-          Every website, system and app needs one to stay online. It covers
-          hosting, SSL, security updates and backups, and the price depends on
-          how much there is to look after.
-        </p>
-        <ul className="mt-4 divide-y divide-gray-200 rounded-2xl bg-gray-100/80 px-4 dark:divide-gray-700/70 dark:bg-gray-900/40">
-          {CARE_LIST.map((tier) => (
-            <li
-              key={tier.for}
-              className="flex flex-wrap items-baseline justify-between gap-x-4 py-3"
-            >
-              <span>{tier.for}</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">
-                {carePrice(tier)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4">
-          Pay yearly and get 2 months free. Replies come within 1 working day,
-          with same-day help when your site or app is down, where possible. If
-          the plan stops, the site or app goes offline, and the code is yours to
-          host elsewhere.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: 'How does payment work?',
-    answer: `${PAYMENT_TERMS}. Systems and apps start with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.name}: ${BLUEPRINT.description.charAt(0).toLowerCase()}${BLUEPRINT.description.slice(1)} If you decide not to go ahead, the written scope is still yours.`,
-  },
-  {
-    question: 'What if I need something that is not listed?',
+    category: 'After launch',
+    question: 'Will you fix bugs after launch?',
     answer:
-      'Ask on WhatsApp. Extra pages, languages and features are quoted, and the price is agreed in writing before any work starts. Have a promo code? Enter it when you order a template, or add it to your message.',
+      'Yes. If a website, app or system I built stops working as agreed, I fix the bug free for life. This excludes issues caused by later changes from others or third-party services.',
   },
   {
-    question: 'What else will I pay for?',
+    category: 'Starting a project',
+    question: 'How do we get started?',
     answer:
-      'Your domain name, and fees you pay directly to other companies: payment gateway fees, WhatsApp message fees to Meta, AI usage fees, and for apps, Apple Developer (USD 99 a year) and Google Play (USD 25 once). Prices on this page are in Malaysian Ringgit (RM).',
+      `Choose a website package and message me. Systems and apps start with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.name}; it maps your needs and gives you a written scope and fixed quote. The fee comes off the build if you proceed.`,
   },
   {
-    question: 'What happens after launch?',
+    category: 'Costs and ownership',
+    question: 'What will I pay after launch?',
     answer:
-      'Bug fixes are free for life: if the delivered work stops working as agreed, it is fixed free. This excludes problems caused by other people’s changes or third-party services. Business and Premium websites come with a Site editor, so you update text, photos and prices yourself, and systems come with an Admin portal. Other changes are quoted before any work starts.',
+      'The agreed hosting cost, including database hosting if needed, plus your domain renewal and any third-party service fees. There is no separate fee just for using a database.',
   },
   {
-    question: 'What do I need to provide?',
+    category: 'Starting a project',
+    question: 'What if I need something outside the package?',
     answer:
-      'Your text, logo and photos. Copywriting can be quoted separately if you need help with the words.',
+      'New pages, features, integrations and improvements are quoted separately and agreed before work starts.',
   },
   {
-    question: 'Who owns the website or app?',
+    category: 'After launch',
+    question: 'Can I change things myself after launch?',
     answer:
-      'You do. Your domain and app store accounts are in your name from the start, and the code and content are yours once the final payment is made.',
+      'Business and Premium websites include a Site editor; systems include an Admin portal for your own updates.',
+  },
+  {
+    category: 'Costs and ownership',
+    question: 'Who owns the finished work?',
+    answer:
+      'Your domain and app store accounts are in your name. Once the final payment is made, the code and content are yours.',
   },
 ];
 
@@ -132,7 +94,7 @@ export default async function ServicePage() {
     label: tab.label,
     shortLabel: tab.shortLabel,
     tagline: tab.tagline,
-    price: `From ${formatRM(startingPriceOf(tab))}`,
+    price: `From ${formatRM(startingPriceOf(tab))}${tab.monthly ? '/month' : ''}`,
     panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
   }));
 
@@ -181,7 +143,7 @@ export default async function ServicePage() {
               <div className="mx-auto max-w-3xl">
                 <SectionHeader
                   icon={CircleHelp}
-                  title="Good to Know"
+                  title="Common Questions"
                   accentClass={GREEN.icon}
                   gradientClass={GREEN.bar}
                 />
