@@ -180,7 +180,7 @@ export default function HoonBot({
       viewBox="4 8 40 40"
       aria-hidden="true"
       data-mood={mood}
-      className={className}
+      className={excited ? `${className} hoon-waving` : className}
     >
       <rect
         x="10.4"

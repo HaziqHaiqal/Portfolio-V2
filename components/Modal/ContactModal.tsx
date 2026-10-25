@@ -12,6 +12,26 @@ const ContactSection = dynamic(() => import('@components/ContactSection'), {
   ssr: false,
 });
 
+const GREETED_KEY = 'hoon-greeted-at';
+const GREET_EVERY = 10 * 60 * 1000;
+const GREET_FOR = 4000;
+
+const lastGreeted = () => {
+  try {
+    return Number(localStorage.getItem(GREETED_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const markGreeted = () => {
+  try {
+    localStorage.setItem(GREETED_KEY, String(Date.now()));
+  } catch {
+    return;
+  }
+};
+
 interface ContactModalProps {
   profile: Partial<Profile> | null;
 }
@@ -20,6 +40,28 @@ const ContactModal = ({ profile }: ContactModalProps) => {
   const { isContactOpen, isChatVisible, toggleContact, closeContact } =
     useUIStore();
   const [hovered, setHovered] = useState(false);
+  const [greeting, setGreeting] = useState(false);
+
+  useEffect(() => {
+    let timer = 0;
+    const schedule = () => {
+      const soonest = Date.now() + 4000 + Math.random() * 8000;
+      const due = Math.max(soonest, lastGreeted() + GREET_EVERY);
+      timer = window.setTimeout(greet, due - Date.now());
+    };
+    const greet = () => {
+      const { isContactOpen, isChatVisible } = useUIStore.getState();
+      markGreeted();
+      if (isContactOpen || !isChatVisible || document.hidden) return schedule();
+      setGreeting(true);
+      timer = window.setTimeout(() => {
+        setGreeting(false);
+        schedule();
+      }, GREET_FOR);
+    };
+    schedule();
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!isContactOpen) return;
@@ -75,7 +117,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
           <m.button
             key="contact-launcher"
             onClick={toggleContact}
-            className="group fixed bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center overflow-visible rounded-full outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
+            className="group fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-3 z-[70] flex h-12 w-12 items-center justify-center overflow-visible rounded-full outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
@@ -94,9 +136,21 @@ const ContactModal = ({ profile }: ContactModalProps) => {
               isContactOpen ? 'Close contact terminal' : 'Open contact terminal'
             }
           >
-            <span className="pointer-events-none absolute bottom-full right-0 mb-2 translate-y-1 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-800 opacity-0 shadow-lg transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100">
-              {isContactOpen ? 'Close' : "Let's talk"}
-            </span>
+            <AnimatePresence>
+              {greeting && !isContactOpen && (
+                <m.span
+                  key="greeting"
+                  aria-hidden="true"
+                  className="absolute bottom-full right-0 mb-0.5 origin-bottom-right whitespace-nowrap rounded-2xl rounded-br-sm bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700"
+                  initial={{ opacity: 0, y: 6, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                >
+                  Let&apos;s talk!
+                </m.span>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence mode="wait" initial={false}>
               {isContactOpen ? (
@@ -114,14 +168,14 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 <m.span
                   key="hoon"
                   aria-hidden="true"
-                  className="absolute inset-0 flex items-center justify-center"
+                  className="absolute inset-0 flex items-end justify-center"
                   initial={{ opacity: 0, scale: 0.7 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.7 }}
                   transition={{ duration: 0.12 }}
                 >
                   <HoonBot
-                    excited={hovered}
+                    excited={hovered || greeting}
                     className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11"
                   />
                 </m.span>

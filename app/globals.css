@@ -1705,14 +1705,14 @@ html:has([data-template-root]) {
   transform-origin: 15% 15%;
 }
 
-.group:hover .hoon-arm {
+.hoon-waving .hoon-arm {
   animation: hoon-wave 0.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hoon-eye,
   .hoon-face,
-  .group:hover .hoon-arm {
+  .hoon-waving .hoon-arm {
     animation: none;
   }
 }
