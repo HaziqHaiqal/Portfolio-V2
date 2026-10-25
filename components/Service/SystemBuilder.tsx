@@ -100,7 +100,7 @@ export default function SystemBuilder({
         </h3>
         <div
           role="group"
-          aria-label="Systems"
+          aria-label={tab.label}
           className="mt-5 flex flex-wrap justify-center gap-2"
         >
           {tab.bundles.map((item) => {

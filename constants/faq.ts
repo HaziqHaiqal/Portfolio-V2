@@ -33,7 +33,12 @@ export const SERVICE_FAQ = [
   {
     question: 'Can I change things myself after launch?',
     answer:
-      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Customise systems come with an admin dashboard.',
+      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Enterprise systems come with an admin dashboard.',
+  },
+  {
+    question: 'Why a custom system instead of a ready-made app?',
+    answer:
+      'Ready-made apps for POS, booking or payroll charge every month, often per staff or per outlet, and you work their way. A custom system is paid once for the build plus a fixed maintenance fee, with no per-staff or per-outlet charges. It follows how your business works, and the code and data are yours. If a ready-made app already fits you, I will tell you.',
   },
   {
     question: 'Who owns the finished work?',

@@ -13,7 +13,6 @@ import {
   isStoreTemplate,
   PRICING_TABS,
   startingPriceOf,
-  SYSTEMS,
   TAKEOVER,
   WEBSITES,
 } from '@constants/services';
@@ -40,7 +39,11 @@ import { PromoProvider } from '@components/Promo/PromoProvider';
 
 const GREEN = PAGE_ACCENTS.green;
 
-const FROM = formatRM(Math.min(...PRICING_TABS.map(startingPriceOf)));
+const FROM = formatRM(
+  Math.min(
+    ...PRICING_TABS.filter((tab) => tab.bundles.length).map(startingPriceOf)
+  )
+);
 
 const TITLE = `Website Design Malaysia from ${FROM} | Haziq Haiqal`;
 const DESCRIPTION = `Ready-made and custom websites from ${FROM}, online stores, booking, inventory and HR systems, mobile apps and WhatsApp automation for Malaysian businesses. Clear prices and a free quote.`;
@@ -130,12 +133,13 @@ export default async function ServicePage() {
       : startingPriceOf(tab);
 
   const tabs: ServiceTab[] = [
-    ...PRICING_TABS.filter((tab) => tab !== SYSTEMS).map((tab) => ({
+    ...PRICING_TABS.filter((tab) => tab.layout !== 'builder').map((tab) => ({
       id: tab.id,
       label: tab.label,
       shortLabel: tab.shortLabel,
       tagline: tab.tagline,
-      price: `From ${formatRM(fromOf(tab))}`,
+      price:
+        tab.layout === 'quote' ? 'Free quote' : `From ${formatRM(fromOf(tab))}`,
       panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
     })),
     {

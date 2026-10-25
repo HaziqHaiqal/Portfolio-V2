@@ -2,19 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Check, X } from 'lucide-react';
+import { ArrowRight, Check, Plus, X } from 'lucide-react';
 import {
   type Bundle,
   CARE,
-  CUSTOM_SYSTEM,
+  CUSTOM_BUILDS,
   includesOf,
   type PricingTab,
-  SYSTEMS,
-  WEBSITES,
 } from '@constants/services';
 import InfoPopover from '@components/Common/InfoPopover';
+import { formatRM } from '@lib/format';
 import AutomationBento from './AutomationBento';
 import CardCarousel from './CardCarousel';
+import QuotePanel from './QuotePanel';
 import { BuildPrice, MaintenanceLine, OUTLINE, QuoteLink } from './PriceParts';
 import { useServicePick } from './servicePick';
 import SystemBuilder from './SystemBuilder';
@@ -106,6 +106,24 @@ function BundleCard({
             </li>
           ))}
         </ul>
+        {bundle.addOns?.map((item) => (
+          <p
+            key={item.id}
+            className="mt-4 flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+          >
+            <Plus
+              size={16}
+              aria-hidden="true"
+              className="mt-0.5 shrink-0 text-green-500"
+            />
+            <span>
+              Optional: {item.name}{' '}
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                +{formatRM(item.price)}
+              </span>
+            </span>
+          </p>
+        ))}
         {bundle.runningCost && (
           <p className="mt-4 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
             {bundle.runningCost}.
@@ -144,11 +162,11 @@ export default function Packages({
   whatsappHref: string;
 }) {
   const hasRecommended = tab.bundles.some((bundle) => bundle.recommended);
-  const withCustom = tab.id === WEBSITES.id;
+  const custom = CUSTOM_BUILDS[tab.id];
   const [builderOpen, setBuilderOpen] = useState(false);
   const builderRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
-  const cardCount = tab.bundles.length + (withCustom ? 1 : 0);
+  const cardCount = tab.bundles.length + (custom ? 1 : 0);
 
   const openBuilder = () => {
     setBuilderOpen(true);
@@ -167,15 +185,17 @@ export default function Packages({
   useEffect(
     () =>
       useServicePick.subscribe(({ pick }) => {
-        if (withCustom && pick?.tab === tab.id && pick.builder) openBuilder();
+        if (custom && pick?.tab === tab.id && pick.builder) openBuilder();
       }),
-    [withCustom, tab.id]
+    [custom, tab.id]
   );
 
   return (
     <div>
       {tab.layout === 'builder' ? (
         <SystemBuilder tab={tab} whatsappHref={whatsappHref} />
+      ) : tab.layout === 'quote' ? (
+        <QuotePanel tab={tab} whatsappHref={whatsappHref} />
       ) : tab.layout === 'bento' ? (
         <AutomationBento tab={tab} whatsappHref={whatsappHref} />
       ) : (
@@ -202,11 +222,11 @@ export default function Packages({
                 solid={!hasRecommended || Boolean(bundle.recommended)}
               />
             ))}
-            {withCustom && (
+            {custom && (
               <BundleCard
-                key={CUSTOM_SYSTEM.id}
-                tab={SYSTEMS}
-                bundle={CUSTOM_SYSTEM}
+                key={custom.bundle.id}
+                tab={custom.builder}
+                bundle={custom.bundle}
                 whatsappHref={whatsappHref}
                 solid={false}
                 onBuild={builderOpen ? closeBuilder : openBuilder}
@@ -217,24 +237,24 @@ export default function Packages({
         </div>
       )}
 
-      {withCustom && builderOpen && (
+      {custom && builderOpen && (
         <div
           ref={builderRef}
-          id="system-builder"
+          id={`${tab.id}-builder`}
           className="mt-12 scroll-mt-28 rounded-3xl border border-gray-200 p-5 dark:border-gray-700 sm:p-8"
         >
           <div className="flex justify-end">
             <button
               type="button"
               onClick={closeBuilder}
-              aria-controls="system-builder"
+              aria-controls={`${tab.id}-builder`}
               className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-gray-300 px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-white"
             >
               <X size={16} aria-hidden="true" />
               Close
             </button>
           </div>
-          <SystemBuilder tab={SYSTEMS} whatsappHref={whatsappHref} />
+          <SystemBuilder tab={custom.builder} whatsappHref={whatsappHref} />
         </div>
       )}
 

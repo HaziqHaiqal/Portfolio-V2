@@ -75,12 +75,6 @@ const SYSTEM_PHRASES: Record<string, string[]> = {
   rentals: ['rental', 'rent', 'sewa'],
 };
 
-const APP_PHRASES: Record<string, string[]> = {
-  'info-app': ['info app', 'catalogue app'],
-  'member-app': ['booking app', 'loyalty app', 'member app'],
-  'ordering-app': ['ordering app', 'delivery app'],
-};
-
 const AUTOMATION_PHRASES: Record<string, string[]> = {
   reports: ['report', 'reports', 'alerts', 'daily report'],
   'whatsapp-orders': ['whatsapp orders', 'whatsapp order', 'whatsapp bot'],
@@ -131,6 +125,16 @@ const FAQ_PHRASES: Record<string, string[]> = {
     'edit it',
     'update it',
   ],
+  'Why a custom system instead of a ready-made app?': [
+    'ready-made app',
+    'ready made app',
+    'why custom',
+    'subscription',
+    'monthly fee',
+    'saas',
+    'storehub',
+    'talenox',
+  ],
   'Who owns the finished work?': [
     'own the code',
     'ownership',
@@ -142,7 +146,8 @@ const FAQ_PHRASES: Record<string, string[]> = {
 function bundleTopic(
   bundle: Bundle,
   phrases: string[],
-  extra: string[] = []
+  extra: string[] = [],
+  base?: string
 ): Topic {
   const extras = bundle.addOns ?? [];
   const addOns = extras.map(
@@ -154,7 +159,7 @@ function bundleTopic(
     phrases: [bundle.name, bundle.shortName ?? '', ...phrases].filter(Boolean),
     answer: lines(
       `${costs(bundle)}. ${bundle.summary}`,
-      'You get:',
+      base ? `Everything in ${base}, plus:` : 'You get:',
       points(includesOf(bundle)),
       ...extra,
       bundle.runningCost ? `Note: ${bundle.runningCost}.` : '',
@@ -232,7 +237,7 @@ export function buildTopics(
             ? [`Ready-made templates: from ${cheapestTemplate}`]
             : []),
           `Custom systems: from ${formatRM(CUSTOM_SYSTEM.price)}`,
-          `Mobile apps: from ${lowest(MOBILE_APPS.bundles)}`,
+          'Mobile apps: free quote per project',
           `Automation: from ${lowest(AUTOMATION.bundles)}`,
         ]),
         `Maintenance is separate, from ${carePrice(CARE.starter)}. Type whatsapp for a free quote 😊`
@@ -242,7 +247,7 @@ export function buildTopics(
       starter,
       ['one page', '1 page', 'single page', 'landing page'],
       [
-        `Not included: ${(starter.excludes ?? []).join(' or ')}.`,
+        `Not included: ${(starter.excludes ?? []).join(', ')}.`,
         `Maintenance: ${both(CARE.starter)}.`,
       ]
     ),
@@ -250,14 +255,16 @@ export function buildTopics(
       business,
       ['business website', 'cms', 'content editor', '6 pages'],
       [
-        `Not included: ${(business.excludes ?? []).join(' or ')}.`,
+        `Not included: ${(business.excludes ?? []).join(', ')}.`,
         `Maintenance: ${both(CARE.business)}.`,
-      ]
+      ],
+      starter.name
     ),
     {
       title: 'Custom systems',
       phrases: [
         'customise',
+        'enterprise',
         'customize',
         'custom system',
         'system',
@@ -275,19 +282,26 @@ export function buildTopics(
     ),
     {
       title: 'Mobile apps',
-      phrases: ['mobile app', 'app', 'android', 'ios', 'iphone', 'aplikasi'],
+      phrases: [
+        'mobile app',
+        'app',
+        'android',
+        'ios',
+        'iphone',
+        'aplikasi',
+        'loyalty app',
+        'member app',
+        'booking app',
+        'ordering app',
+        'delivery app',
+        'custom app',
+      ],
       answer: lines(
         'Yep, Haziq builds Android and iOS apps!',
-        points(
-          MOBILE_APPS.bundles.map((item) => `${item.name}: ${price(item)}`)
-        ),
-        MOBILE_APPS.note ?? '',
-        `Maintenance: ${both(CARE.app)}.`
+        'Every app is different, so each one gets its own quote. It is free, with a written scope and a fixed price before any work starts. Describe your idea on the Services page or just type whatsapp.',
+        MOBILE_APPS.note ?? ''
       ),
     },
-    ...MOBILE_APPS.bundles.map((item) =>
-      bundleTopic(item, APP_PHRASES[item.id] ?? [])
-    ),
     {
       title: 'Automation',
       phrases: ['automation', 'automate', 'automasi'],
@@ -444,7 +458,7 @@ export function buildTopics(
         points([
           `Websites: from ${formatRM(starter.price)}`,
           `Custom systems like online stores, booking and HR: from ${formatRM(CUSTOM_SYSTEM.price)}`,
-          `Mobile apps: from ${lowest(MOBILE_APPS.bundles)}`,
+          'Mobile apps: free quote per project',
           `Automations: from ${lowest(AUTOMATION.bundles)}`,
           `Maintenance after launch: from ${carePrice(CARE.starter)}`,
         ]),

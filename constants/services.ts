@@ -49,12 +49,12 @@ export const CARE: Record<CareId, CareTier> = {
   starter: {
     name: 'Starter',
     for: 'Starter website',
-    monthly: 50,
+    monthly: 30,
   },
   business: {
     name: 'Business',
     for: 'Business website',
-    monthly: 80,
+    monthly: 50,
   },
   store: { name: 'Store', for: 'Ready-made online store', monthly: 150 },
   system: {
@@ -67,7 +67,7 @@ export const CARE: Record<CareId, CareTier> = {
   automation: {
     name: 'Automation',
     for: 'Automation',
-    monthly: 50,
+    monthly: 100,
     from: true,
   },
 };
@@ -173,11 +173,21 @@ export interface PricingTab {
   noun: string;
   /** Prices are per month, such as maintenance. */
   monthly?: boolean;
-  layout?: 'cards' | 'bento' | 'builder';
+  layout?: 'cards' | 'bento' | 'builder' | 'quote';
+  /** For tabs quoted per project instead of packages. */
+  quote?: { includes: string[]; examples: string; placeholder: string };
   others?: { name: string; summary: string; placeholder: string };
 }
 
 const CUSTOM_DESIGN = 'Custom design, not a template';
+const CHAT_INTEGRATION = 'WhatsApp/Telegram integration';
+
+const ONLINE_PAYMENT: AddOn = {
+  id: 'payment',
+  name: 'Online payment',
+  description: `A pay-now button for orders or bookings, by FPX, card or e-wallet. The gateway account is in your business name. ${GATEWAY_FEES}.`,
+  price: 1000,
+};
 const PAGE_LIMITS = ['1-page website', 'Up to 6 pages'];
 
 export const WEBSITES: PricingTab = {
@@ -199,10 +209,11 @@ export const WEBSITES: PricingTab = {
         PAGE_LIMITS[0],
         CUSTOM_DESIGN,
         'Mobile responsive',
+        'WhatsApp, call and map buttons',
         'Basic SEO and Google Analytics',
         'Google Business Profile setup',
       ],
-      excludes: ['Content editor (CMS)', 'WhatsApp/Telegram integration'],
+      excludes: ['Content editor (CMS)', CHAT_INTEGRATION],
     },
     {
       id: 'business',
@@ -212,13 +223,20 @@ export const WEBSITES: PricingTab = {
       recommended: true,
       care: 'business',
       basedOn: 'starter',
+      includeInfo: {
+        item: CHAT_INTEGRATION,
+        heading: CHAT_INTEGRATION,
+        items: ['Order forms', 'Booking forms', 'Enquiry forms'],
+        note: 'Each one arrives in your WhatsApp or Telegram, so you can reply from your phone.',
+      },
       includes: [
         PAGE_LIMITS[1],
         'CMS for text, photos and prices',
-        'WhatsApp/Telegram integration',
+        CHAT_INTEGRATION,
         'On-page SEO for every page',
       ],
-      excludes: ['Payment gateway', 'Customer logins'],
+      excludes: ['Order and stock management', 'Customer logins'],
+      addOns: [ONLINE_PAYMENT],
     },
   ],
 };
@@ -248,7 +266,7 @@ export const SYSTEMS: PricingTab = {
       id: 'online-store',
       name: 'Online store',
       summary: 'Customers order and pay on your site.',
-      price: 7900,
+      price: 14400,
       from: true,
       care: 'system',
       includes: [
@@ -264,45 +282,45 @@ export const SYSTEMS: PricingTab = {
           id: 'accounts',
           name: 'Customer accounts',
           description: 'Customers sign in, save addresses and see past orders.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'shipping',
           name: 'Shipping labels and tracking',
           description:
             'Print courier labels and send tracking numbers from the admin portal.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'loyalty',
           name: 'Loyalty points',
           description: 'Points on every order, redeemed at checkout.',
-          price: 1800,
+          price: 3500,
         },
         {
           id: 'reviews',
           name: 'Product reviews',
           description: 'Star ratings and reviews from customers who bought.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'languages',
           name: 'Extra language',
           description: 'Translated for you.',
-          price: 1000,
+          price: 2000,
           perLanguage: true,
         },
         {
           id: 'reports',
           name: 'Sales reports',
           description: 'Sales by day and product, with CSV exports.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'import',
           name: 'Product import',
           description: 'Up to 500 products loaded from your spreadsheet.',
-          price: 800,
+          price: 1500,
         },
         alerts('a new order is paid'),
       ],
@@ -312,7 +330,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Booking',
       name: 'Booking system',
       summary: 'Customers book a time, and you see it all in one calendar.',
-      price: 6900,
+      price: 12900,
       from: true,
       care: 'system',
       includes: [
@@ -326,46 +344,46 @@ export const SYSTEMS: PricingTab = {
           id: 'deposits',
           name: 'Deposits and online payment',
           description: `Customers pay a deposit or in full by FPX, card or e-wallet. ${GATEWAY_FEES}.`,
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'branches',
           name: 'Multiple branches',
           description: 'Separate locations, staff and hours in one system.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'whatsapp',
           name: 'WhatsApp reminders',
           description:
             'Reminders on WhatsApp before each booking. Message fees paid by you to Meta.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'packages',
           name: 'Packages and prepaid sessions',
           description: "Sell 5 or 10 session packages and track what's left.",
-          price: 1800,
+          price: 3500,
         },
         {
           id: 'accounts',
           name: 'Customer accounts',
           description: 'Customers sign in to see and change their bookings.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'calendar',
           name: 'Google Calendar sync',
           description:
             "Bookings appear in each staff member's Google Calendar.",
-          price: 800,
+          price: 1500,
         },
         {
           id: 'reports',
           name: 'Booking reports',
           description:
             'Bookings by day, service and staff, no-shows and CSV exports.',
-          price: 1200,
+          price: 2000,
         },
         alerts('a new booking comes in'),
       ],
@@ -375,7 +393,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'QR ordering',
       name: 'QR food ordering',
       summary: 'Customers scan, order and pay at the table.',
-      price: 5900,
+      price: 10900,
       from: true,
       care: 'system',
       includes: [
@@ -389,38 +407,38 @@ export const SYSTEMS: PricingTab = {
           id: 'payment',
           name: 'Pay at the table',
           description: `Customers pay by FPX, card, e-wallet or DuitNow QR. ${GATEWAY_FEES}.`,
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'takeaway',
           name: 'Takeaway and delivery',
           description:
             'Customers order ahead for pickup or delivery from your own link.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'printers',
           name: 'Kitchen and receipt printers',
           description: 'Orders print on your kitchen and receipt printers.',
-          price: 1000,
+          price: 2000,
         },
         {
           id: 'outlets',
           name: 'Multiple outlets',
           description: 'Each outlet with its own menu, tables and sales.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'loyalty',
           name: 'Loyalty points',
           description: 'Points on every order, redeemed on the next visit.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'reports',
           name: 'Sales reports',
           description: 'Sales by day, item and table, with CSV exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('a table places an order'),
       ],
@@ -430,7 +448,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Inventory',
       name: 'Inventory and stock',
       summary: 'Know what you have, where it is and when to reorder.',
-      price: 5900,
+      price: 10900,
       from: true,
       care: 'system',
       includes: [
@@ -444,38 +462,38 @@ export const SYSTEMS: PricingTab = {
           id: 'barcodes',
           name: 'Barcode scanning',
           description: 'Scan items with a phone camera or a barcode scanner.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'locations',
           name: 'Multiple warehouses',
           description: 'Stock counted per shop or warehouse, with transfers.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'purchasing',
           name: 'Purchase orders and suppliers',
           description: 'Raise purchase orders and receive stock against them.',
-          price: 2000,
+          price: 3500,
         },
         {
           id: 'expiry',
           name: 'Batch and expiry dates',
           description: 'Track batches and get alerts before items expire.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'store-sync',
           name: 'Online store sync',
           description: 'Stock stays in step with your online store.',
-          price: 2000,
+          price: 3500,
         },
         {
           id: 'reports',
           name: 'Stock reports',
           description:
             'Stock value, movement and slow sellers, with CSV exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('stock runs low'),
       ],
@@ -485,7 +503,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Invoicing',
       name: 'Quotation and invoicing',
       summary: 'Quotes, invoices and payments in one place.',
-      price: 5400,
+      price: 9900,
       from: true,
       care: 'system',
       includes: [
@@ -500,38 +518,38 @@ export const SYSTEMS: PricingTab = {
           name: 'e-Invoice (LHDN MyInvois)',
           description:
             'Invoices are submitted to MyInvois and carry the validated QR code.',
-          price: 2500,
+          price: 4500,
         },
         {
           id: 'payment-links',
           name: 'Online payment links',
           description: `Customers pay an invoice by FPX, card or e-wallet. ${GATEWAY_FEES}.`,
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'recurring',
           name: 'Recurring invoices',
           description: 'Monthly or yearly invoices that send themselves.',
-          price: 1000,
+          price: 2000,
         },
         {
           id: 'delivery-orders',
           name: 'Delivery orders',
           description: 'Delivery orders and receipts from the same records.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'reminders',
           name: 'Payment reminders',
           description: 'Overdue reminders by email or WhatsApp.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'reports',
           name: 'Sales and SST reports',
           description:
             'Sales, outstanding amounts and SST summaries, with exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('an invoice is paid or goes overdue'),
       ],
@@ -541,7 +559,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'HR & leave',
       name: 'HR: leave, claims and attendance',
       summary: 'Staff apply, managers approve, and every record is kept.',
-      price: 6900,
+      price: 12900,
       from: true,
       care: 'system',
       includes: [
@@ -555,32 +573,32 @@ export const SYSTEMS: PricingTab = {
           id: 'attendance',
           name: 'Clock-in attendance',
           description: 'Staff clock in from their phone, with location.',
-          price: 1800,
+          price: 3500,
         },
         {
           id: 'shifts',
           name: 'Shift schedules',
           description: 'Plan shifts and let staff see their roster.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'payroll',
-          name: 'Payroll with EPF, SOCSO and PCB',
+          name: 'Payroll export',
           description:
-            'Monthly payslips with statutory deductions. You check and approve each run.',
-          price: 3500,
+            'Leave, claims and attendance exported each month to the payroll app you use.',
+          price: 1500,
         },
         {
           id: 'branches',
           name: 'Multiple branches',
           description: 'Leave rules, holidays and managers per branch.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'reports',
           name: 'HR reports',
           description: 'Leave, claims and attendance summaries, with exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('a staff member applies for leave or submits a claim'),
       ],
@@ -590,7 +608,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'CRM & leads',
       name: 'CRM and sales leads',
       summary: 'Every lead, follow-up and deal in one place.',
-      price: 5900,
+      price: 10900,
       from: true,
       care: 'system',
       includes: [
@@ -605,32 +623,32 @@ export const SYSTEMS: PricingTab = {
           name: 'WhatsApp chats on each lead',
           description:
             'See and reply to WhatsApp chats from the lead. Message fees paid by you to Meta.',
-          price: 2000,
+          price: 3500,
         },
         {
           id: 'quotes',
           name: 'Quotations from the CRM',
           description:
             'Send a quote from a deal and track when it is accepted.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'team',
           name: 'Team roles and targets',
           description: 'Assign leads, set targets and see who closed what.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'campaigns',
           name: 'Email campaigns',
           description: 'Send updates and promotions to customer lists.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'reports',
           name: 'Sales dashboards',
           description: 'Pipeline value, win rates and sales by person.',
-          price: 1000,
+          price: 2000,
         },
         alerts('a new lead comes in from your website'),
       ],
@@ -640,7 +658,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Tuition centre',
       name: 'Tuition and training centre',
       summary: 'Students, classes, attendance and fees in one system.',
-      price: 6900,
+      price: 12900,
       from: true,
       care: 'system',
       includes: [
@@ -654,39 +672,39 @@ export const SYSTEMS: PricingTab = {
           id: 'parents',
           name: 'Parent portal',
           description: 'Parents see attendance, fees and announcements.',
-          price: 2000,
+          price: 3500,
         },
         {
           id: 'fees',
           name: 'Online fee payment',
           description: `Parents pay by FPX, card or e-wallet. ${GATEWAY_FEES}.`,
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'whatsapp',
           name: 'WhatsApp reminders',
           description:
             'Class and fee reminders on WhatsApp. Message fees paid by you to Meta.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'progress',
           name: 'Exams and progress reports',
           description: 'Record marks and share progress reports.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'branches',
           name: 'Multiple branches',
           description: 'Classes, teachers and fees per branch.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'materials',
           name: 'Class materials',
           description:
             'Notes, videos and homework only enrolled students can open.',
-          price: 1200,
+          price: 2000,
         },
         alerts('a fee is paid or goes overdue'),
       ],
@@ -696,7 +714,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Membership',
       name: 'Membership and loyalty',
       summary: 'Members, plans, check-ins and rewards.',
-      price: 6400,
+      price: 11900,
       from: true,
       care: 'system',
       includes: [
@@ -710,40 +728,40 @@ export const SYSTEMS: PricingTab = {
           id: 'payments',
           name: 'Online payment and auto-renewal',
           description: `Members pay and renew online. ${GATEWAY_FEES}.`,
-          price: 2000,
+          price: 3500,
         },
         {
           id: 'rewards',
           name: 'Points and rewards',
           description: 'Points for visits or spending, redeemed for rewards.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'classes',
           name: 'Class booking',
           description:
             'Members book classes or sessions, with limits per class.',
-          price: 1800,
+          price: 3500,
         },
         {
           id: 'app',
           name: 'Member app',
           description:
             'Members add it to their home screen and open it like an app.',
-          price: 1200,
+          price: 2000,
         },
         {
           id: 'whatsapp',
           name: 'WhatsApp reminders',
           description:
             'Renewal and class reminders on WhatsApp. Message fees paid by you to Meta.',
-          price: 800,
+          price: 1500,
         },
         {
           id: 'reports',
           name: 'Member reports',
           description: 'Sign-ups, renewals and check-ins, with exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('someone joins, renews or checks in'),
       ],
@@ -753,7 +771,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Rentals',
       name: 'Rental management',
       summary: "Track what's rented, to whom and when it's due back.",
-      price: 6400,
+      price: 11900,
       from: true,
       care: 'system',
       includes: [
@@ -767,37 +785,37 @@ export const SYSTEMS: PricingTab = {
           id: 'online-booking',
           name: 'Online booking',
           description: 'Customers check availability and book on your site.',
-          price: 1800,
+          price: 3500,
         },
         {
           id: 'deposits',
           name: 'Online deposit payment',
           description: `Customers pay the deposit by FPX, card or e-wallet. ${GATEWAY_FEES}.`,
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'signatures',
           name: 'Digital agreements',
           description: 'Customers sign the rental agreement on their phone.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'charges',
           name: 'Late and damage charges',
           description: 'Late returns and damage charges added to the bill.',
-          price: 1000,
+          price: 2000,
         },
         {
           id: 'branches',
           name: 'Multiple branches',
           description: 'Items and bookings per branch.',
-          price: 1500,
+          price: 3000,
         },
         {
           id: 'reports',
           name: 'Rental reports',
           description: 'Utilisation, income and overdue returns, with exports.',
-          price: 1000,
+          price: 2000,
         },
         alerts('a booking is made or an item is due back'),
       ],
@@ -809,8 +827,8 @@ const SYSTEM_CHOICES = 'Online store, booking, HR and more';
 
 export const CUSTOM_SYSTEM: Bundle = {
   id: 'custom-system',
-  name: 'Customise',
-  summary: 'A system that takes payments and keeps records.',
+  name: 'Enterprise',
+  summary: 'Customise a system for your business, with anything you need.',
   price: Math.min(...SYSTEMS.bundles.map((bundle) => bundle.price)),
   from: true,
   care: 'system',
@@ -835,56 +853,21 @@ export const MOBILE_APPS: PricingTab = {
   shortLabel: 'Apps',
   tagline: 'Android and iOS apps',
   noun: 'mobile app',
+  layout: 'quote',
   note: 'Apple and Google charge you for the store accounts: USD 99 a year and USD 25 once.',
-  bundles: [
-    {
-      id: 'info-app',
-      name: 'Info app',
-      summary: 'Your menu, catalogue or info in an app.',
-      price: 3400,
-      from: true,
-      care: 'app',
-      includes: [
-        'Android and iOS',
-        'Your menu, catalogue or info',
-        'One button: WhatsApp, call or directions',
-        'Push notifications',
-        'App Store and Google Play publishing',
-      ],
-      excludes: ['Member logins', 'Bookings or orders'],
-    },
-    {
-      id: 'member-app',
-      name: 'Booking or loyalty app',
-      summary: 'Members sign in, book and collect points.',
-      price: 6400,
-      from: true,
-      care: 'app',
-      basedOn: 'info-app',
-      includes: [
-        'Member logins and profiles',
-        'Bookings with reminders, or points and rewards',
-        'Admin dashboard',
-      ],
-      excludes: ['Payment gateway'],
-    },
-    {
-      id: 'ordering-app',
-      name: 'Ordering app',
-      summary: 'Customers order and pay in the app.',
-      price: 9400,
-      from: true,
-      care: 'app',
-      basedOn: 'info-app',
-      includes: [
-        'Customer logins',
-        'Cart and payment gateway',
-        'Order status updates',
-        'Admin dashboard for orders and products',
-      ],
-      runningCost: GATEWAY_FEES,
-    },
-  ],
+  bundles: [],
+  quote: {
+    includes: [
+      'Android and iOS',
+      'App Store and Google Play publishing',
+      'Admin dashboard',
+      BUG_FIX_INCLUDE,
+    ],
+    examples:
+      'For example: loyalty and member apps, booking apps, ordering apps or apps for your staff.',
+    placeholder:
+      'For example: an app for my gym where members book classes, pay monthly and check in with a QR code.',
+  },
 };
 
 export const AUTOMATION: PricingTab = {
@@ -958,6 +941,14 @@ export const AUTOMATION: PricingTab = {
 };
 
 export const PRICING_TABS = [WEBSITES, SYSTEMS, MOBILE_APPS, AUTOMATION];
+
+/** Package tabs that end with an Enterprise card and its estimate builder. */
+export const CUSTOM_BUILDS: Record<
+  string,
+  { bundle: Bundle; builder: PricingTab }
+> = {
+  [WEBSITES.id]: { bundle: CUSTOM_SYSTEM, builder: SYSTEMS },
+};
 
 export const startingPriceOf = (tab: PricingTab) =>
   Math.min(...tab.bundles.map((bundle) => bundle.price));
@@ -1050,8 +1041,23 @@ const LANGUAGES = {
   perLanguage: true,
 };
 
-const STORE_ADD_ONS =
-  SYSTEMS.bundles.find((bundle) => bundle.id === 'online-store')?.addOns ?? [];
+// Store templates are for small shops, so they keep small-shop add-on prices.
+const STORE_TEMPLATE_PRICES: Record<string, number> = {
+  accounts: 1200,
+  shipping: 1500,
+  loyalty: 1800,
+  reviews: 800,
+  languages: 1000,
+  reports: 1200,
+  alerts: 500,
+};
+
+const STORE_ADD_ONS = (
+  SYSTEMS.bundles.find((bundle) => bundle.id === 'online-store')?.addOns ?? []
+).map((item) => ({
+  ...item,
+  price: STORE_TEMPLATE_PRICES[item.id] ?? item.price,
+}));
 
 const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
   starter: [
@@ -1079,6 +1085,7 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       perPage: true,
     },
     { ...LANGUAGES, price: 400 },
+    ONLINE_PAYMENT,
     {
       id: 'content',
       name: 'Products or projects added for you',
