@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check } from 'lucide-react';
 import { HANDOFF, takeHandoff } from '@lib/handoff';
 import { useServicePick, type ServicePick } from './servicePick';
 import PillTabs from './PillTabs';
@@ -17,13 +16,7 @@ export interface ServiceTab {
   panel: ReactNode;
 }
 
-export default function ServiceTabs({
-  tabs,
-  assurances = [],
-}: {
-  tabs: ServiceTab[];
-  assurances?: string[];
-}) {
+export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
   const [activeId, setActiveId] = useState(tabs[0]?.id);
   const rootRef = useRef<HTMLDivElement>(null);
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
@@ -73,20 +66,6 @@ export default function ServiceTabs({
         </span>{' '}
         · {active.tagline}
       </p>
-      {assurances.length > 0 && (
-        <ul className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-          {assurances.map((item) => (
-            <li key={item} className="flex items-center gap-1.5">
-              <Check
-                size={13}
-                aria-hidden="true"
-                className="text-green-600 dark:text-green-400"
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
 
       {tabs.map((tab) => (
         <div

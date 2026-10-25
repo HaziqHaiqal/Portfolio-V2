@@ -104,12 +104,6 @@ const JSON_LD = {
   },
 };
 
-const ASSURANCES = [
-  'Free quote',
-  'Price agreed in writing before work starts',
-  'You own the code',
-];
-
 const FAQS: FaqItem[] = [
   {
     question: 'How do we get started?',
@@ -126,6 +120,11 @@ const FAQS: FaqItem[] = [
       'No. The domain is registered in your name and paid by you, usually under RM100 a year for .com or .com.my. I connect it to your website, and can help you register one if you do not have it yet. Hosting is part of maintenance.',
   },
   {
+    question: 'Can I pay over time?',
+    answer:
+      'Yes. Instalments can be arranged for any package, and online stores or ordering systems can pay part of the price from their sales. Ask on WhatsApp. The plan is agreed in writing before work starts.',
+  },
+  {
     question: "What if I'm not happy with the work?",
     answer:
       'You test everything before the final 40% is paid. Anything that does not match the agreed scope is fixed at no extra cost. New ideas beyond the scope are quoted first.',
@@ -133,7 +132,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'What if I need something outside the package?',
     answer:
-      'New pages, features, integrations and improvements are quoted separately and agreed before work starts.',
+      "Bug fixes on my work are free for life. Change requests, enhancements, new pages and features after the quote is agreed are quoted separately before work starts, and so are fixes for problems caused by someone else's changes or by other companies' services.",
   },
   {
     question: 'Can I change things myself after launch?',
@@ -184,7 +183,7 @@ export default async function ServicePage() {
       id: MAINTENANCE_TAB,
       label: 'Maintenance',
       shortLabel: 'Care',
-      tagline: 'Hosting, updates, backups and bug fixes after launch',
+      tagline: 'Hosting, updates and backups after launch',
       price: `From ${carePrice(CARE.starter)}`,
       panel: <Maintenance whatsappHref={whatsappUrl} />,
     },
@@ -233,7 +232,7 @@ export default async function ServicePage() {
                   accentClass={GREEN.icon}
                   gradientClass={GREEN.bar}
                 />
-                <ServiceTabs tabs={tabs} assurances={ASSURANCES} />
+                <ServiceTabs tabs={tabs} />
               </div>
             </section>
 

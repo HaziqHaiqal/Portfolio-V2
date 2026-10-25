@@ -1,8 +1,7 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import {
-  BUG_FIX_MONTHS,
   CARE,
   type CareTier,
   careYearly,
@@ -72,13 +71,13 @@ const PLANS: Plan[] = [
 ];
 
 const INCLUDES = [
+  'Hosting and SSL for what I build',
   'Security and software updates',
   'Regular backups',
-  `Free bug fixes for ${BUG_FIX_MONTHS} months after launch, then while maintenance is active`,
-  'Hosting and SSL for what I build',
 ];
 
 const GOOD_TO_KNOW = [
+  'Bug fixes on what I build are free for life, with or without a plan.',
   'You can stop maintenance. The site or app then goes offline from my hosting, and the code is yours to host elsewhere.',
   'Domain renewals and fees from other companies, such as payment gateways, are paid separately.',
   `For sites built by someone else, the check comes off your first year when you pay yearly, and problems that were already there are quoted from its list. Works with ${TAKEOVER.platforms.join(', ')}.`,
@@ -248,11 +247,21 @@ export default function Maintenance({
         ))}
       </CardCarousel>
 
-      <div className="mt-10 grid gap-8 rounded-3xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/50 sm:p-7 md:grid-cols-3">
-        <List title="Every plan includes" items={INCLUDES} />
-        <List title="The takeover check" items={TAKEOVER.checkIncludes} />
-        <List title="Good to know" items={GOOD_TO_KNOW} />
-      </div>
+      <details className="group mx-auto mt-8 max-w-4xl">
+        <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full px-2 py-2 text-sm font-semibold text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300 [&::-webkit-details-marker]:hidden">
+          What&apos;s included and good to know
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className="transition-transform duration-200 group-open:rotate-180"
+          />
+        </summary>
+        <div className="mt-6 grid gap-8 border-t border-gray-200 pt-8 dark:border-gray-700 md:grid-cols-3">
+          <List title="Every plan includes" items={INCLUDES} />
+          <List title="The takeover check" items={TAKEOVER.checkIncludes} />
+          <List title="Good to know" items={GOOD_TO_KNOW} />
+        </div>
+      </details>
     </div>
   );
 }

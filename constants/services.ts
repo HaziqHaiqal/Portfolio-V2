@@ -85,9 +85,7 @@ export const carePrice = (
   }`;
 };
 
-export const BUG_FIX_MONTHS = 6;
-
-export const BUG_FIX_INCLUDE = `${BUG_FIX_MONTHS} months of free bug fixes`;
+export const BUG_FIX_INCLUDE = 'Free bug fixes for life';
 
 export const careYearlySaving = (tier: CareTier) =>
   tier.monthly * (12 - CARE_YEARLY_MONTHS);
