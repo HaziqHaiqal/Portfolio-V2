@@ -6,6 +6,7 @@ import { Mail, Eraser, Trash2 } from 'lucide-react';
 import { SiGithub, SiLinkedin, SiWhatsapp } from 'react-icons/si';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import type { Profile } from '@lib/supabase';
+import HoonBot, { type HoonMood } from '@components/Common/HoonBot';
 
 interface ContactSectionProps {
   profile: Partial<Profile> | null;
@@ -30,6 +31,9 @@ const LIST_ITEM = /^\s*(?:[-*•]|(\d+)[.)])\s+(.*)$/;
 const GREETING = "Hi, I'm Haziq.";
 
 const GUTTER = 'px-4 sm:px-6 lg:px-8';
+// Inside the chat a random sad or confused face would read as a reaction.
+const IDLE_MOODS: HoonMood[] = ['wink', 'sleepy', 'surprised'];
+const GIGGLES = ['hehe', 'haha!', 'hihi'];
 
 const COMMANDS = [
   { name: 'email', hint: 'open your mail app', icon: Mail },
@@ -44,6 +48,25 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [asking, setAsking] = useState(false);
   const turnsRef = useRef<Turn[]>([]);
+  const [reaction, setReaction] = useState<HoonMood | null>('excited');
+  const [hoonHovered, setHoonHovered] = useState(false);
+  const [tickles, setTickles] = useState(0);
+  const [giggle, setGiggle] = useState<string | null>(null);
+  const giggleTimer = useRef(0);
+  const wiggleRef = useRef<HTMLSpanElement>(null);
+  const reactionTimer = useRef(0);
+
+  const react = useCallback((mood: HoonMood, ms: number) => {
+    window.clearTimeout(reactionTimer.current);
+    setReaction(mood);
+    reactionTimer.current = window.setTimeout(() => setReaction(null), ms);
+  }, []);
+
+  useEffect(() => {
+    const timers = reactionTimer;
+    timers.current = window.setTimeout(() => setReaction(null), 2400);
+    return () => window.clearTimeout(timers.current);
+  }, []);
 
   const [typedLen, setTypedLen] = useState(0);
   const greetingDone = typedLen >= GREETING.length;
@@ -105,50 +128,82 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
     window.open(`mailto:${email}`, '_blank', 'noopener,noreferrer');
   }, [email]);
 
-  const ask = useCallback(async (question: string) => {
-    const history = turnsRef.current.slice(-6);
-    const questionId = ++idRef.current;
-    const id = ++idRef.current;
-    setEntries((prev) => [
-      ...prev,
-      { id: questionId, kind: 'command', text: question },
-      { id, kind: 'answer', text: '', pending: true },
-    ]);
-    setAsking(true);
-    const show = (text: string, pending: boolean) =>
-      setEntries((prev) =>
-        prev.map((entry) =>
-          entry.id === id ? { ...entry, text, pending } : entry
-        )
-      );
-
-    let answer = '';
-    try {
-      const response = await fetch('/api/hoon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: question, history }),
-      });
-      if (!response.body) throw new Error('No reply');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        answer += decoder.decode(value, { stream: true });
-        show(answer, true);
-      }
-    } catch {
-      answer ||= HOON_FALLBACK;
-    }
-    answer ||= HOON_FALLBACK;
-    show(answer, false);
-    turnsRef.current.push(
-      { role: 'user', text: question },
-      { role: 'assistant', text: answer }
+  const tickle = () => {
+    react('laughing', 1400);
+    setGiggle(GIGGLES[tickles % GIGGLES.length]);
+    setTickles((count) => count + 1);
+    window.clearTimeout(giggleTimer.current);
+    giggleTimer.current = window.setTimeout(() => setGiggle(null), 1200);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    wiggleRef.current?.animate(
+      [
+        { transform: 'rotate(0)' },
+        { transform: 'rotate(-12deg) scale(1.06)' },
+        { transform: 'rotate(10deg)' },
+        { transform: 'rotate(-8deg)' },
+        { transform: 'rotate(5deg)' },
+        { transform: 'rotate(-2deg)' },
+        { transform: 'rotate(0)' },
+      ],
+      { duration: 700, easing: 'ease-in-out' }
     );
-    setAsking(false);
-  }, []);
+  };
+
+  const ask = useCallback(
+    async (question: string) => {
+      const history = turnsRef.current.slice(-6);
+      const questionId = ++idRef.current;
+      const id = ++idRef.current;
+      setEntries((prev) => [
+        ...prev,
+        { id: questionId, kind: 'command', text: question },
+        { id, kind: 'answer', text: '', pending: true },
+      ]);
+      setAsking(true);
+      const show = (text: string, pending: boolean) =>
+        setEntries((prev) =>
+          prev.map((entry) =>
+            entry.id === id ? { ...entry, text, pending } : entry
+          )
+        );
+
+      let answer = '';
+      let mood: HoonMood = 'excited';
+      try {
+        const response = await fetch('/api/hoon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: question, history }),
+        });
+        if (!response.ok) mood = 'sad';
+        if (!response.body) throw new Error('No reply');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          answer += decoder.decode(value, { stream: true });
+          show(answer, true);
+        }
+      } catch {
+        mood = 'sad';
+      }
+      if (!answer) {
+        answer = HOON_FALLBACK;
+        mood = 'sad';
+      }
+      if (answer.startsWith("Oops, that's outside")) mood = 'confused';
+      else if (answer.includes("can't answer that right now")) mood = 'sad';
+      show(answer, false);
+      turnsRef.current.push(
+        { role: 'user', text: question },
+        { role: 'assistant', text: answer }
+      );
+      setAsking(false);
+      react(mood, mood === 'excited' ? 2000 : 3000);
+    },
+    [react]
+  );
 
   const run = useCallback(
     (raw: string) => {
@@ -159,7 +214,12 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
       if (command === 'clear') {
         setEntries([]);
         turnsRef.current = [];
+        react('surprised', 1500);
         return;
+      }
+
+      if (['email', 'whatsapp', 'linkedin', 'github'].includes(command)) {
+        react('wink', 1800);
       }
 
       switch (command) {
@@ -198,7 +258,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           if (!asking) ask(raw.trim());
       }
     },
-    [push, openEmail, ask, asking, whatsappUrl, linkedinUrl, githubUrl]
+    [push, openEmail, ask, asking, react, whatsappUrl, linkedinUrl, githubUrl]
   );
 
   const actions = [
@@ -351,6 +411,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
               onClick={() => {
                 setEntries([]);
                 turnsRef.current = [];
+                react('surprised', 1500);
                 inputRef.current?.focus();
               }}
               className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${t.clearBtn}`}
@@ -381,19 +442,66 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           </div>
 
           <m.p
-            className={`mt-4 max-w-xl pl-8 lg:pl-11 lg:text-lg ${t.body}`}
+            className={`mt-4 max-w-xl pl-8 pr-16 sm:pr-0 lg:pl-11 lg:text-lg ${t.body}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: greetingDone ? 1 : 0 }}
             transition={{ duration: 0.4 }}
           >
-            Thanks for stopping by. Pick whichever way is easiest for you.
+            Got a question? Ask my bot{' '}
+            <span className={`font-semibold ${t.accent}`}>Hoon</span>, or
+            message me directly.
           </m.p>
         </div>
 
         <div
-          className={`flex flex-1 flex-col ${GUTTER} pb-6`}
+          className={`relative flex flex-1 flex-col ${GUTTER} pb-6`}
           style={{ minHeight: 160 }}
         >
+          <button
+            type="button"
+            aria-label="Tickle Hoon"
+            onClick={tickle}
+            onMouseEnter={() => setHoonHovered(true)}
+            onMouseLeave={() => setHoonHovered(false)}
+            className="absolute right-6 top-[3px] z-10 -translate-y-full cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 sm:right-10 lg:right-12"
+          >
+            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2">
+              <AnimatePresence>
+                {giggle && (
+                  <m.span
+                    key={tickles}
+                    className="block whitespace-nowrap font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400"
+                    initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                    animate={{ opacity: 1, y: -2, scale: 1 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {giggle}
+                  </m.span>
+                )}
+              </AnimatePresence>
+            </span>
+            <span className="hoon-bob">
+              <span ref={wiggleRef} className="block origin-bottom">
+                <HoonBot
+                  moods={IDLE_MOODS}
+                  mood={
+                    reaction === 'laughing'
+                      ? reaction
+                      : asking
+                        ? 'thinking'
+                        : (reaction ??
+                          (hoonHovered
+                            ? 'excited'
+                            : input.trim()
+                              ? 'typing'
+                              : undefined))
+                  }
+                  className="block h-12 w-12 sm:h-14 sm:w-14"
+                />
+              </span>
+            </span>
+          </button>
           <div
             ref={screenRef}
             onClick={() => inputRef.current?.focus()}

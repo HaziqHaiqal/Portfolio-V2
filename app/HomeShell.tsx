@@ -36,10 +36,10 @@ export default function HomeShell({
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden transition-all duration-500"
+      className="relative flex min-h-screen flex-col overflow-hidden transition-all duration-500"
       suppressHydrationWarning
     >
-      <div className={`relative ${classes.bg.primary}`}>
+      <div className={`relative flex-1 ${classes.bg.primary}`}>
         <GridBackground />
         {decorations && <FloatingElements />}
         <NavBar />

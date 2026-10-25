@@ -1,73 +1,103 @@
-import Link from 'next/link';
-import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
+'use client';
+
+import { useState, type ComponentType } from 'react';
+import { ArrowRight, Mail, Phone } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { Profile } from '@lib/supabase';
 import { DEFAULT_CONTACT } from '@constants/contact';
+import { useUIStore } from '@lib/stores';
+import HoonBot from '@components/Common/HoonBot';
 
-const LINE_LINK =
-  'inline-flex items-center gap-1.5 rounded font-medium text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300';
+interface Tile {
+  key: string;
+  href: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  name: string;
+  detail: string;
+}
 
 export default function ContactOptions({
   profile,
 }: {
   profile: Profile | null;
 }) {
+  const openContact = useUIStore((state) => state.openContact);
+  const [hoonHovered, setHoonHovered] = useState(false);
+
   const whatsapp = new URL(profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp);
   whatsapp.searchParams.set('text', "Hi Haziq, I'd like to discuss a project.");
   const email = profile?.email || DEFAULT_CONTACT.email;
   const phone = profile?.phone?.trim();
 
-  return (
-    <div className="mx-auto flex max-w-xl flex-col items-center text-center">
-      <a
-        href={whatsapp.toString()}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-green-600 px-7 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30"
-      >
-        <SiWhatsapp size={18} aria-hidden="true" />
-        Chat on WhatsApp
-      </a>
+  const tiles: Tile[] = [
+    {
+      key: 'whatsapp',
+      href: whatsapp.toString(),
+      icon: SiWhatsapp,
+      name: 'WhatsApp',
+      detail: 'Fastest reply',
+    },
+    {
+      key: 'email',
+      href: `mailto:${email}`,
+      icon: Mail,
+      name: 'Email',
+      detail: email,
+    },
+    ...(phone
+      ? [
+          {
+            key: 'call',
+            href: `tel:${phone.replace(/\s+/g, '')}`,
+            icon: Phone,
+            name: 'Call',
+            detail: phone,
+          },
+        ]
+      : []),
+  ];
 
-      <div className="mt-6 flex flex-col items-center gap-x-4 gap-y-2 text-sm sm:flex-row">
-        <a href={`mailto:${email}`} className={LINE_LINK}>
-          <Mail size={15} aria-hidden="true" />
-          {email}
-        </a>
-        {phone && (
-          <>
-            <span
-              aria-hidden="true"
-              className="hidden text-gray-400 dark:text-gray-600 sm:inline"
-            >
-              ·
+  return (
+    <div className="mx-auto w-full max-w-2xl">
+      <div
+        className={`mx-auto grid max-w-xs gap-3 sm:max-w-none ${tiles.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
+      >
+        {tiles.map(({ key, href, icon: Icon, name, detail }) => (
+          <a
+            key={key}
+            href={href}
+            {...(key === 'whatsapp'
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+            className="group flex flex-col items-center gap-2 rounded-2xl text-center text-gray-900 transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30 dark:text-gray-100 sm:bg-white sm:p-5 sm:ring-1 sm:ring-gray-200 sm:hover:-translate-y-0.5 sm:hover:ring-gray-300 sm:dark:bg-gray-800/70 sm:dark:ring-gray-700 sm:dark:hover:ring-gray-600"
+          >
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-gray-600 ring-1 ring-gray-200 transition-transform group-active:scale-95 dark:bg-gray-800/70 dark:text-gray-300 dark:ring-gray-700 sm:h-auto sm:w-auto sm:bg-transparent sm:text-gray-500 sm:ring-0 sm:dark:bg-transparent sm:dark:text-gray-400">
+              <Icon size={22} />
             </span>
-            <a href={`tel:${phone.replace(/\s+/g, '')}`} className={LINE_LINK}>
-              <Phone size={15} aria-hidden="true" />
-              {phone}
-            </a>
-          </>
-        )}
+            <span className="w-full min-w-0">
+              <span className="block text-sm font-medium sm:text-base sm:font-semibold">
+                {name}
+              </span>
+              <span className="mt-0.5 hidden truncate text-sm text-gray-500 dark:text-gray-400 sm:block">
+                {detail}
+              </span>
+            </span>
+          </a>
+        ))}
       </div>
 
-      <div className="mt-8 flex flex-col items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-400 sm:flex-row">
-        {profile?.location && (
-          <p className="inline-flex items-center gap-1.5">
-            <MapPin size={15} aria-hidden="true" />
-            Based in {profile.location}
-          </p>
-        )}
-        <Link
-          href="/services"
-          className="group inline-flex items-center gap-1 font-medium underline-offset-4 hover:text-green-700 hover:underline dark:hover:text-green-400"
+      <div className="mt-8 flex justify-center text-sm">
+        <button
+          type="button"
+          onClick={openContact}
+          onMouseEnter={() => setHoonHovered(true)}
+          onMouseLeave={() => setHoonHovered(false)}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded font-medium text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300"
         >
-          See services and prices
-          <ArrowRight
-            size={15}
-            aria-hidden="true"
-            className="transition-transform group-hover:translate-x-0.5"
-          />
-        </Link>
+          <HoonBot excited={hoonHovered} className="h-6 w-6" />
+          Not sure yet? Ask Hoon
+          <ArrowRight size={15} aria-hidden="true" />
+        </button>
       </div>
     </div>
   );

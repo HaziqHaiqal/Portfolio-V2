@@ -141,13 +141,14 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 <m.span
                   key="greeting"
                   aria-hidden="true"
-                  className="absolute bottom-full right-0 mb-0.5 origin-bottom-right whitespace-nowrap rounded-2xl rounded-br-sm bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700"
+                  className="absolute bottom-full right-0 mb-1 origin-[calc(100%-24px)_100%] whitespace-nowrap rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-900 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 sm:mb-0 sm:origin-[calc(100%-28px)_100%]"
                   initial={{ opacity: 0, y: 6, scale: 0.85 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.9 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                 >
                   Let&apos;s talk!
+                  <span className="absolute -bottom-[7px] right-[18px] h-3 w-3 rotate-45 border-b border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:right-[22px]" />
                 </m.span>
               )}
             </AnimatePresence>

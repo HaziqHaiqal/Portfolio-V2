@@ -2,10 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-type Mood =
-  'happy' | 'excited' | 'confused' | 'sad' | 'sleepy' | 'surprised' | 'wink';
+export type HoonMood =
+  | 'happy'
+  | 'thinking'
+  | 'typing'
+  | 'laughing'
+  | 'excited'
+  | 'confused'
+  | 'sad'
+  | 'sleepy'
+  | 'surprised'
+  | 'wink';
 
-const MOODS: Mood[] = [
+const MOODS: HoonMood[] = [
   'confused',
   'sad',
   'sleepy',
@@ -40,8 +49,62 @@ const eye = (cx: number) => (
   />
 );
 
-function Face({ mood }: { mood: Mood }) {
+function Face({ mood }: { mood: HoonMood }) {
   switch (mood) {
+    case 'laughing':
+      return (
+        <>
+          {cheeks}
+          <path
+            d="M17.6 18l2.8 1.8-2.8 1.8M30.4 18l-2.8 1.8 2.8 1.8"
+            {...line}
+            strokeWidth={1.6}
+          />
+          <path d="M20.8 23h6.4q0 4-3.2 4t-3.2-4z" fill={GREEN} />
+        </>
+      );
+    case 'thinking':
+      return (
+        <>
+          <ellipse cx="20.6" cy="18.6" rx="1.8" ry="2.1" fill={GREEN} />
+          <ellipse cx="29.2" cy="18.6" rx="1.8" ry="2.1" fill={GREEN} />
+          <path d="M22 25.2h4" {...line} />
+          {[37.2, 40, 42.8].map((cx, index) => (
+            <circle
+              key={cx}
+              className="hoon-dot"
+              cx={cx}
+              cy="10.4"
+              r="1.2"
+              fill={GREEN}
+              style={{ animationDelay: `${index * 0.2}s` }}
+            />
+          ))}
+        </>
+      );
+    case 'typing':
+      return (
+        <>
+          {cheeks}
+          <ellipse
+            className="hoon-eye"
+            cx="19.2"
+            cy="21"
+            rx="2.1"
+            ry="2.3"
+            fill={GREEN}
+          />
+          <ellipse
+            className="hoon-eye"
+            cx="28"
+            cy="21"
+            rx="2.1"
+            ry="2.3"
+            fill={GREEN}
+          />
+          <path d="M21.6 25.2q2.4 1.6 4.8 0" {...line} />
+        </>
+      );
     case 'excited':
       return (
         <>
@@ -121,11 +184,16 @@ function Face({ mood }: { mood: Mood }) {
 export default function HoonBot({
   className = '',
   excited = false,
+  mood: forced,
+  moods = MOODS,
 }: {
   className?: string;
   excited?: boolean;
+  mood?: HoonMood;
+  /** The moods Hoon picks from when idle. */
+  moods?: HoonMood[];
 }) {
-  const [idle, setIdle] = useState<Mood>('happy');
+  const [idle, setIdle] = useState<HoonMood>('happy');
   const lookRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
@@ -136,7 +204,7 @@ export default function HoonBot({
     };
     const rest = () =>
       later(3500 + Math.random() * 4000, () => {
-        setIdle(MOODS[Math.floor(Math.random() * MOODS.length)]);
+        setIdle(moods[Math.floor(Math.random() * moods.length)]);
         later(2200, () => {
           setIdle('happy');
           rest();
@@ -144,7 +212,7 @@ export default function HoonBot({
       });
     rest();
     return () => clearTimeout(timer);
-  }, []);
+  }, [moods]);
 
   useEffect(() => {
     if (
@@ -173,14 +241,14 @@ export default function HoonBot({
     };
   }, []);
 
-  const mood = excited ? 'excited' : idle;
+  const mood = excited ? 'excited' : (forced ?? idle);
 
   return (
     <svg
       viewBox="4 8 40 40"
       aria-hidden="true"
       data-mood={mood}
-      className={excited ? `${className} hoon-waving` : className}
+      className={mood === 'excited' ? `${className} hoon-waving` : className}
     >
       <rect
         x="10.4"

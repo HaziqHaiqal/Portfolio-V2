@@ -1690,6 +1690,36 @@ html:has([data-template-root]) {
   }
 }
 
+@keyframes hoon-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.hoon-dot {
+  animation: hoon-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes hoon-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.hoon-bob {
+  display: block;
+  animation: hoon-bob 3.2s ease-in-out infinite;
+}
+
 .hoon-look {
   transition: transform 0.2s ease-out;
 }
@@ -1711,6 +1741,8 @@ html:has([data-template-root]) {
 
 @media (prefers-reduced-motion: reduce) {
   .hoon-eye,
+  .hoon-bob,
+  .hoon-dot,
   .hoon-face,
   .hoon-waving .hoon-arm {
     animation: none;
