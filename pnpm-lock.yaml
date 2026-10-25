@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/google':
+        specifier: ^4.0.104
+        version: 4.0.104(zod@4.6.7)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -62,6 +65,9 @@ importers:
       '@vercel/speed-insights':
         specifier: ^1.2.0
         version: 1.2.0(next@16.4.2(@babel/core@7.29.7)(@types/node@20.19.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)
+      ai:
+        specifier: ^7.0.152
+        version: 7.0.152(zod@4.6.7)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -71,6 +77,9 @@ importers:
       framer-motion:
         specifier: ^12.19.1
         version: 12.19.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      fuse.js:
+        specifier: ^7.5.0
+        version: 7.5.0
       lenis:
         specifier: ^1.3.27
         version: 1.3.27(react@19.2.1)
@@ -161,6 +170,28 @@ importers:
         version: 5.8.3
 
 packages:
+
+  '@ai-sdk/gateway@4.0.125':
+    resolution: {integrity: sha512-9raNdkENebDxVl4piGntpQgOBHB62K1rC87KceV8kkGOc/g7s6lwbxN7C6QTqXYJaM+h1Lnm64MDgnHAmzUApg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/google@4.0.104':
+    resolution: {integrity: sha512-7wSW1ajTBHPMV0cNeba8g42sZHElmc92yRTh8ZsBjkg9Zbg6hmPaPO1kBirSsJUc4oKe9jlp4+5i/0BfFu8RHA==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider-utils@5.0.67':
+    resolution: {integrity: sha512-EUzV6GXutGcesWKOY8tRKgijfuv1LUBpqAquMh5k0n74NCjDbca5d5ZG12qhVtM2X5UwM4B2ZMP2XpnAwZlA8Q==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider@4.0.33':
+    resolution: {integrity: sha512-C6ylMuAXjgqKJllp6ODIJwUltK/tm3ZmIj4V2fqENP3Y8gif2DyeJSsTcDwFrXppgEKcrBisi/BWx2tYeoeCAw==}
+    engines: {node: '>=22'}
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -1028,6 +1059,9 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
   '@supabase/auth-js@2.70.0':
     resolution: {integrity: sha512-BaAK/tOAZFJtzF1sE3gJ2FwTjLf4ky3PSvcvLGEgEmO4BSBkwWKu8l67rLLIBZPDnCyV7Owk2uPyKHa0kj5QGg==}
 
@@ -1295,6 +1329,10 @@ packages:
       vue-router:
         optional: true
 
+  '@vercel/oidc@3.2.0':
+    resolution: {integrity: sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==}
+    engines: {node: '>= 20'}
+
   '@vercel/speed-insights@1.2.0':
     resolution: {integrity: sha512-y9GVzrUJ2xmgtQlzFP2KhVRoCglwfRQgjyfY607aU0hh0Un6d0OUyrJkjuAlsV18qR4zfoFPs/BiIj9YDS6Wzw==}
     peerDependencies:
@@ -1318,6 +1356,9 @@ packages:
       vue-router:
         optional: true
 
+  '@workflow/serde@4.1.0':
+    resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -1327,6 +1368,12 @@ packages:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  ai@7.0.152:
+    resolution: {integrity: sha512-cxQaE/17qhgqJcLCespbnyaN3c4IkGuNUtBXKSX1yTvlSsQ7ERV2ygFADMG7d+IWCUuvi7R8DrqAy9DGj0cgkg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
   ajv@6.15.0:
     resolution: {integrity: sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw==}
@@ -1790,6 +1837,10 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
+    engines: {node: '>=18.0.0'}
+
   fast-content-type-parse@3.0.0:
     resolution: {integrity: sha512-ZvLdcY8P+N8mGQJahJV5G4U88CSvT1rP8ApL6uETe88MBXrBHAkZlSEySdUlyztF7ccb+Znos3TFqaepHxdhBg==}
 
@@ -1883,6 +1934,10 @@ packages:
 
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
+
+  fuse.js@7.5.0:
+    resolution: {integrity: sha512-sQtrEfA+ez/3G0cCZecF70oqpCRttCexYUG4mUrtWL49ULUzUyxokt5kyqwtKzj1270RaKih+hcP3qLcumccow==}
+    engines: {node: '>=10'}
 
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -2147,6 +2202,9 @@ packages:
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
+
+  json-schema@0.4.0:
+    resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
@@ -2895,6 +2953,10 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  undici@7.30.1:
+    resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
+    engines: {node: '>=20.18.1'}
+
   universal-user-agent@7.0.3:
     resolution: {integrity: sha512-TmnEAEAsBJVZM/AADELsK76llnwcf9vMKuPz8JflO1frO8Lchitr0fNaN9d+Ap0BjKtqWqd/J17qeDnXh8CL2A==}
 
@@ -3029,6 +3091,32 @@ packages:
         optional: true
 
 snapshots:
+
+  '@ai-sdk/gateway@4.0.125(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.33
+      '@ai-sdk/provider-utils': 5.0.67(zod@4.6.7)
+      '@vercel/oidc': 3.2.0
+      zod: 4.6.7
+
+  '@ai-sdk/google@4.0.104(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.33
+      '@ai-sdk/provider-utils': 5.0.67(zod@4.6.7)
+      zod: 4.6.7
+
+  '@ai-sdk/provider-utils@5.0.67(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.33
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.1.1
+      undici: 7.30.1
+      zod: 4.6.7
+
+  '@ai-sdk/provider@4.0.33':
+    dependencies:
+      json-schema: 0.4.0
 
   '@alloc/quick-lru@5.2.0': {}
 
@@ -3842,6 +3930,8 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
+  '@standard-schema/spec@1.1.0': {}
+
   '@supabase/auth-js@2.70.0':
     dependencies:
       '@supabase/node-fetch': 2.6.15
@@ -4099,16 +4189,27 @@ snapshots:
       next: 16.4.2(@babel/core@7.29.7)(@types/node@20.19.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react: 19.2.1
 
+  '@vercel/oidc@3.2.0': {}
+
   '@vercel/speed-insights@1.2.0(next@16.4.2(@babel/core@7.29.7)(@types/node@20.19.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)':
     optionalDependencies:
       next: 16.4.2(@babel/core@7.29.7)(@types/node@20.19.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react: 19.2.1
+
+  '@workflow/serde@4.1.0': {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
       acorn: 8.15.0
 
   acorn@8.15.0: {}
+
+  ai@7.0.152(zod@4.6.7):
+    dependencies:
+      '@ai-sdk/gateway': 4.0.125(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.33
+      '@ai-sdk/provider-utils': 5.0.67(zod@4.6.7)
+      zod: 4.6.7
 
   ajv@6.15.0:
     dependencies:
@@ -4731,6 +4832,8 @@ snapshots:
 
   esutils@2.0.3: {}
 
+  eventsource-parser@3.1.1: {}
+
   fast-content-type-parse@3.0.0: {}
 
   fast-deep-equal@3.1.3: {}
@@ -4820,6 +4923,8 @@ snapshots:
       is-callable: 1.2.7
 
   functions-have-names@1.2.3: {}
+
+  fuse.js@7.5.0: {}
 
   gensync@1.0.0-beta.2: {}
 
@@ -5088,6 +5193,8 @@ snapshots:
   json-buffer@3.0.1: {}
 
   json-schema-traverse@0.4.1: {}
+
+  json-schema@0.4.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
@@ -5849,6 +5956,8 @@ snapshots:
       which-boxed-primitive: 1.1.1
 
   undici-types@6.21.0: {}
+
+  undici@7.30.1: {}
 
   universal-user-agent@7.0.3: {}
 

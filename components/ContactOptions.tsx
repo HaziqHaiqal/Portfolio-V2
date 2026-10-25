@@ -1,18 +1,11 @@
 import Link from 'next/link';
-import type { ComponentType } from 'react';
 import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { Profile } from '@lib/supabase';
 import { DEFAULT_CONTACT } from '@constants/contact';
 
-interface ContactOption {
-  label: string;
-  detail: string;
-  href: string;
-  icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean | 'true' }>;
-  external?: boolean;
-  primary?: boolean;
-}
+const LINE_LINK =
+  'inline-flex items-center gap-1.5 rounded font-medium text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300';
 
 export default function ContactOptions({
   profile,
@@ -24,75 +17,38 @@ export default function ContactOptions({
   const email = profile?.email || DEFAULT_CONTACT.email;
   const phone = profile?.phone?.trim();
 
-  const options: ContactOption[] = [
-    {
-      label: 'WhatsApp',
-      detail: 'Fastest reply',
-      href: whatsapp.toString(),
-      icon: SiWhatsapp,
-      external: true,
-      primary: true,
-    },
-    { label: 'Email', detail: email, href: `mailto:${email}`, icon: Mail },
-    ...(phone
-      ? [
-          {
-            label: 'Call',
-            detail: phone,
-            href: `tel:${phone.replace(/\s+/g, '')}`,
-            icon: Phone,
-          },
-        ]
-      : []),
-  ];
-
   return (
-    <div className="mx-auto max-w-4xl">
-      <ul
-        className={`grid gap-4 ${options.length === 3 ? 'md:grid-cols-3' : 'sm:grid-cols-2'}`}
+    <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+      <a
+        href={whatsapp.toString()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-green-600 px-7 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30"
       >
-        {options.map((option) => {
-          const Icon = option.icon;
-          return (
-            <li key={option.label}>
-              <a
-                href={option.href}
-                {...(option.external && {
-                  target: '_blank',
-                  rel: 'noopener noreferrer',
-                })}
-                className={`group flex h-full items-center gap-4 rounded-2xl border p-5 shadow-xl backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 ${
-                  option.primary
-                    ? 'border-green-600 bg-green-600 text-white shadow-green-600/20 hover:bg-green-700'
-                    : 'border-gray-200 bg-white/70 text-gray-900 hover:border-green-500/50 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-100 dark:hover:border-green-400/50'
-                }`}
-              >
-                <span
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                    option.primary
-                      ? 'bg-white/15'
-                      : 'bg-gray-100 dark:bg-gray-900/60'
-                  }`}
-                >
-                  <Icon size={19} aria-hidden="true" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold">{option.label}</span>
-                  <span
-                    className={`block truncate text-sm ${
-                      option.primary
-                        ? 'text-white/80'
-                        : 'text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    {option.detail}
-                  </span>
-                </span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
+        <SiWhatsapp size={18} aria-hidden="true" />
+        Chat on WhatsApp
+      </a>
+
+      <div className="mt-6 flex flex-col items-center gap-x-4 gap-y-2 text-sm sm:flex-row">
+        <a href={`mailto:${email}`} className={LINE_LINK}>
+          <Mail size={15} aria-hidden="true" />
+          {email}
+        </a>
+        {phone && (
+          <>
+            <span
+              aria-hidden="true"
+              className="hidden text-gray-400 dark:text-gray-600 sm:inline"
+            >
+              ·
+            </span>
+            <a href={`tel:${phone.replace(/\s+/g, '')}`} className={LINE_LINK}>
+              <Phone size={15} aria-hidden="true" />
+              {phone}
+            </a>
+          </>
+        )}
+      </div>
 
       <div className="mt-8 flex flex-col items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-400 sm:flex-row">
         {profile?.location && (

@@ -6,6 +6,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useUIStore } from '@lib/stores';
 import type { Profile } from '@lib/supabase';
+import HoonBot from '@components/Common/HoonBot';
 
 const ContactSection = dynamic(() => import('@components/ContactSection'), {
   ssr: false,
@@ -73,7 +74,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
           <m.button
             key="contact-launcher"
             onClick={toggleContact}
-            className="group fixed bottom-4 right-4 z-[70] flex h-10 w-10 items-center justify-center overflow-visible rounded-full border-2 border-emerald-500/60 bg-white text-emerald-600 shadow-[0_8px_24px_-10px_rgba(16,185,129,0.7)] outline-none transition-colors duration-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-4 focus-visible:ring-emerald-400/30 dark:border-emerald-400/60 dark:bg-gray-900 dark:text-emerald-300 dark:hover:bg-gray-800 dark:hover:text-emerald-200 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"
+            className="group fixed bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center overflow-visible rounded-full outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
@@ -98,6 +99,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
               {isContactOpen ? (
                 <m.span
                   key="close"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-emerald-500/60 bg-white text-emerald-600 shadow-[0_8px_24px_-10px_rgba(16,185,129,0.7)] transition-colors duration-200 group-hover:bg-emerald-50 dark:border-emerald-400/60 dark:bg-gray-900 dark:text-emerald-300 dark:group-hover:bg-gray-800 sm:h-12 sm:w-12"
                   initial={{ opacity: 0, rotate: -90 }}
                   animate={{ opacity: 1, rotate: 0 }}
                   exit={{ opacity: 0, rotate: 90 }}
@@ -107,16 +109,15 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 </m.span>
               ) : (
                 <m.span
-                  key="prompt"
+                  key="hoon"
                   aria-hidden="true"
-                  className="flex items-center font-mono text-xs font-bold sm:text-sm"
+                  className="absolute inset-0 flex items-center justify-center"
                   initial={{ opacity: 0, scale: 0.7 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.7 }}
                   transition={{ duration: 0.12 }}
                 >
-                  ❯
-                  <span className="ml-0.5 inline-block h-[2px] w-2 bg-current motion-safe:animate-pulse" />
+                  <HoonBot className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11" />
                 </m.span>
               )}
             </AnimatePresence>

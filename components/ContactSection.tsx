@@ -13,9 +13,18 @@ interface ContactSectionProps {
 
 interface Entry {
   id: number;
-  kind: 'command' | 'note' | 'error' | 'help';
+  kind: 'command' | 'note' | 'error' | 'help' | 'answer';
   text?: string;
+  pending?: boolean;
 }
+
+interface Turn {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+const HOON_FALLBACK =
+  "Oops, I couldn't answer that right now 😅 Type whatsapp to chat with Haziq!";
 
 const GREETING = "Hi, I'm Haziq.";
 
@@ -32,6 +41,8 @@ const COMMANDS = [
 const ContactSection = ({ profile }: ContactSectionProps) => {
   const [input, setInput] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [asking, setAsking] = useState(false);
+  const turnsRef = useRef<Turn[]>([]);
 
   const [typedLen, setTypedLen] = useState(0);
   const greetingDone = typedLen >= GREETING.length;
@@ -74,6 +85,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
     entryCommand: 'text-gray-700 dark:text-gray-200',
     entryNote: 'text-gray-500 dark:text-gray-400',
     entryError: 'text-amber-600 dark:text-amber-300',
+    entryAnswer: 'text-gray-700 dark:text-gray-200',
   };
 
   const email = profile?.email || DEFAULT_CONTACT.email;
@@ -92,6 +104,51 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
     window.open(`mailto:${email}`, '_blank', 'noopener,noreferrer');
   }, [email]);
 
+  const ask = useCallback(async (question: string) => {
+    const history = turnsRef.current.slice(-6);
+    const questionId = ++idRef.current;
+    const id = ++idRef.current;
+    setEntries((prev) => [
+      ...prev,
+      { id: questionId, kind: 'command', text: question },
+      { id, kind: 'answer', text: '', pending: true },
+    ]);
+    setAsking(true);
+    const show = (text: string, pending: boolean) =>
+      setEntries((prev) =>
+        prev.map((entry) =>
+          entry.id === id ? { ...entry, text, pending } : entry
+        )
+      );
+
+    let answer = '';
+    try {
+      const response = await fetch('/api/hoon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question, history }),
+      });
+      if (!response.body) throw new Error('No reply');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        answer += decoder.decode(value, { stream: true });
+        show(answer, true);
+      }
+    } catch {
+      answer ||= HOON_FALLBACK;
+    }
+    answer ||= HOON_FALLBACK;
+    show(answer, false);
+    turnsRef.current.push(
+      { role: 'user', text: question },
+      { role: 'assistant', text: answer }
+    );
+    setAsking(false);
+  }, []);
+
   const run = useCallback(
     (raw: string) => {
       const command = raw.trim().toLowerCase();
@@ -100,6 +157,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
 
       if (command === 'clear') {
         setEntries([]);
+        turnsRef.current = [];
         return;
       }
 
@@ -136,16 +194,10 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           push({ kind: 'command', text: command }, { kind: 'help' });
           break;
         default:
-          push(
-            { kind: 'command', text: command },
-            {
-              kind: 'error',
-              text: `I don't know "${command}". Try help — or use the shortcuts below.`,
-            }
-          );
+          if (!asking) ask(raw.trim());
       }
     },
-    [push, openEmail, whatsappUrl, linkedinUrl, githubUrl]
+    [push, openEmail, ask, asking, whatsappUrl, linkedinUrl, githubUrl]
   );
 
   const actions = [
@@ -202,11 +254,24 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             <span className="italic">{entry.text}</span>
           </div>
         );
+      case 'answer':
+        return (
+          <div className={`flex items-baseline gap-2 pl-5 ${t.entryAnswer}`}>
+            <span className={`shrink-0 ${t.accent}`}>hoon ›</span>
+            <span className="whitespace-pre-wrap">
+              {entry.text}
+              {entry.pending && (
+                <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-emerald-500 align-middle" />
+              )}
+            </span>
+          </div>
+        );
       case 'help':
         return (
           <div className="mt-1 space-y-1.5 pl-5">
             <div className={`text-xs italic ${t.screenMuted}`}>
-              {COMMANDS.length} commands · click one to run it
+              {COMMANDS.length} commands · click one to run it · or just ask
+              Hoon a question, like &ldquo;how much is a website?&rdquo;
             </div>
             <div className="space-y-0.5">
               {COMMANDS.map(({ name, hint, icon: Icon }) => (
@@ -293,7 +358,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           >
             {entries.length === 0 ? (
               <div className={`space-y-1 italic ${t.screenMuted}`}>
-                <div># whatever you type shows up here</div>
+                <div># ask Hoon about my work, services or prices</div>
                 <div>
                   # type <span className={t.accent}>help</span> for a list of
                   commands
@@ -352,8 +417,8 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Prefer the keyboard? Type help"
-            aria-label="Terminal command"
+            placeholder="Ask Hoon anything, or type help"
+            aria-label="Ask Hoon or type a command"
             className={`min-w-0 flex-1 border-none bg-transparent font-mono text-sm caret-emerald-500 outline-none ${t.input}`}
             autoComplete="off"
             autoCapitalize="off"
@@ -365,6 +430,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             type="button"
             onClick={() => {
               setEntries([]);
+              turnsRef.current = [];
               inputRef.current?.focus();
             }}
             disabled={entries.length === 0}

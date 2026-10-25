@@ -11,13 +11,13 @@ import {
   CARE,
   carePrice,
   isStoreTemplate,
-  PAYMENT_TERMS,
   PRICING_TABS,
   startingPriceOf,
   SYSTEMS,
   TAKEOVER,
   WEBSITES,
 } from '@constants/services';
+import { SERVICE_FAQ } from '@constants/faq';
 import { SITE_URL } from '@lib/site';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { themeClasses } from '@constants/theme';
@@ -32,7 +32,7 @@ import SectionHeader from '@components/Common/SectionHeader';
 import Packages from '@components/Service/Packages';
 import ServiceTabs, { type ServiceTab } from '@components/Service/ServiceTabs';
 import TemplateGallery from '@components/Service/TemplateGallery';
-import FaqList, { type FaqItem } from '@components/Service/FaqList';
+import FaqList from '@components/Service/FaqList';
 import Maintenance from '@components/Service/Maintenance';
 import { MAINTENANCE_TAB } from '@components/Service/PriceParts';
 import { PromoProvider } from '@components/Promo/PromoProvider';
@@ -103,48 +103,6 @@ const JSON_LD = {
     ],
   },
 };
-
-const FAQS: FaqItem[] = [
-  {
-    question: 'How do we get started?',
-    answer: `Pick a package or a template, or build an estimate for a system, and send it on WhatsApp. I reply with a written scope and a fixed price, free of charge. Payment is ${PAYMENT_TERMS}.`,
-  },
-  {
-    question: 'What do you need from me?',
-    answer:
-      'Your logo, text and photos. If you need help with the words, copywriting can be quoted separately.',
-  },
-  {
-    question: 'Is the domain included?',
-    answer:
-      'No. The domain is registered in your name and paid by you, usually under RM100 a year for .com or .com.my. I connect it to your website, and can help you register one if you do not have it yet. Hosting is part of maintenance.',
-  },
-  {
-    question: 'Can I pay over time?',
-    answer:
-      'Yes. Instalments can be arranged for any package, and online stores or ordering systems can pay part of the price from their sales. Ask on WhatsApp. The plan is agreed in writing before work starts.',
-  },
-  {
-    question: "What if I'm not happy with the work?",
-    answer:
-      'You test everything before the final 40% is paid. Anything that does not match the agreed scope is fixed at no extra cost. New ideas beyond the scope are quoted first.',
-  },
-  {
-    question: 'What if I need something outside the package?',
-    answer:
-      "Bug fixes on my work are free for life. Change requests, enhancements, new pages and features after the quote is agreed are quoted separately before work starts, and so are fixes for problems caused by someone else's changes or by other companies' services.",
-  },
-  {
-    question: 'Can I change things myself after launch?',
-    answer:
-      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Customise systems come with an admin dashboard.',
-  },
-  {
-    question: 'Who owns the finished work?',
-    answer:
-      'Your domain and app store accounts are in your name. Once the final payment is made, the code and content are yours.',
-  },
-];
 
 function withMessage(whatsappHref: string, message: string) {
   const url = new URL(whatsappHref);
@@ -244,7 +202,7 @@ export default async function ServicePage() {
                   accentClass={GREEN.icon}
                   gradientClass={GREEN.bar}
                 />
-                <FaqList items={FAQS} />
+                <FaqList items={SERVICE_FAQ} />
 
                 <div className="mt-16 text-center">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 sm:text-2xl">
