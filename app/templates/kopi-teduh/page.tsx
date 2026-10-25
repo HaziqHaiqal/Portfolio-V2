@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque } from 'next/font/google';
 import { ArrowUpRight, Coffee, Star } from 'lucide-react';
-import { SiInstagram, SiWhatsapp } from 'react-icons/si';
+import { SiInstagram } from 'react-icons/si';
 import DemoBar from '@components/Templates/DemoBar';
 import PwaKit from '@components/Pwa/PwaKit';
 import Photo from '@components/Templates/Photo';
+import CallButton from '@components/Templates/CallButton';
 import SiteHeader from '@components/Templates/SiteHeader';
-import WhatsAppButton from '@components/Templates/WhatsAppButton';
 import { PaletteRoot } from '@components/Templates/Palette';
 import {
   HeroPhoto,
@@ -24,7 +24,7 @@ import {
 import {
   BRAND,
   GALLERY,
-  ORDER_MESSAGE,
+  PHONE,
   PHOTOS,
   REVIEWS,
 } from '@components/Templates/kopi-teduh/data';
@@ -44,7 +44,7 @@ const font = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: BRAND,
   description:
-    'Café template with a live open status, photo menu and WhatsApp pickup orders.',
+    'Café template with a live open status, photo menu and call-to-order pickups.',
   manifest: `${PWA_SCOPE}/manifest.webmanifest`,
   appleWebApp: { capable: true, title: BRAND, statusBarStyle: 'default' },
   icons: { apple: PWA_APPLE_ICON },
@@ -83,12 +83,12 @@ export default function KopiTeduhPage() {
           </a>
         }
       >
-        <WhatsAppButton
-          message={ORDER_MESSAGE}
+        <CallButton
+          phone={PHONE}
           className="inline-flex h-10 items-center gap-2 rounded-full bg-tpl-accent px-4 text-sm font-semibold text-tpl-on-accent"
         >
-          Order
-        </WhatsAppButton>
+          Call
+        </CallButton>
       </SiteHeader>
 
       <main id="top">
@@ -115,12 +115,12 @@ export default function KopiTeduhPage() {
                 >
                   See the menu
                 </a>
-                <WhatsAppButton
-                  message={ORDER_MESSAGE}
+                <CallButton
+                  phone={PHONE}
                   className="inline-flex h-12 items-center gap-2 rounded-full bg-white/15 px-6 text-sm font-semibold backdrop-blur transition-colors hover:bg-white/25"
                 >
-                  Order for pickup
-                </WhatsAppButton>
+                  Call to order
+                </CallButton>
               </div>
             </div>
           </div>
@@ -157,12 +157,12 @@ export default function KopiTeduhPage() {
                 Breakfast all day. Pork-free kitchen. Prices in RM, including
                 SST.
               </p>
-              <WhatsAppButton
-                message={ORDER_MESSAGE}
+              <CallButton
+                phone={PHONE}
                 className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-tpl-ink px-6 text-sm font-semibold text-tpl-bg transition-transform hover:-translate-y-0.5"
               >
-                Order for pickup
-              </WhatsAppButton>
+                Call to order
+              </CallButton>
             </div>
             <Menu />
           </div>
@@ -219,6 +219,7 @@ export default function KopiTeduhPage() {
               <p className="mt-6 max-w-sm text-lg text-tpl-muted">
                 18, Jalan Telawi 2, Bangsar Baru, 59100 Kuala Lumpur
               </p>
+              <p className="mt-2 text-lg font-semibold tabular-nums">{PHONE}</p>
               <a
                 href="https://www.google.com/maps/search/?api=1&query=Jalan+Telawi+2+Bangsar+Kuala+Lumpur"
                 target="_blank"
@@ -291,20 +292,12 @@ export default function KopiTeduhPage() {
               2016.
             </p>
             <OpenStatus className="mt-4 text-sm font-medium" />
-            <div className="mt-5 flex gap-2">
-              {[
-                { icon: SiInstagram, label: 'Instagram' },
-                { icon: SiWhatsapp, label: 'WhatsApp' },
-              ].map(({ icon: Icon, label }) => (
-                <span
-                  key={label}
-                  aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-tpl-line"
-                >
-                  <Icon size={16} aria-hidden="true" />
-                </span>
-              ))}
-            </div>
+            <span
+              aria-label="Instagram"
+              className="mt-5 flex h-10 w-10 items-center justify-center rounded-full border border-tpl-line"
+            >
+              <SiInstagram size={16} aria-hidden="true" />
+            </span>
           </div>
           <div>
             <p className="text-sm font-semibold">Hours</p>

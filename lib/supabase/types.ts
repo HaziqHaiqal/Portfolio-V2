@@ -187,6 +187,7 @@ export interface WebsiteTemplate {
   /** The same site as a custom build, shown for comparison. */
   compare_price?: number | null;
   pages?: string;
+  package?: string | null;
   features: string[];
   demo_url?: string;
   preview_image_url?: string;

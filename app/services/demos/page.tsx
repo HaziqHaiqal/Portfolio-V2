@@ -18,7 +18,7 @@ import { PromoProvider } from '@components/Promo/PromoProvider';
 export const metadata: Metadata = {
   title: 'Live demos | Haziq Haiqal',
   description:
-    'Try every website template, online store, 3D and automation demo before you buy.',
+    'Try every website template and online store demo before you buy.',
 };
 
 export default async function DemosPage() {
@@ -48,7 +48,7 @@ export default async function DemosPage() {
                   icon={PlayCircle}
                   title="Live Demos"
                   accent="green"
-                  subtitle="Try every template, store, 3D and automation demo. Each one shows its price."
+                  subtitle="Try every template and online store demo. Each one shows its price."
                 />
                 <TemplateGallery
                   templates={templates}
@@ -56,7 +56,6 @@ export default async function DemosPage() {
                     profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp
                   }
                   deals={deals}
-                  pricesElsewhere
                 />
               </div>
             </section>

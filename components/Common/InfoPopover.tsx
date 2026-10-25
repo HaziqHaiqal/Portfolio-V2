@@ -3,8 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
-import { Check, Info } from 'lucide-react';
-import { cn } from '@lib/utils';
+import { CircleHelp } from 'lucide-react';
 
 interface InfoPopoverProps {
   label: string;
@@ -13,6 +12,7 @@ interface InfoPopoverProps {
   note?: string;
 }
 
+/** Needs a `relative` parent: the panel spans the nearest positioned ancestor. */
 export default function InfoPopover({
   label,
   heading,
@@ -21,8 +21,7 @@ export default function InfoPopover({
 }: InfoPopoverProps) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [below, setBelow] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLSpanElement>(null);
   const panelId = useId();
   const open = hovered || pinned;
 
@@ -42,90 +41,64 @@ export default function InfoPopover({
     };
   }, [pinned]);
 
-  const place = () => {
-    const rect = rootRef.current?.getBoundingClientRect();
-    if (rect) setBelow(rect.top < window.innerHeight / 2);
-  };
-
   // Touch screens fire emulated hover events on tap; only a real mouse hovers.
   const onPointerEnter = (e: PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
-    place();
-    setHovered(true);
+    if (e.pointerType === 'mouse') setHovered(true);
   };
   const onPointerLeave = (e: PointerEvent) => {
     if (e.pointerType === 'mouse') setHovered(false);
   };
 
   return (
-    <div
+    <span
       ref={rootRef}
-      className="relative"
+      className="ml-1 inline-flex align-middle"
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
       <button
         type="button"
+        aria-label={label}
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => {
-          place();
-          setPinned((p) => !p);
-        }}
-        className="flex min-h-11 items-center gap-2 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 dark:text-emerald-400 dark:hover:text-emerald-300"
+        onClick={() => setPinned((p) => !p)}
+        className="-my-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 aria-expanded:text-green-600 dark:text-gray-500 dark:hover:text-green-400 dark:aria-expanded:text-green-400"
       >
-        <Info size={16} aria-hidden="true" />
-        {label}
+        <CircleHelp size={16} aria-hidden="true" />
       </button>
 
       <AnimatePresence>
         {open && (
-          <m.div
+          <m.span
             id={panelId}
-            initial={{ opacity: 0, y: below ? -6 : 6 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: below ? -6 : 6 }}
+            exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.16 }}
-            className={cn(
-              'absolute left-0 right-0 z-20 rounded-xl border border-gray-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-gray-900',
-              below ? 'top-full mt-1' : 'bottom-full mb-1'
-            )}
+            className="absolute inset-x-0 top-full z-20 mt-2 block rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-xl dark:border-gray-700 dark:bg-gray-900"
           >
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400">
+            <span className="block text-sm font-bold text-gray-900 dark:text-gray-100">
               {heading}
-            </p>
-            <ul className="space-y-2">
+            </span>
+            <span role="list" className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
               {items.map((item) => (
-                <li
+                <span
                   key={item}
-                  className="flex items-start gap-2 text-sm leading-snug text-gray-700 dark:text-gray-300"
+                  role="listitem"
+                  className="text-[13px] leading-snug text-gray-700 dark:text-gray-300"
                 >
-                  <Check
-                    size={15}
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-emerald-500"
-                  />
                   {item}
-                </li>
+                </span>
               ))}
-            </ul>
+            </span>
             {note && (
-              <p className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">
+              <span className="mt-3 block border-t border-gray-200 pt-3 text-xs leading-relaxed text-gray-500 dark:border-gray-700 dark:text-gray-400">
                 {note}
-              </p>
+              </span>
             )}
-            <span
-              aria-hidden="true"
-              className={cn(
-                'absolute left-1 h-3 w-3 rotate-45 border-gray-200 bg-white dark:border-white/10 dark:bg-gray-900',
-                below
-                  ? '-top-1.5 border-l border-t'
-                  : '-bottom-1.5 border-b border-r'
-              )}
-            />
-          </m.div>
+          </m.span>
         )}
       </AnimatePresence>
-    </div>
+    </span>
   );
 }

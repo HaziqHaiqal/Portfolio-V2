@@ -1,24 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowUpRight, Check, LayoutTemplate } from 'lucide-react';
+import { ArrowUpRight, Check, LayoutTemplate, Minus, Plus } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
+  BUG_FIX_INCLUDE,
+  BUSINESS_MAX_PAGES,
   CARE_PLAN,
-  CARE_YEARLY_SAVING,
-  type CareBillingPeriod,
   careForTemplate,
+  CARE_YEARLY_SAVING,
   carePrice,
   countLabel,
+  DEFAULT_LANGUAGE,
+  languageAddOn,
+  templateIncludesOf,
   GATEWAY_FEES,
   isStoreTemplate,
+  packageOfTemplate,
   pageCount,
   PAYMENT_TERMS,
   templateCategoryLabel,
-  TEMPLATE_INCLUDES,
   TEMPLATE_PROMO_TARGET,
+  TEMPLATE_SETUP,
   templatePromoTarget,
+  templateAddOnsOf,
+  type TemplateAddOn,
 } from '@constants/services';
 import { formatRM } from '@lib/format';
 import UniversalImage from '@components/Media/UniversalImage';
@@ -30,6 +37,41 @@ import { discountedPrice, promoAppliesTo } from '@lib/promo';
 import type { FeaturedDeal } from '@lib/data';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
+import {
+  ExtraLanguages,
+  LanguageSelect,
+  MAIN_LANGUAGES,
+  nextLanguage,
+} from './Languages';
+import { CarePrices, careChoice, trackWhatsApp } from './PriceParts';
+
+function AddOnText({
+  item,
+  each = false,
+}: {
+  item: TemplateAddOn;
+  each?: boolean;
+}) {
+  return (
+    <span className="min-w-0 flex-1">
+      <span className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          {item.name}
+        </span>
+        <span className="shrink-0 text-sm font-semibold tabular-nums text-green-700 dark:text-green-400">
+          +{formatRM(item.price)}
+          {each && ' each'}
+        </span>
+      </span>
+      <span className="mt-0.5 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+        {item.description}
+      </span>
+    </span>
+  );
+}
+
+const STEP =
+  'flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 disabled:opacity-40 dark:border-gray-600 dark:text-gray-300';
 
 export default function TemplateOrder({
   template,
@@ -47,16 +89,40 @@ export default function TemplateOrder({
   onClose: () => void;
 }) {
   const { promo } = usePromo();
-  const [billing, setBilling] = useState<CareBillingPeriod>('monthly');
   const store = isStoreTemplate(template.category);
   const care = careForTemplate(template);
   const careLabel = CARE_PLAN;
-  const careText = `${carePrice(care, billing)} after launch`;
   const pages = pageCount(template.pages);
-  const saving =
-    template.compare_price != null && template.compare_price > template.price
-      ? template.compare_price - template.price
-      : 0;
+  const { tab, bundle } = packageOfTemplate(template);
+  const saving = Math.max(0, bundle.price - template.price);
+  const packageIncludes = store
+    ? [BUG_FIX_INCLUDE]
+    : templateIncludesOf(tab, bundle);
+
+  const maxExtraPages = Math.max(0, BUSINESS_MAX_PAGES - (pages ?? 1));
+  const addOns = templateAddOnsOf(template).filter(
+    (item) => !item.perPage || maxExtraPages > 0
+  );
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const setCount = (id: string, qty: number) =>
+    setCounts((current) => ({ ...current, [id]: qty }));
+  const [mainLanguage, setMainLanguage] = useState(DEFAULT_LANGUAGE);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const pickMain = (value: string) => {
+    setMainLanguage(value);
+    setLanguages((current) => current.filter((item) => item !== value));
+  };
+  const qtyOf = (item: TemplateAddOn) =>
+    item.perLanguage ? languages.length : (counts[item.id] ?? 0);
+  const chosen = addOns.flatMap((item) => {
+    const qty = qtyOf(item);
+    if (!qty) return [];
+    if (!item.perLanguage) return [{ ...item, qty, amount: item.price * qty }];
+    const line = languageAddOn(item, languages);
+    return [{ ...line, qty: 1, amount: line.price }];
+  });
+  const addOnLabel = (item: (typeof chosen)[number]) =>
+    item.qty > 1 ? `${item.name} × ${item.qty}` : item.name;
 
   const thisTemplateTarget = {
     id: templatePromoTarget(template.slug),
@@ -74,6 +140,7 @@ export default function TemplateOrder({
     ? discountedPrice(afterSale, eligiblePromo)
     : afterSale;
   const promoAmount = afterSale - total;
+  const grandTotal = total + chosen.reduce((sum, item) => sum + item.amount, 0);
 
   const href = (() => {
     const url = new URL(whatsappHref);
@@ -82,16 +149,18 @@ export default function TemplateOrder({
       [
         `Hi Haziq, I'd like the ${template.name} template.`,
         `• ${template.name} template: ${formatRM(template.price)}`,
+        `• Main language: ${mainLanguage}`,
+        ...chosen.map(
+          (item) => `• ${addOnLabel(item)}: ${formatRM(item.amount)}`
+        ),
         ...(sale && saleAmount
           ? [`• Deal (${sale.title || sale.code}): −${formatRM(saleAmount)}`]
           : []),
         ...(eligiblePromo && promoAmount
           ? [`• Promo ${eligiblePromo.code}: −${formatRM(promoAmount)}`]
           : []),
-        `• ${careLabel}: ${careText}${
-          billing === 'yearly' ? ` (Save ${CARE_YEARLY_SAVING}%)` : ''
-        }`,
-        `Total: ${formatRM(total)}`,
+        `• ${careLabel} after launch: ${careChoice(care)}`,
+        `Total: ${formatRM(grandTotal)}`,
         'Please let me know what you need from me to get started.',
       ].join('\n')
     );
@@ -103,7 +172,14 @@ export default function TemplateOrder({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 px-5 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30 ${className}`}
+      onClick={() =>
+        trackWhatsApp({
+          tab: 'templates',
+          package: template.slug,
+          features: chosen.length,
+        })
+      }
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30 ${className}`}
     >
       <SiWhatsapp size={16} aria-hidden="true" />
       Order on WhatsApp
@@ -138,6 +214,7 @@ export default function TemplateOrder({
             <p className="min-w-0 text-sm text-gray-500 dark:text-gray-400">
               {templateCategoryLabel(template.category)}
               {pages !== null && ` · ${countLabel(pages, 'page')}`}
+              {` · ${bundle.name} package`}
             </p>
             {template.demo_url && (
               <a
@@ -154,7 +231,7 @@ export default function TemplateOrder({
 
           <h4 className="mt-6 text-sm font-semibold">What&apos;s included</h4>
           <ul className="mt-3 space-y-2">
-            {[...template.features, ...TEMPLATE_INCLUDES].map((item) => (
+            {[TEMPLATE_SETUP, ...template.features].map((item) => (
               <li
                 key={item}
                 className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
@@ -168,6 +245,132 @@ export default function TemplateOrder({
               </li>
             ))}
           </ul>
+          {!store && (
+            <h4 className="mt-6 text-sm font-semibold">
+              Everything in the {bundle.name} package
+            </h4>
+          )}
+          <ul className="mt-3 space-y-2">
+            {packageIncludes.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
+              >
+                <Check
+                  size={16}
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-green-600 dark:text-green-400"
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+          {addOns.length > 0 && (
+            <>
+              <h4 className="mt-6 text-sm font-semibold">Add if you need</h4>
+              <ul className="mt-1 divide-y divide-gray-200 dark:divide-gray-700">
+                <li className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3 pl-8">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    Main language
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <LanguageSelect
+                      value={mainLanguage}
+                      options={MAIN_LANGUAGES}
+                      label="Main language"
+                      onChange={pickMain}
+                    />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Included
+                    </span>
+                  </span>
+                </li>
+                {addOns.map((item) => {
+                  const qty = qtyOf(item);
+                  return (
+                    <li key={item.id} className="py-3">
+                      {item.perPage ? (
+                        <div className="pl-8">
+                          <AddOnText item={item} each />
+                          <div className="mt-2 flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setCount(item.id, qty - 1)}
+                              disabled={qty === 0}
+                              aria-label="One page fewer"
+                              className={STEP}
+                            >
+                              <Minus size={14} aria-hidden="true" />
+                            </button>
+                            <span
+                              aria-live="polite"
+                              className="min-w-[4.5rem] text-center text-sm tabular-nums"
+                            >
+                              {qty} {qty === 1 ? 'page' : 'pages'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setCount(item.id, qty + 1)}
+                              disabled={qty >= maxExtraPages}
+                              aria-label="One more page"
+                              className={STEP}
+                            >
+                              <Plus size={14} aria-hidden="true" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="relative flex cursor-pointer items-start gap-3 rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-500/40">
+                          <input
+                            type="checkbox"
+                            checked={qty > 0}
+                            onChange={(event) => {
+                              const on = event.target.checked;
+                              if (item.perLanguage) {
+                                const first = nextLanguage([mainLanguage]);
+                                setLanguages(on && first ? [first] : []);
+                              } else {
+                                setCount(item.id, on ? 1 : 0);
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                              qty
+                                ? 'border-green-600 bg-green-600 text-white'
+                                : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-900'
+                            }`}
+                          >
+                            {qty ? (
+                              <Check size={12} strokeWidth={3} />
+                            ) : (
+                              <Plus
+                                size={12}
+                                strokeWidth={3}
+                                className="text-gray-400"
+                              />
+                            )}
+                          </span>
+                          <AddOnText item={item} each={item.perLanguage} />
+                        </label>
+                      )}
+                      {item.perLanguage && languages.length > 0 && (
+                        <div className="pl-8">
+                          <ExtraLanguages
+                            main={mainLanguage}
+                            languages={languages}
+                            onChange={setLanguages}
+                          />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
           <p className="mt-4 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
             {store &&
               `${GATEWAY_FEES}. You sign up with the gateway in your business name, and it is connected for you. `}
@@ -184,28 +387,18 @@ export default function TemplateOrder({
               label: `${template.name} template`,
               value: formatRM(template.price),
             },
+            ...chosen.map((item) => ({
+              label: `+ ${addOnLabel(item)}`,
+              value: formatRM(item.amount),
+            })),
             {
-              label: careLabel,
-              value: careText,
+              label: `${careLabel} after launch`,
+              value: carePrice(care),
               detail: (
-                <label className="flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-400">
-                  <span>Billing</span>
-                  <select
-                    value={billing}
-                    onChange={(event) =>
-                      setBilling(event.target.value as CareBillingPeriod)
-                    }
-                    className="min-h-9 rounded-lg border border-gray-300 bg-white px-2 text-xs font-semibold text-gray-900 outline-none transition-colors focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                  >
-                    <option value="monthly">
-                      Monthly · {carePrice(care)}
-                    </option>
-                    <option value="yearly">
-                      Yearly · {carePrice(care, 'yearly')} (Save{' '}
-                      {CARE_YEARLY_SAVING}%)
-                    </option>
-                  </select>
-                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  or {carePrice(care, 'yearly')} (save {CARE_YEARLY_SAVING}%).
+                  Choose on WhatsApp.
+                </p>
               ),
             },
           ]}
@@ -218,13 +411,14 @@ export default function TemplateOrder({
               : []),
           ]}
           totalLabel="Total"
-          total={formatRM(total)}
+          total={formatRM(grandTotal)}
           note={PAYMENT_TERMS}
-          action={orderButton('hidden w-full md:inline-flex')}
+          action={orderButton('hidden w-full px-5 md:inline-flex')}
           footnote={
             saving > 0 && (
               <p className="mt-3 text-xs font-medium text-green-700 dark:text-green-400 md:text-center">
-                {formatRM(saving)} less than a custom build
+                {formatRM(saving)} less than the {bundle.name} package at{' '}
+                {formatRM(bundle.price)}
               </p>
             )
           }
@@ -240,17 +434,17 @@ export default function TemplateOrder({
         </OrderSummary>
       }
       bar={
-        <>
-          <div className="min-w-0">
-            <p className="truncate text-xl font-black tracking-tight">
-              {formatRM(total)}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3">
+            <p className="shrink-0 text-lg font-black tracking-tight min-[380px]:text-xl">
+              {formatRM(grandTotal)}
             </p>
-            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              then {carePrice(care, billing)}
-            </p>
+            {orderButton('shrink-0 whitespace-nowrap px-4')}
           </div>
-          {orderButton('shrink-0')}
-        </>
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            <CarePrices tier={care} />
+          </p>
+        </div>
       }
     />
   );

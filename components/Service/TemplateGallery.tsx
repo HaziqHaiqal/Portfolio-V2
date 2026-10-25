@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import * as Select from '@radix-ui/react-select';
 import {
   ArrowRight,
@@ -19,20 +18,18 @@ import { formatRM } from '@lib/format';
 import { discountedPrice, isTemplateSale, promoAppliesTo } from '@lib/promo';
 import {
   countLabel,
-  DEMO_CARDS,
-  type DemoCard,
+  packageOfTemplate,
   pageCount,
   TEMPLATE_CATEGORIES,
   templateCategoryLabel,
   TEMPLATE_PROMO_TARGET,
   templatePromoTarget,
 } from '@constants/services';
-import { giveHandoff, HANDOFF, takeHandoff } from '@lib/handoff';
+import { HANDOFF, takeHandoff } from '@lib/handoff';
 import UniversalImage from '@components/Media/UniversalImage';
 import { PromoPrice } from '@components/Promo/PromoParts';
 import TemplateOrder from './TemplateOrder';
 import CardCarousel from './CardCarousel';
-import { useServicePick } from './servicePick';
 
 const ALL = 'all';
 // Two rows on desktop; the page often opens scrolled to the gallery.
@@ -53,26 +50,15 @@ const SECONDARY =
 const PRIMARY =
   'group/use inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-green-600 px-3 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30';
 
-type Item =
-  | { kind: 'template'; template: WebsiteTemplate }
-  | { kind: 'demo'; demo: DemoCard };
-
-const categoryOf = (item: Item) =>
-  item.kind === 'template' ? item.template.category : item.demo.category;
-
-const inCategory = (item: Item, id: string) => categoryOf(item) === id;
-
-/** "Shop · 1 page", "Automation · 4 demos": the same two facts on every card. */
-function Meta({ item }: { item: Item }) {
-  const count =
-    item.kind === 'template' ? pageCount(item.template.pages) : item.demo.demos;
+function Meta({ template }: { template: WebsiteTemplate }) {
+  const count = pageCount(template.pages);
   return (
     <>
-      {templateCategoryLabel(categoryOf(item))}
+      {templateCategoryLabel(template.category)}
       {count !== null && (
         <span className="font-medium text-gray-400 dark:text-gray-500">
           {' '}
-          · {countLabel(count, item.kind === 'template' ? 'page' : 'demo')}
+          · {countLabel(count, 'page')}
         </span>
       )}
     </>
@@ -194,18 +180,12 @@ function PrimaryLabel({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Live demos: templates to buy, and demos of services such as automation. With a
- * `limit` it shows one of each kind and links to the full list; without one
- * it lists everything, a page at a time.
- */
 export default function TemplateGallery({
   templates,
   whatsappHref,
   deals = [],
   limit,
   seeAllHref,
-  pricesElsewhere = false,
 }: {
   templates: WebsiteTemplate[];
   whatsappHref: string;
@@ -213,10 +193,7 @@ export default function TemplateGallery({
   deals?: FeaturedDeal[];
   limit?: number;
   seeAllHref?: string;
-  /** On a page without the price builder, "See price" opens Services. */
-  pricesElsewhere?: boolean;
 }) {
-  const router = useRouter();
   const root = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState(ALL);
   const [shown, setShown] = useState(PAGE_SIZE);
@@ -252,36 +229,21 @@ export default function TemplateGallery({
     return () => cancelAnimationFrame(frame);
   }, [templates]);
 
-  const seePrice = (demo: DemoCard) => {
-    const pick = { tab: demo.tab };
-    if (!pricesElsewhere) {
-      useServicePick.getState().choose(pick);
-      return;
-    }
-    giveHandoff(HANDOFF.servicePick, JSON.stringify(pick));
-    router.push('/services');
-  };
-
-  const items: Item[] = [
-    ...templates.map((template) => ({ kind: 'template' as const, template })),
-    ...DEMO_CARDS.map((demo) => ({ kind: 'demo' as const, demo })),
-  ];
+  const items = templates;
   const categories = TEMPLATE_CATEGORIES.filter((c) =>
-    items.some((item) => inCategory(item, c.id))
+    items.some((item) => item.category === c.id)
   );
   const countOf = (id: string) =>
     id === ALL
       ? items.length
-      : items.filter((item) => inCategory(item, id)).length;
+      : items.filter((item) => item.category === id).length;
   const matching =
     category === ALL
       ? items
-      : items.filter((item) => inCategory(item, category));
-  // Featured: the first of each kind, so every kind of demo is a tap away,
-  // then the rest to fill the rows.
+      : items.filter((item) => item.category === category);
   const firsts = categories
-    .map((c) => items.find((item) => categoryOf(item) === c.id))
-    .filter((item): item is Item => Boolean(item));
+    .map((c) => items.find((item) => item.category === c.id))
+    .filter((item): item is WebsiteTemplate => Boolean(item));
   const featured =
     category === ALL
       ? [...firsts, ...items.filter((item) => !firsts.includes(item))]
@@ -296,64 +258,9 @@ export default function TemplateGallery({
     setShown(PAGE_SIZE);
   };
 
-  const cards = visible.map((item, index) => {
-    if (item.kind === 'demo') {
-      const { demo } = item;
-      return (
-        <div
-          key={demo.id}
-          className={`${CARD} ${layout === 'list' ? 'sm:flex-row sm:gap-2' : ''}`}
-        >
-          <a
-            href={demo.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Open the ${demo.name} demo`}
-            className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
-          >
-            <UniversalImage
-              src={demo.image}
-              alt={`${demo.name} demo preview`}
-              width={0}
-              height={0}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          </a>
-          <CardBody
-            layout={layout}
-            eyebrow={<Meta item={item} />}
-            name={demo.name}
-            description={demo.description}
-            highlights={demo.highlights}
-            price={formatRM(demo.price)}
-            priceNote="Starting price"
-            actions={
-              <>
-                <a
-                  href={demo.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={SECONDARY}
-                >
-                  Try it
-                  <ArrowUpRight size={15} aria-hidden="true" />
-                </a>
-                <button
-                  type="button"
-                  onClick={() => seePrice(demo)}
-                  className={PRIMARY}
-                >
-                  <PrimaryLabel>See price</PrimaryLabel>
-                </button>
-              </>
-            }
-          />
-        </div>
-      );
-    }
-
-    const { template } = item;
+  const cards = visible.map((template, index) => {
     const offer = bestOffer(deals, template, true);
+    const pkg = packageOfTemplate(template);
     return (
       <div
         key={template.id}
@@ -389,21 +296,31 @@ export default function TemplateGallery({
         </a>
         <CardBody
           layout={layout}
-          eyebrow={<Meta item={item} />}
+          eyebrow={<Meta template={template} />}
           name={template.name}
           description={template.description}
           highlights={template.features.slice(0, HIGHLIGHTS)}
           price={
-            <PromoPrice
-              target={[
-                TEMPLATE_PROMO_TARGET.id,
-                templatePromoTarget(template.slug),
-              ]}
-              price={template.price}
-              salePrice={offer ? template.price - offer.saving : undefined}
-            />
+            <>
+              <PromoPrice
+                target={[
+                  TEMPLATE_PROMO_TARGET.id,
+                  templatePromoTarget(template.slug),
+                ]}
+                price={template.price}
+                salePrice={offer ? template.price - offer.saving : undefined}
+              />
+              {pkg.bundle.price > template.price && (
+                <span className="text-sm font-medium tracking-normal text-gray-500 dark:text-gray-400">
+                  <span className="sr-only">
+                    {pkg.bundle.name} package price:{' '}
+                  </span>
+                  <s>{formatRM(pkg.bundle.price)}</s>
+                </span>
+              )}
+            </>
           }
-          priceNote="One-time price"
+          priceNote={`${pkg.bundle.name} package, ready-made design`}
           actions={
             <>
               <a

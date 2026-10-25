@@ -38,7 +38,7 @@ export default function CardCarousel({
 }: {
   label: string;
   className: string;
-  itemClassName: string;
+  itemClassName: string | ((index: number) => string);
   dotsClassName: string;
   centered?: boolean;
   arrows?: boolean;
@@ -102,7 +102,11 @@ export default function CardCarousel({
             key={isValidElement(item) && item.key !== null ? item.key : index}
             aria-roledescription="slide"
             aria-label={`${index + 1} of ${items.length}`}
-            className={itemClassName}
+            className={
+              typeof itemClassName === 'function'
+                ? itemClassName(index)
+                : itemClassName
+            }
           >
             {item}
           </li>

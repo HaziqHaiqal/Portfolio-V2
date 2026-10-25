@@ -53,7 +53,11 @@ import {
   Toolbar,
   useConfirm,
 } from '@components/Admin/shared';
-import { TEMPLATE_CATEGORIES } from '@constants/services';
+import {
+  packageOfTemplate,
+  TEMPLATE_CATEGORIES,
+  TEMPLATE_PACKAGES,
+} from '@constants/services';
 import { listContainer } from '@constants/motion';
 import { formatRM, pluralize } from '@lib/format';
 import { cn } from '@lib/utils';
@@ -361,8 +365,7 @@ function TemplateForm({
     slug: template?.slug ?? '',
     category: template?.category ?? TEMPLATE_CATEGORIES[0].id,
     price: template ? String(template.price) : '',
-    compare_price:
-      template?.compare_price != null ? String(template.compare_price) : '',
+    package: template?.package ?? 'business',
     pages: template?.pages ?? '',
     description: template?.description ?? '',
     features: template?.features ?? [],
@@ -389,16 +392,7 @@ function TemplateForm({
       toast.error('Enter a valid price.');
       return;
     }
-    const comparePrice = form.compare_price.trim()
-      ? Number(form.compare_price)
-      : null;
-    if (
-      comparePrice !== null &&
-      (!Number.isFinite(comparePrice) || comparePrice < 0)
-    ) {
-      toast.error('Enter a valid custom build price, or leave it empty.');
-      return;
-    }
+    const comparePrice = packageOfTemplate(form).bundle.price;
 
     let previewUrl = form.preview_image_url;
     if (uploadRef.current?.hasPending()) {
@@ -422,6 +416,7 @@ function TemplateForm({
       category: form.category,
       price,
       compare_price: comparePrice,
+      package: form.package,
       pages: form.pages.trim(),
       description: form.description.trim(),
       features: form.features,
@@ -532,20 +527,25 @@ function TemplateForm({
             </Field>
           </FormGrid>
           <Field
-            label="Custom build price (RM)"
-            htmlFor="compare_price"
-            hint="What the same site costs as a custom build in the estimator. Shown on the card for comparison."
+            label="Package"
+            htmlFor="package"
+            hint="The package this template is a ready-made version of. Buyers get everything in it, and the card shows its custom price for comparison."
           >
-            <Input
-              id="compare_price"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="1"
-              value={form.compare_price}
-              onChange={(e) => set('compare_price', e.target.value)}
-              placeholder="1299"
-            />
+            <Select
+              value={form.package}
+              onValueChange={(value) => set('package', value)}
+            >
+              <SelectTrigger id="package">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TEMPLATE_PACKAGES.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field
             label="Pages"

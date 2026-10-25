@@ -38,7 +38,7 @@ export default function OrderDialog({
       onClose={onClose}
       onClick={(event) => event.target === ref.current && ref.current.close()}
       aria-labelledby={titleId}
-      className={`m-auto h-[92dvh] w-[min(96vw,60rem)] flex-col overflow-hidden rounded-3xl border p-0 text-gray-900 shadow-2xl backdrop:bg-gray-950/60 backdrop:backdrop-blur-sm open:flex dark:text-gray-100 md:h-[min(88dvh,47rem)] ${themeClasses.modal}`}
+      className={`m-auto h-[92dvh] w-[min(96vw,60rem)] flex-col overflow-clip rounded-3xl border p-0 text-gray-900 shadow-2xl backdrop:bg-gray-950/60 backdrop:backdrop-blur-sm open:flex dark:text-gray-100 md:h-[min(88dvh,47rem)] ${themeClasses.modal}`}
     >
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 py-3 pl-5 pr-3 dark:border-gray-700 sm:pl-6">
         <h3 id={titleId} className="truncate text-base font-bold">

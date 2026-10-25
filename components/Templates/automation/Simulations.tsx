@@ -246,11 +246,14 @@ export function WhatsAppOrders() {
           </AnimatePresence>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[30rem] text-left text-sm">
+          <table className="w-full text-left text-sm sm:min-w-[30rem]">
             <thead className="bg-[#F8F9FA] text-xs text-black/50">
               <tr>
                 {['#', 'Name', 'Items', 'Total', 'When'].map((heading) => (
-                  <th key={heading} className="px-3 py-2 font-medium">
+                  <th
+                    key={heading}
+                    className={`px-3 py-2 font-medium ${heading === '#' ? 'hidden sm:table-cell' : ''}`}
+                  >
                     {heading}
                   </th>
                 ))}
@@ -270,7 +273,7 @@ export function WhatsAppOrders() {
                     transition={{ duration: 0.6 }}
                     className="border-t border-black/5"
                   >
-                    <td className="px-3 py-2.5 tabular-nums text-black/50">
+                    <td className="hidden px-3 py-2.5 tabular-nums text-black/50 sm:table-cell">
                       {row.id}
                     </td>
                     <td className="px-3 py-2.5 font-medium">{row.name}</td>
@@ -382,7 +385,7 @@ export function Approvals() {
       ...current,
       approved ? '09:05  Siti approved it' : '09:05  Siti declined it',
       approved
-        ? '09:05  Calendar updated, HR copied in'
+        ? '09:05  Farid was told'
         : '09:05  Farid was told, with Siti’s note',
     ]);
   };
@@ -454,7 +457,7 @@ export function Approvals() {
             <motion.div key="ask" {...rise} className="mt-4">
               <p className="text-sm leading-relaxed">
                 <strong>Farid</strong> asks for 2 days of annual leave, 12 to 13
-                Nov. He has 9 days left after this.
+                Nov.
               </p>
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <button

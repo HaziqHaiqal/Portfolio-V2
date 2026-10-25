@@ -22,6 +22,9 @@ const spaceGrotesk = Space_Grotesk({
   preload: false,
 });
 
+// The splash plays on the first page of a visit only; later pages open straight away.
+const SPLASH_ONCE = `try{var d=document.documentElement;if(sessionStorage.getItem('splash-seen')){d.classList.add('splash-seen')}else{sessionStorage.setItem('splash-seen','1');setTimeout(function(){d.classList.add('splash-seen')},2500)}}catch(e){}`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Haziq Haiqal | Software Developer',
@@ -91,6 +94,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${spaceGrotesk.variable} bg-gray-50 font-inter text-gray-900 antialiased dark:bg-gray-800 dark:text-gray-100`}
         suppressHydrationWarning
       >
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_ONCE }} />
         <ThemeProvider initialIsDarkMode={isDarkMode}>
           <MotionProvider>
             <MaintenanceProvider>{children}</MaintenanceProvider>

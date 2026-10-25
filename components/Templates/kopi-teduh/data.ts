@@ -3,13 +3,7 @@ import { KOPI_TEDUH as P } from '@components/Templates/photos';
 export const BRAND = 'Kopi Teduh';
 export { P as PHOTOS };
 
-export const ORDER_MESSAGE = [
-  `Hi ${BRAND}! I'd like to order for pickup:`,
-  '• ',
-  '',
-  'Pickup time:',
-  'Name:',
-].join('\n');
+export const PHONE = '03-2201 5588';
 
 // Day 0 is Sunday, matching Date.getDay().
 export const HOURS = [

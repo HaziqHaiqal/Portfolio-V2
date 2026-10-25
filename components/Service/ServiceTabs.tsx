@@ -1,14 +1,10 @@
 'use client';
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Check } from 'lucide-react';
 import { HANDOFF, takeHandoff } from '@lib/handoff';
 import { useServicePick, type ServicePick } from './servicePick';
+import PillTabs from './PillTabs';
 
 export interface ServiceTab {
   id: string;
@@ -21,13 +17,15 @@ export interface ServiceTab {
   panel: ReactNode;
 }
 
-export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
+export default function ServiceTabs({
+  tabs,
+  assurances = [],
+}: {
+  tabs: ServiceTab[];
+  assurances?: string[];
+}) {
   const [activeId, setActiveId] = useState(tabs[0]?.id);
-  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const rootRef = useRef<HTMLDivElement>(null);
-  const [pill, setPill] = useState<{ left: number; width: number } | null>(
-    null
-  );
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
 
   useEffect(
@@ -56,81 +54,15 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  // The green pill slides behind the chosen service.
-  useEffect(() => {
-    const button = tabRefs.current[activeId];
-    if (!button) return;
-    const measure = () =>
-      setPill({ left: button.offsetLeft, width: button.offsetWidth });
-    const frame = requestAnimationFrame(measure);
-    const observer = new ResizeObserver(measure);
-    if (button.parentElement) observer.observe(button.parentElement);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, [activeId]);
-
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    event.preventDefault();
-    const index = tabs.findIndex((tab) => tab.id === activeId);
-    const step = event.key === 'ArrowRight' ? 1 : -1;
-    const next = tabs[(index + step + tabs.length) % tabs.length];
-    setActiveId(next.id);
-    tabRefs.current[next.id]?.focus();
-  };
-
   return (
     <div ref={rootRef} className="scroll-mt-28">
-      <div className="flex justify-center">
-        <div
-          role="tablist"
-          aria-label="Services"
-          className="relative flex w-full rounded-full border border-gray-200 bg-white/70 p-1.5 shadow-sm backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/70 sm:w-auto"
-        >
-          {pill && (
-            <span
-              aria-hidden="true"
-              style={{ left: pill.left, width: pill.width }}
-              className="absolute inset-y-1.5 rounded-full bg-green-600 shadow-lg shadow-green-600/25 transition-[left,width] duration-300 ease-out motion-reduce:transition-none"
-            />
-          )}
-          {tabs.map((tab) => {
-            const selected = tab.id === activeId;
-            return (
-              <button
-                key={tab.id}
-                ref={(node) => {
-                  tabRefs.current[tab.id] = node;
-                }}
-                id={`service-tab-${tab.id}`}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                aria-controls={`service-panel-${tab.id}`}
-                tabIndex={selected ? 0 : -1}
-                onClick={() => setActiveId(tab.id)}
-                onKeyDown={onKeyDown}
-                className={`relative min-h-11 flex-auto whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 sm:px-4 md:px-5 md:text-sm ${
-                  selected
-                    ? 'text-white'
-                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-                }`}
-              >
-                {tab.shortLabel ? (
-                  <>
-                    <span className="md:hidden">{tab.shortLabel}</span>
-                    <span className="hidden md:inline">{tab.label}</span>
-                  </>
-                ) : (
-                  tab.label
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <PillTabs
+        tabs={tabs}
+        activeId={active.id}
+        onChange={setActiveId}
+        label="Services"
+        idPrefix="service"
+      />
 
       <p
         key={active.id}
@@ -141,6 +73,20 @@ export default function ServiceTabs({ tabs }: { tabs: ServiceTab[] }) {
         </span>{' '}
         · {active.tagline}
       </p>
+      {assurances.length > 0 && (
+        <ul className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+          {assurances.map((item) => (
+            <li key={item} className="flex items-center gap-1.5">
+              <Check
+                size={13}
+                aria-hidden="true"
+                className="text-green-600 dark:text-green-400"
+              />
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {tabs.map((tab) => (
         <div

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Calculator, CircleHelp, PlayCircle } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Calculator, CircleHelp, PlayCircle } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   getCachedFeaturedDeals,
@@ -7,10 +8,17 @@ import {
   getCachedTemplates,
 } from '@lib/data';
 import {
-  BLUEPRINT,
+  CARE,
+  carePrice,
+  isStoreTemplate,
+  PAYMENT_TERMS,
   PRICING_TABS,
   startingPriceOf,
+  SYSTEMS,
+  TAKEOVER,
+  WEBSITES,
 } from '@constants/services';
+import { SITE_URL } from '@lib/site';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { themeClasses } from '@constants/theme';
 import { PAGE_ACCENTS } from '@constants/colors';
@@ -25,50 +33,114 @@ import Packages from '@components/Service/Packages';
 import ServiceTabs, { type ServiceTab } from '@components/Service/ServiceTabs';
 import TemplateGallery from '@components/Service/TemplateGallery';
 import FaqList, { type FaqItem } from '@components/Service/FaqList';
+import Maintenance from '@components/Service/Maintenance';
+import { MAINTENANCE_TAB } from '@components/Service/PriceParts';
 import { PromoProvider } from '@components/Promo/PromoProvider';
 
 const GREEN = PAGE_ACCENTS.green;
 
 const FROM = formatRM(Math.min(...PRICING_TABS.map(startingPriceOf)));
 
+const TITLE = `Website Design Malaysia from ${FROM} | Haziq Haiqal`;
+const DESCRIPTION = `Ready-made and custom websites from ${FROM}, online stores, booking, inventory and HR systems, mobile apps and WhatsApp automation for Malaysian businesses. Clear prices and a free quote.`;
+
 export const metadata: Metadata = {
-  title: 'Services | Haziq Haiqal',
-  description: `Custom and ready-made websites from ${FROM}, online stores, mobile apps and business automation, with clear prices.`,
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: '/services' },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: '/services',
+    siteName: 'Haziq Haiqal',
+    locale: 'en_MY',
+    type: 'website',
+  },
 };
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'Haziq Haiqal',
+  url: `${SITE_URL}/services`,
+  description: DESCRIPTION,
+  areaServed: { '@type': 'Country', name: 'Malaysia' },
+  priceRange: `${FROM}+`,
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Websites, systems, mobile apps and automation',
+    itemListElement: [
+      ...PRICING_TABS.flatMap((tab) =>
+        tab.bundles.map((bundle) => ({
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: `${bundle.name} (${tab.label})`,
+            description: bundle.summary,
+          },
+          priceSpecification: {
+            '@type': 'PriceSpecification',
+            priceCurrency: 'MYR',
+            ...(bundle.from
+              ? { minPrice: bundle.price }
+              : { price: bundle.price }),
+          },
+        }))
+      ),
+      ...TAKEOVER.options.map((option) => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: `Takeover check and maintenance (${option.name})`,
+          description: `Maintenance for a ${option.name.toLowerCase()} someone else built, after a one-time check.`,
+        },
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          priceCurrency: 'MYR',
+          price: option.check,
+        },
+      })),
+    ],
+  },
+};
+
+const ASSURANCES = [
+  'Free quote',
+  'Price agreed in writing before work starts',
+  'You own the code',
+];
 
 const FAQS: FaqItem[] = [
   {
-    category: 'After launch',
-    question: 'Will you fix bugs after launch?',
-    answer:
-      'Yes. If a website, app or system I built stops working as agreed, I fix the bug free for life. This excludes issues caused by later changes from others or third-party services.',
-  },
-  {
-    category: 'Starting a project',
     question: 'How do we get started?',
-    answer:
-      `Choose a website package and message me. Systems and apps start with a ${formatRM(BLUEPRINT.price)} ${BLUEPRINT.name}; it maps your needs and gives you a written scope and fixed quote. The fee comes off the build if you proceed.`,
+    answer: `Pick a package or a template, or build an estimate for a system, and send it on WhatsApp. I reply with a written scope and a fixed price, free of charge. Payment is ${PAYMENT_TERMS}.`,
   },
   {
-    category: 'Costs and ownership',
-    question: 'What will I pay after launch?',
+    question: 'What do you need from me?',
     answer:
-      'Choose monthly, or pay yearly for ten months and save 17%. The shown maintenance price includes database hosting when needed; domain renewals and third-party service fees are separate.',
+      'Your logo, text and photos. If you need help with the words, copywriting can be quoted separately.',
   },
   {
-    category: 'Starting a project',
+    question: 'Is the domain included?',
+    answer:
+      'No. The domain is registered in your name and paid by you, usually under RM100 a year for .com or .com.my. I connect it to your website, and can help you register one if you do not have it yet. Hosting is part of maintenance.',
+  },
+  {
+    question: "What if I'm not happy with the work?",
+    answer:
+      'You test everything before the final 40% is paid. Anything that does not match the agreed scope is fixed at no extra cost. New ideas beyond the scope are quoted first.',
+  },
+  {
     question: 'What if I need something outside the package?',
     answer:
       'New pages, features, integrations and improvements are quoted separately and agreed before work starts.',
   },
   {
-    category: 'After launch',
     question: 'Can I change things myself after launch?',
     answer:
-      'Business and Premium websites include a Site editor; systems include an Admin portal for your own updates.',
+      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Customise systems come with an admin dashboard.',
   },
   {
-    category: 'Costs and ownership',
     question: 'Who owns the finished work?',
     answer:
       'Your domain and app store accounts are in your name. Once the final payment is made, the code and content are yours.',
@@ -89,17 +161,37 @@ export default async function ServicePage() {
   ]);
   const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
 
-  const tabs: ServiceTab[] = PRICING_TABS.map((tab) => ({
-    id: tab.id,
-    label: tab.label,
-    shortLabel: tab.shortLabel,
-    tagline: tab.tagline,
-    price: `From ${formatRM(startingPriceOf(tab))}${tab.monthly ? '/month' : ''}`,
-    panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
-  }));
+  const fromOf = (tab: (typeof PRICING_TABS)[number]) =>
+    tab === WEBSITES
+      ? Math.min(
+          startingPriceOf(tab),
+          ...templates
+            .filter((template) => !isStoreTemplate(template.category))
+            .map((template) => template.price)
+        )
+      : startingPriceOf(tab);
+
+  const tabs: ServiceTab[] = [
+    ...PRICING_TABS.filter((tab) => tab !== SYSTEMS).map((tab) => ({
+      id: tab.id,
+      label: tab.label,
+      shortLabel: tab.shortLabel,
+      tagline: tab.tagline,
+      price: `From ${formatRM(fromOf(tab))}`,
+      panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
+    })),
+    {
+      id: MAINTENANCE_TAB,
+      label: 'Maintenance',
+      shortLabel: 'Care',
+      tagline: 'Hosting, updates, backups and bug fixes after launch',
+      price: `From ${carePrice(CARE.starter)}`,
+      panel: <Maintenance whatsappHref={whatsappUrl} />,
+    },
+  ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-x-clip">
       <SplashScreen />
       <div className={`relative ${themeClasses.bg.primary}`}>
         <GridBackground />
@@ -109,6 +201,12 @@ export default async function ServicePage() {
         <PromoProvider>
           <main className="relative z-10">
             <h1 className="sr-only">Services & Pricing</h1>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify(JSON_LD).replace(/</g, '\\u003c'),
+              }}
+            />
             <section className="px-6 pb-20 pt-28 sm:px-10 md:pb-28 md:pt-40 lg:px-16">
               <div className="mx-auto max-w-6xl">
                 <SectionHeader
@@ -135,7 +233,7 @@ export default async function ServicePage() {
                   accentClass={GREEN.icon}
                   gradientClass={GREEN.bar}
                 />
-                <ServiceTabs tabs={tabs} />
+                <ServiceTabs tabs={tabs} assurances={ASSURANCES} />
               </div>
             </section>
 
@@ -168,6 +266,13 @@ export default async function ServicePage() {
                     <SiWhatsapp size={15} aria-hidden="true" />
                     Chat on WhatsApp
                   </a>
+                  <Link
+                    href="/projects"
+                    className="mt-4 flex items-center justify-center gap-1.5 text-sm font-semibold text-gray-600 underline-offset-4 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-white"
+                  >
+                    See projects I&apos;ve built
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             </section>

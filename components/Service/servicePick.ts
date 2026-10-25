@@ -3,6 +3,7 @@ import { create } from 'zustand';
 /** The pricing tab to open, such as "automation". */
 export interface ServicePick {
   tab: string;
+  builder?: boolean;
 }
 
 interface ServicePickState {
