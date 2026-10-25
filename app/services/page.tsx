@@ -27,6 +27,7 @@ import GridBackground from '@components/Layout/GridBackground';
 import FloatingElements from '@components/Layout/FloatingElements';
 import NavBar from '@components/Layout/NavBar';
 import Footer from '@components/Layout/Footer';
+import ContactModal from '@components/Modal/ContactModal';
 import SplashScreen from '@components/Layout/SplashScreen';
 import SectionHeader from '@components/Common/SectionHeader';
 import Packages from '@components/Service/Packages';
@@ -238,6 +239,8 @@ export default async function ServicePage() {
       </div>
 
       <Footer profile={profile} />
+
+      <ContactModal profile={profile} />
     </div>
   );
 }

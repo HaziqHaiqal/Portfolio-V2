@@ -1673,8 +1673,46 @@ html:has([data-template-root]) {
   animation: hoon-blink 4.5s infinite;
 }
 
+@keyframes hoon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes hoon-wave {
+  0%,
+  100% {
+    transform: rotate(-115deg);
+  }
+  50% {
+    transform: rotate(-145deg);
+  }
+}
+
+.hoon-look {
+  transition: transform 0.2s ease-out;
+}
+
+.hoon-face {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hoon-pop 0.2s ease-out;
+}
+
+.hoon-arm {
+  transform-box: fill-box;
+  transform-origin: 15% 15%;
+}
+
+.group:hover .hoon-arm {
+  animation: hoon-wave 0.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hoon-eye {
+  .hoon-eye,
+  .hoon-face,
+  .group:hover .hoon-arm {
     animation: none;
   }
 }

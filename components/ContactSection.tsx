@@ -25,6 +25,7 @@ interface Turn {
 
 const HOON_FALLBACK =
   "Oops, I couldn't answer that right now 😅 Type whatsapp to chat with Haziq!";
+const LIST_ITEM = /^\s*(?:[-*•]|(\d+)[.)])\s+(.*)$/;
 
 const GREETING = "Hi, I'm Haziq.";
 
@@ -76,7 +77,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
       'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
     helpRow: 'hover:bg-gray-100 dark:hover:bg-gray-800/70',
     clearBtn:
-      'text-gray-400 hover:bg-gray-100 hover:text-rose-500 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-rose-400',
+      'border-gray-200 bg-white text-gray-400 hover:bg-gray-100 hover:text-rose-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-rose-400',
     bubble:
       'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-emerald-500/50 hover:text-emerald-600 dark:border-gray-700 dark:bg-gray-700/40 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-emerald-400/50 dark:hover:text-emerald-300',
     accent: 'text-emerald-600 dark:text-emerald-400',
@@ -254,18 +255,43 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             <span className="italic">{entry.text}</span>
           </div>
         );
-      case 'answer':
+      case 'answer': {
+        const lines = (entry.text ?? '')
+          .replace(/\*\*/g, '')
+          .replace(/\n{2,}/g, '\n')
+          .split('\n');
         return (
-          <div className={`flex items-baseline gap-2 pl-5 ${t.entryAnswer}`}>
+          <div
+            className={`flex flex-col gap-0.5 pl-5 sm:flex-row sm:items-baseline sm:gap-2 ${t.entryAnswer}`}
+          >
             <span className={`shrink-0 ${t.accent}`}>hoon ›</span>
-            <span className="whitespace-pre-wrap">
-              {entry.text}
-              {entry.pending && (
-                <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-emerald-500 align-middle" />
-              )}
+            <span className="flex min-w-0 flex-col gap-1 break-words">
+              {lines.map((line, index) => {
+                const item = LIST_ITEM.exec(line);
+                const cursor = entry.pending && index === lines.length - 1 && (
+                  <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-emerald-500 align-middle" />
+                );
+                return item ? (
+                  <span key={index} className="flex gap-2">
+                    <span className={`shrink-0 ${t.accent}`}>
+                      {item[1] ? `${item[1]}.` : '•'}
+                    </span>
+                    <span className="min-w-0">
+                      {item[2]}
+                      {cursor}
+                    </span>
+                  </span>
+                ) : (
+                  <span key={index} className={line.trim() ? '' : 'h-1'}>
+                    {line}
+                    {cursor}
+                  </span>
+                );
+              })}
             </span>
           </div>
         );
+      }
       case 'help':
         return (
           <div className="mt-1 space-y-1.5 pl-5">
@@ -310,7 +336,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
       <header
         className={`flex flex-shrink-0 items-center gap-3 ${GUTTER} h-12 border-b ${t.border}`}
       >
-        <div className="flex items-center gap-2" aria-hidden="true">
+        <div className="flex w-20 items-center gap-2" aria-hidden="true">
           <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
           <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
           <span className="h-3 w-3 rounded-full bg-[#28c840]" />
@@ -318,7 +344,24 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         <span className={`flex-1 text-center text-sm ${t.chromeText}`}>
           Say hello
         </span>
-        <div className="w-[52px]" aria-hidden="true" />
+        <div className="flex w-20 justify-end">
+          {entries.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setEntries([]);
+                turnsRef.current = [];
+                inputRef.current?.focus();
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${t.clearBtn}`}
+              aria-label="Clear the screen"
+              title="Clear the screen"
+            >
+              <Trash2 size={13} />
+              <span className="hidden sm:inline">Clear</span>
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
@@ -425,21 +468,6 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             autoCorrect="off"
             spellCheck={false}
           />
-
-          <button
-            type="button"
-            onClick={() => {
-              setEntries([]);
-              turnsRef.current = [];
-              inputRef.current?.focus();
-            }}
-            disabled={entries.length === 0}
-            className={`shrink-0 rounded-md p-1.5 transition-colors disabled:opacity-25 ${t.clearBtn}`}
-            aria-label="Clear the screen"
-            title="Clear the screen"
-          >
-            <Trash2 size={16} />
-          </button>
         </form>
       </div>
     </div>

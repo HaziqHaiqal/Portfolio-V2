@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -19,6 +19,7 @@ interface ContactModalProps {
 const ContactModal = ({ profile }: ContactModalProps) => {
   const { isContactOpen, isChatVisible, toggleContact, closeContact } =
     useUIStore();
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     if (!isContactOpen) return;
@@ -85,6 +86,8 @@ const ContactModal = ({ profile }: ContactModalProps) => {
               delay: 0.6,
             }}
             whileHover={{ scale: 1.08, y: -2 }}
+            onHoverStart={() => setHovered(true)}
+            onHoverEnd={() => setHovered(false)}
             whileTap={{ scale: 0.94, y: 0 }}
             aria-expanded={isContactOpen}
             aria-label={
@@ -117,7 +120,10 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                   exit={{ opacity: 0, scale: 0.7 }}
                   transition={{ duration: 0.12 }}
                 >
-                  <HoonBot className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11" />
+                  <HoonBot
+                    excited={hovered}
+                    className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11"
+                  />
                 </m.span>
               )}
             </AnimatePresence>

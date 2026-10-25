@@ -26,6 +26,8 @@ interface Topic {
   title: string;
   phrases: string[];
   answer: string;
+  /** Extra facts for the AI that are too long to show in the answer. */
+  detail?: string;
   /** Broad topics (prices, about) lose to any specific topic in the same question. */
   general?: boolean;
 }
@@ -43,6 +45,16 @@ const costs = (bundle: Bundle) =>
 const both = (tier: CareTier) =>
   `${carePrice(tier)} or ${carePrice(tier, 'yearly')}`;
 const yearOf = (date?: string) => (date ? date.slice(0, 4) : '');
+const points = (items: string[]) => items.map((item) => `• ${item}`).join('\n');
+const lines = (...parts: string[]) => parts.filter(Boolean).join('\n');
+const listOf = (items: string[]) =>
+  items.length > 1
+    ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+    : (items[0] ?? '');
+const gist = (text: string) =>
+  text
+    .split(/\s(?:with|that|which|showcasing|using)\s|,\s/)[0]
+    .replace(/\.$/, '');
 
 const SYSTEM_PHRASES: Record<string, string[]> = {
   'online-store': [
@@ -127,22 +139,35 @@ const FAQ_PHRASES: Record<string, string[]> = {
   ],
 };
 
-function bundleTopic(bundle: Bundle, phrases: string[]): Topic {
-  const addOns = (bundle.addOns ?? []).map(
+function bundleTopic(
+  bundle: Bundle,
+  phrases: string[],
+  extra: string[] = []
+): Topic {
+  const extras = bundle.addOns ?? [];
+  const addOns = extras.map(
     (item) =>
       `${item.name} +${formatRM(item.price)}${item.perLanguage ? ' each' : ''}`
   );
   return {
     title: bundle.name,
     phrases: [bundle.name, bundle.shortName ?? '', ...phrases].filter(Boolean),
-    answer: [
+    answer: lines(
       `${costs(bundle)}. ${bundle.summary}`,
-      `You get: ${includesOf(bundle).join(', ')}.`,
+      'You get:',
+      points(includesOf(bundle)),
+      ...extra,
       bundle.runningCost ? `Note: ${bundle.runningCost}.` : '',
-      addOns.length ? `Want more? You can add ${addOns.join(', ')}.` : '',
-    ]
-      .filter(Boolean)
-      .join(' '),
+      extras.length
+        ? `Extras (from +${formatRM(Math.min(...extras.map((item) => item.price)))}): ${extras
+            .slice(0, 3)
+            .map((item) => item.name)
+            .join(
+              ', '
+            )}${extras.length > 3 ? ' and more' : ''}. See them all on the Services page.`
+        : ''
+    ),
+    detail: addOns.length ? `All extras: ${addOns.join(', ')}.` : undefined,
   };
 }
 
@@ -160,10 +185,6 @@ export function buildTopics(
   const cheapestTemplate = templates.length
     ? formatRM(Math.min(...templates.map((item) => item.price)))
     : null;
-  const listOf = (items: string[]) =>
-    items.length > 1
-      ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
-      : (items[0] ?? '');
   const current = experience.find((item) => item.is_current);
   const schools = new Map<string, string[]>();
   for (const item of education) {
@@ -176,9 +197,15 @@ export function buildTopics(
       course,
     ]);
   }
+  const stack = new Map<string, string[]>();
+  for (const item of [...skills].sort(
+    (a, b) => Number(b.is_featured) - Number(a.is_featured)
+  )) {
+    stack.set(item.category, [...(stack.get(item.category) ?? []), item.name]);
+  }
   const roles = experience.map(
     (item) =>
-      `${item.position} at ${item.companies?.name ?? 'a company'} (${yearOf(item.start_date)} to ${item.is_current ? 'now' : yearOf(item.end_date)})`
+      `${item.position} at ${item.companies?.name ?? 'a company'} (${item.is_current ? `${yearOf(item.start_date)} to now` : yearOf(item.start_date) === yearOf(item.end_date) ? yearOf(item.start_date) : `${yearOf(item.start_date)} to ${yearOf(item.end_date)}`})`
   );
 
   const topics: Topic[] = [
@@ -196,35 +223,37 @@ export function buildTopics(
         'berapa',
         'pakej',
       ],
-      answer: [
-        `Sure! Websites start at ${formatRM(starter.price)} for a one-page Starter, or ${formatRM(business.price)} for Business (up to 6 pages, and you can edit it yourself).`,
-        cheapestTemplate
-          ? `Ready-made templates start from ${cheapestTemplate}.`
-          : '',
-        `Systems start from ${formatRM(CUSTOM_SYSTEM.price)}, apps from ${lowest(MOBILE_APPS.bundles)} and automation from ${lowest(AUTOMATION.bundles)}.`,
-        `Maintenance is separate, from ${carePrice(CARE.starter)}. Want a free quote? Just type whatsapp 😊`,
+      answer: lines(
+        "Sure! Here's where prices start:",
+        points([
+          `Starter website (1 page): ${formatRM(starter.price)}`,
+          `Business website (up to 6 pages, you edit it yourself): ${formatRM(business.price)}`,
+          ...(cheapestTemplate
+            ? [`Ready-made templates: from ${cheapestTemplate}`]
+            : []),
+          `Custom systems: from ${formatRM(CUSTOM_SYSTEM.price)}`,
+          `Mobile apps: from ${lowest(MOBILE_APPS.bundles)}`,
+          `Automation: from ${lowest(AUTOMATION.bundles)}`,
+        ]),
+        `Maintenance is separate, from ${carePrice(CARE.starter)}. Type whatsapp for a free quote 😊`
+      ),
+    },
+    bundleTopic(
+      starter,
+      ['one page', '1 page', 'single page', 'landing page'],
+      [
+        `Not included: ${(starter.excludes ?? []).join(' or ')}.`,
+        `Maintenance: ${both(CARE.starter)}.`,
       ]
-        .filter(Boolean)
-        .join(' '),
-    },
-    {
-      ...bundleTopic(starter, [
-        'one page',
-        '1 page',
-        'single page',
-        'landing page',
-      ]),
-      answer: `${bundleTopic(starter, []).answer} What it doesn't include: ${(starter.excludes ?? []).join(' or ')}. Maintenance is ${both(CARE.starter)}.`,
-    },
-    {
-      ...bundleTopic(business, [
-        'business website',
-        'cms',
-        'content editor',
-        '6 pages',
-      ]),
-      answer: `${bundleTopic(business, []).answer} What it doesn't include: ${(business.excludes ?? []).join(' or ')}. Maintenance is ${both(CARE.business)}.`,
-    },
+    ),
+    bundleTopic(
+      business,
+      ['business website', 'cms', 'content editor', '6 pages'],
+      [
+        `Not included: ${(business.excludes ?? []).join(' or ')}.`,
+        `Maintenance: ${both(CARE.business)}.`,
+      ]
+    ),
     {
       title: 'Custom systems',
       phrases: [
@@ -235,7 +264,11 @@ export function buildTopics(
         'systems',
         'sistem',
       ],
-      answer: `Custom systems start from ${formatRM(CUSTOM_SYSTEM.price)}. Haziq can build: ${SYSTEMS.bundles.map((item) => `${item.name} (${price(item)})`).join(', ')}. Each one comes with logins, a database with daily backups and an admin dashboard. You can price out the features yourself in the estimate builder on the Services page! Maintenance is ${both(CARE.system)}.`,
+      answer: lines(
+        `Custom systems start from ${formatRM(CUSTOM_SYSTEM.price)}. Haziq can build:`,
+        points(SYSTEMS.bundles.map((item) => `${item.name}: ${price(item)}`)),
+        'Each one comes with logins, daily backups and an admin dashboard. Try the estimate builder on the Services page for an exact price!'
+      ),
     },
     ...SYSTEMS.bundles.map((item) =>
       bundleTopic(item, SYSTEM_PHRASES[item.id] ?? [])
@@ -243,7 +276,14 @@ export function buildTopics(
     {
       title: 'Mobile apps',
       phrases: ['mobile app', 'app', 'android', 'ios', 'iphone', 'aplikasi'],
-      answer: `Yep, Haziq builds Android and iOS apps! ${MOBILE_APPS.bundles.map((item) => `${item.name} ${price(item)}`).join(', ')}. ${MOBILE_APPS.note ?? ''} Maintenance is ${both(CARE.app)}.`,
+      answer: lines(
+        'Yep, Haziq builds Android and iOS apps!',
+        points(
+          MOBILE_APPS.bundles.map((item) => `${item.name}: ${price(item)}`)
+        ),
+        MOBILE_APPS.note ?? '',
+        `Maintenance: ${both(CARE.app)}.`
+      ),
     },
     ...MOBILE_APPS.bundles.map((item) =>
       bundleTopic(item, APP_PHRASES[item.id] ?? [])
@@ -251,7 +291,13 @@ export function buildTopics(
     {
       title: 'Automation',
       phrases: ['automation', 'automate', 'automasi'],
-      answer: `Automations save you a lot of busywork! ${AUTOMATION.bundles.map((item) => `${item.name} ${price(item)}`).join(', ')}. Maintenance is ${both(CARE.automation)}.`,
+      answer: lines(
+        'Automations save you a lot of busywork!',
+        points(
+          AUTOMATION.bundles.map((item) => `${item.name}: ${price(item)}`)
+        ),
+        `Maintenance: ${both(CARE.automation)}.`
+      ),
     },
     ...AUTOMATION.bundles.map((item) =>
       bundleTopic(item, AUTOMATION_PHRASES[item.id] ?? [])
@@ -267,7 +313,18 @@ export function buildTopics(
         'upkeep',
         'penyelenggaraan',
       ],
-      answer: `Maintenance keeps everything running: hosting and SSL, updates and backups. Starter website ${both(CARE.starter)}, Business website ${both(CARE.business)}, store template ${both(CARE.store)}, systems ${both(CARE.system)}, apps ${both(CARE.app)}, automation ${both(CARE.automation)}. Paying yearly saves ${CARE_YEARLY_SAVING}%. And bug fixes on Haziq's work are free for life, plan or no plan 👍`,
+      answer: lines(
+        'Maintenance covers hosting, SSL, updates and backups:',
+        points([
+          `Starter website: ${both(CARE.starter)}`,
+          `Business website: ${both(CARE.business)}`,
+          `Store template: ${both(CARE.store)}`,
+          `Systems: ${both(CARE.system)}`,
+          `Apps: ${both(CARE.app)}`,
+          `Automation: ${both(CARE.automation)}`,
+        ]),
+        `Paying yearly saves ${CARE_YEARLY_SAVING}%, and bug fixes on Haziq's work are free for life 👍`
+      ),
     },
     {
       title: 'Looking after an existing site',
@@ -282,7 +339,16 @@ export function buildTopics(
         'wix',
         'webflow',
       ],
-      answer: `Yes! Haziq can look after a site or app someone else built. First there's a one-time check (${TAKEOVER.options.map((item) => `${formatRM(item.check)} for a ${item.name.toLowerCase()}`).join(', ')}): he backs everything up, reviews the code, security and speed, and gives you a fixed-price list of any issues. After that, maintenance is ${TAKEOVER.options.map((item) => `${both(item.care)} for a ${item.name.toLowerCase()}`).join(', or ')}. Works with ${TAKEOVER.platforms.join(', ')}.`,
+      answer: lines(
+        'Yes! Haziq can look after a site or app someone else built. It starts with a one-time check: he backs everything up, reviews the code, security and speed, and gives you a fixed-price list of any issues.',
+        points(
+          TAKEOVER.options.map(
+            (item) =>
+              `${item.name}: ${formatRM(item.check)} check, then ${both(item.care)}`
+          )
+        ),
+        `Works with ${TAKEOVER.platforms.join(', ')}.`
+      ),
     },
     {
       title: 'Payment',
@@ -301,7 +367,16 @@ export function buildTopics(
         'live demo',
       ],
       answer: templates.length
-        ? `There are ready-made templates you can try live on the Services page: ${templates.map((item) => `${item.name} ${formatRM(item.price)} (${packageOfTemplate(item).bundle.name})`).join(', ')}. Each one gets set up with your logo, colours and content.`
+        ? lines(
+            'You can try these ready-made templates live on the Services page:',
+            points(
+              templates.map(
+                (item) =>
+                  `${item.name}: ${formatRM(item.price)} (${packageOfTemplate(item).bundle.name})`
+              )
+            ),
+            'Each one gets set up with your logo, colours and content.'
+          )
         : 'There are ready-made templates you can try live on the Services page!',
     },
     {
@@ -364,7 +439,17 @@ export function buildTopics(
         'buat apa',
         'kerja apa',
       ],
-      answer: `${name} builds websites (from ${formatRM(starter.price)}), custom systems like online stores, booking and HR (from ${formatRM(CUSTOM_SYSTEM.price)}), mobile apps (from ${lowest(MOBILE_APPS.bundles)}) and automations (from ${lowest(AUTOMATION.bundles)}), and looks after them after launch. Ask me about any of them, or check the Services page!`,
+      answer: lines(
+        `${name} can help you with:`,
+        points([
+          `Websites: from ${formatRM(starter.price)}`,
+          `Custom systems like online stores, booking and HR: from ${formatRM(CUSTOM_SYSTEM.price)}`,
+          `Mobile apps: from ${lowest(MOBILE_APPS.bundles)}`,
+          `Automations: from ${lowest(AUTOMATION.bundles)}`,
+          `Maintenance after launch: from ${carePrice(CARE.starter)}`,
+        ]),
+        'Ask me about any of them!'
+      ),
     },
     {
       title: 'Education',
@@ -380,9 +465,19 @@ export function buildTopics(
         'universiti',
         'college',
       ],
-      answer: education.length
-        ? `${name} did his ${[...schools].map(([institution, courses]) => `${listOf(courses)} at ${institution}`).join(', and ')} 🎓`
-        : `See the About page for ${name}'s education.`,
+      answer: !education.length
+        ? `See the About page for ${name}'s education.`
+        : schools.size === 1
+          ? `${name} did his ${[...schools].map(([institution, courses]) => `${listOf(courses)} at ${institution}`)[0]} 🎓`
+          : lines(
+              `${name} studied at:`,
+              points(
+                [...schools].map(
+                  ([institution, courses]) =>
+                    `${institution}: ${listOf(courses)}`
+                )
+              )
+            ),
     },
     {
       title: 'Hobbies',
@@ -486,7 +581,7 @@ export function buildTopics(
         'pengalaman',
       ],
       answer: roles.length
-        ? `Here's where ${name} has worked: ${roles.join('; ')}.`
+        ? lines(`Here's where ${name} has worked:`, points(roles))
         : `See the About page for ${name}'s experience.`,
     },
     {
@@ -502,17 +597,29 @@ export function buildTopics(
         'frameworks',
       ],
       answer: skills.length
-        ? `${name} works with ${skills.map((item) => item.name).join(', ')}.`
+        ? lines(
+            `${name}'s tech stack:`,
+            points(
+              [...stack]
+                .sort((a, b) => b[1].length - a[1].length)
+                .map(([category, names]) => `${category}: ${names.join(', ')}`)
+            )
+          )
         : 'See the About page for skills.',
     },
     {
       title: 'Projects',
       phrases: ['project', 'projects', 'portfolio', 'past work', 'case study'],
       answer: projects.length
-        ? `Here are a few of ${name}'s projects: ${projects
-            .slice(0, 6)
-            .map((item) => `${item.title} (${item.description})`)
-            .join('; ')}. You can see them all on the Projects page!`
+        ? lines(
+            `Here are some of ${name}'s projects:`,
+            points(
+              projects
+                .slice(0, 6)
+                .map((item) => `${item.title}: ${gist(item.description)}`)
+            ),
+            'Ask me about any of them, or see the Projects page!'
+          )
         : 'See the Projects page.',
     },
     {
@@ -522,6 +629,16 @@ export function buildTopics(
         'hoon',
         'who is hoon',
         'who are you',
+        'hi',
+        'hello',
+        'hey',
+        'hai',
+        'helo',
+        'salam',
+        'assalamualaikum',
+        'good morning',
+        'good afternoon',
+        'good evening',
         'siapa awak',
         'what are you',
         'are you a bot',
@@ -549,6 +666,9 @@ const normalize = (text: string) =>
       word.length > 3 && word.endsWith('s') ? word.slice(0, -1) : word
     )
     .join(' ');
+
+// Questions about extras want the full list, which only the AI facts carry.
+const DETAIL = /\b(?:extra|add-?on|add on|tambahan)\b/;
 
 export function createMatcher(topics: Topic[]) {
   const records = topics.flatMap((topic, index) =>
@@ -581,6 +701,7 @@ export function createMatcher(topics: Topic[]) {
       return {
         answer: topics[best[0]].answer,
         confident:
+          !DETAIL.test(query) &&
           (!next || next[1] < best[1]) &&
           (best[1] > 1 || query.split(' ').length <= 4),
       };
@@ -588,8 +709,15 @@ export function createMatcher(topics: Topic[]) {
 
     if (query.split(' ').length > 4) return null;
     const [fuzzy] = fuse.search(query);
-    return fuzzy && (fuzzy.score ?? 1) <= 0.3
-      ? { answer: topics[fuzzy.item.index].answer, confident: true }
+    if (!fuzzy || (fuzzy.score ?? 1) > 0.3) return null;
+    // A typo is about as long as the word it means; "test" is not "interest".
+    const { phrase } = fuzzy.item;
+    const similar =
+      Math.min(query.length, phrase.length) /
+        Math.max(query.length, phrase.length) >=
+      0.75;
+    return similar
+      ? { answer: topics[fuzzy.item.index].answer, confident: false }
       : null;
   };
 }
@@ -601,9 +729,16 @@ export function buildFacts(topics: Topic[], portfolio: PortfolioData) {
       ...(item.responsibilities ?? []).slice(0, 3),
     ].join(': ')
   );
+  const projects = portfolio.projects.map(
+    (item) => `${item.title} (${item.category}): ${item.description}`
+  );
   return [
-    ...topics.map((topic) => `${topic.title}: ${topic.answer}`),
+    ...topics.map(
+      (topic) =>
+        `${topic.title}: ${topic.answer.replace(/\n/g, ' ')}${topic.detail ? ` ${topic.detail}` : ''}`
+    ),
     details.length ? `Experience details: ${details.join(' | ')}` : '',
+    projects.length ? `Project details: ${projects.join(' | ')}` : '',
   ]
     .filter(Boolean)
     .join('\n');
