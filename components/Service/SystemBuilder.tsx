@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Check, PencilLine, Plus } from 'lucide-react';
 import {
+  type AddOn,
+  AI_USAGE_FEES,
   CARE,
   DEFAULT_LANGUAGE,
   includesOf,
@@ -10,17 +12,12 @@ import {
   type PricingTab,
 } from '@constants/services';
 import { formatRM } from '@lib/format';
-import {
-  ExtraLanguages,
-  LanguageSelect,
-  MAIN_LANGUAGES,
-  nextLanguage,
-} from './Languages';
+import { ExtraLanguages, MainLanguage, nextLanguage } from './Languages';
 import { MaintenanceLine, QuoteLink, WhatsAppButton } from './PriceParts';
 
 const OTHERS = 'others';
 const PILL =
-  'min-h-10 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20';
+  'min-h-10 rounded-full capitalize border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20';
 const PILL_ON =
   'border-green-500 bg-green-500/10 text-green-800 dark:border-green-400 dark:bg-green-400/10 dark:text-green-300';
 const PILL_OFF =
@@ -70,14 +67,36 @@ export default function SystemBuilder({
   const build =
     system.price + chosen.reduce((sum, item) => sum + item.price, 0);
 
-  const toggle = (id: string) =>
+  const groups = [
+    {
+      id: 'addons',
+      title: 'Add features',
+      note: 'Fixed prices. The final quote is confirmed after we talk.',
+      items: addOns.filter((item) => !item.ai),
+    },
+    {
+      id: 'ai',
+      title: 'AI features',
+      note: `${AI_USAGE_FEES}.`,
+      items: addOns.filter((item) => item.ai),
+    },
+  ].filter((group) => group.items.length);
+
+  // Ticking an add-on ticks what it requires; unticking drops what needs it.
+  const toggle = (item: AddOn) =>
     setPicked((current) => {
       const ids = current[system.id] ?? [];
+      const needs =
+        item.requires && !ids.includes(item.requires) ? [item.requires] : [];
       return {
         ...current,
-        [system.id]: ids.includes(id)
-          ? ids.filter((item) => item !== id)
-          : [...ids, id],
+        [system.id]: ids.includes(item.id)
+          ? ids.filter(
+              (id) =>
+                id !== item.id &&
+                addOns.find((other) => other.id === id)?.requires !== item.id
+            )
+          : [...ids, item.id, ...needs],
       };
     });
 
@@ -205,39 +224,31 @@ export default function SystemBuilder({
                   {system.runningCost}.
                 </p>
               )}
-              <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  Main language
-                </span>
-                <LanguageSelect
-                  value={mainLanguage}
-                  options={MAIN_LANGUAGES}
-                  label="Main language"
-                  onChange={pickMain}
-                />
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Included
-                </span>
-              </div>
+              <MainLanguage
+                value={mainLanguage}
+                onChange={pickMain}
+                className="mt-6"
+              />
 
-              {addOns.length > 0 && (
+              {groups.map((group) => (
                 <section
-                  aria-labelledby={`${system.id}-addons`}
+                  key={group.id}
+                  aria-labelledby={`${system.id}-${group.id}`}
                   className="mt-8"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h5
-                      id={`${system.id}-addons`}
+                      id={`${system.id}-${group.id}`}
                       className="text-lg font-bold text-gray-900 dark:text-gray-100"
                     >
-                      Add features
+                      {group.title}
                     </h5>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Fixed prices. The final quote is confirmed after we talk.
+                      {group.note}
                     </p>
                   </div>
                   <ul className="mt-3 grid gap-3 md:grid-cols-2">
-                    {addOns.map((item) => {
+                    {group.items.map((item) => {
                       const on = isOn(item);
                       return (
                         <li
@@ -257,7 +268,7 @@ export default function SystemBuilder({
                                   const first = nextLanguage([mainLanguage]);
                                   setLanguages(!on && first ? [first] : []);
                                 } else {
-                                  toggle(item.id);
+                                  toggle(item);
                                 }
                               }}
                               className="sr-only"
@@ -309,7 +320,7 @@ export default function SystemBuilder({
                     })}
                   </ul>
                 </section>
-              )}
+              ))}
             </div>
 
             <aside

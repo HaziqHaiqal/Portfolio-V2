@@ -147,30 +147,4 @@ export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
       line: '#E1EDFC',
     }),
   ],
-  langkah: [
-    light('kapur', 'Kapur', '#FFB800', '#E9E5DB', {
-      bg: '#F3F0E8',
-      surface: '#FBFAF6',
-      ink: '#141414',
-      muted: '#5F5C55',
-      line: '#DDD8CC',
-      'on-accent': '#141414',
-    }),
-    dark('malam', 'Malam', '#FFB800', {
-      bg: '#0E0E0E',
-      surface: '#181818',
-      tint: '#222222',
-      line: '#2C2C2C',
-      ink: '#F3F0E8',
-      muted: '#A19D94',
-      'on-accent': '#141414',
-    }),
-    light('pandan', 'Pandan', '#4E7F3A', '#E1E8D8', {
-      bg: '#F1F3EC',
-      surface: '#FAFBF7',
-      ink: '#151A12',
-      muted: '#59604F',
-      line: '#D8DFCC',
-    }),
-  ],
 };

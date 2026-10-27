@@ -1,5 +1,6 @@
 import Fuse from 'fuse.js';
 import {
+  AI_USAGE_FEES,
   AUTOMATION,
   BUG_FIX_INCLUDE,
   type Bundle,
@@ -56,6 +57,9 @@ const gist = (text: string) =>
     .split(/\s(?:with|that|which|showcasing|using)\s|,\s/)[0]
     .replace(/\.$/, '');
 
+const HOON_INTRO =
+  "Hey! I'm Hoon, Haziq's little helper bot 👋 Ask me anything about his work, services or prices. For anything else, Haziq's on WhatsApp.";
+
 const SYSTEM_PHRASES: Record<string, string[]> = {
   'online-store': [
     'online store',
@@ -69,7 +73,13 @@ const SYSTEM_PHRASES: Record<string, string[]> = {
   inventory: ['inventory', 'stock'],
   invoicing: ['invoice', 'invoicing', 'quotation', 'e-invoice', 'myinvois'],
   hr: ['hr', 'leave', 'payroll', 'claims', 'attendance', 'cuti'],
-  crm: ['crm', 'leads', 'sales pipeline'],
+  crm: [
+    'crm',
+    'leads',
+    'sales pipeline',
+    'sales tracking',
+    'customer tracking',
+  ],
   tuition: ['tuition', 'tuition centre', 'training centre', 'tusyen'],
   membership: ['membership', 'member', 'loyalty'],
   rentals: ['rental', 'rent', 'sewa'],
@@ -190,6 +200,14 @@ export function buildTopics(
   const cheapestTemplate = templates.length
     ? formatRM(Math.min(...templates.map((item) => item.price)))
     : null;
+  const aiAddOns = SYSTEMS.bundles.flatMap((bundle) =>
+    (bundle.addOns ?? [])
+      .filter((item) => item.ai)
+      .map((item) => ({ bundle, item }))
+  );
+  const assistant = aiAddOns.find(
+    ({ item }) => item.id === 'ai-assistant'
+  )?.item;
   const current = experience.find((item) => item.is_current);
   const schools = new Map<string, string[]>();
   for (const item of education) {
@@ -280,6 +298,32 @@ export function buildTopics(
     ...SYSTEMS.bundles.map((item) =>
       bundleTopic(item, SYSTEM_PHRASES[item.id] ?? [])
     ),
+    {
+      title: 'AI features',
+      phrases: [
+        'ai',
+        'ai features',
+        'artificial intelligence',
+        'kecerdasan buatan',
+        'chatgpt',
+        'gpt',
+      ],
+      answer: lines(
+        'Yes! Every system can come with AI:',
+        points(
+          aiAddOns
+            .filter(({ item }) => item.id !== assistant?.id)
+            .map(
+              ({ bundle, item }) =>
+                `${bundle.shortName ?? bundle.name}: ${item.name} +${formatRM(item.price)}`
+            )
+        ),
+        assistant
+          ? `Plus an ${assistant.name} (+${formatRM(assistant.price)}) for any system: it messages you each morning on what needs attention, like "3 invoices are overdue", and answers your questions in WhatsApp or Telegram.`
+          : '',
+        `Someone on your team checks anything the AI reads or drafts before it's saved or sent. ${AI_USAGE_FEES}.`
+      ),
+    },
     {
       title: 'Mobile apps',
       phrases: [
@@ -641,8 +685,6 @@ export function buildTopics(
       general: true,
       phrases: [
         'hoon',
-        'who is hoon',
-        'who are you',
         'hi',
         'hello',
         'hey',
@@ -653,13 +695,21 @@ export function buildTopics(
         'good morning',
         'good afternoon',
         'good evening',
+      ],
+      answer: HOON_INTRO,
+    },
+    // Not general, so "are you ai" beats the AI features topic.
+    {
+      title: 'Who Hoon is',
+      phrases: [
+        'who is hoon',
+        'who are you',
         'siapa awak',
         'what are you',
         'are you a bot',
         'are you ai',
       ],
-      answer:
-        "Hey! I'm Hoon, Haziq's little helper bot 👋 Ask me anything about his work, services or prices. For anything else, Haziq's on WhatsApp.",
+      answer: HOON_INTRO,
     },
     ...SERVICE_FAQ.map((item) => ({
       title: item.question,

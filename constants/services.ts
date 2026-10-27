@@ -100,12 +100,18 @@ export const PAYMENT_TERMS =
 export const GATEWAY_FEES =
   'Payment gateway fees per transaction, paid by you to the provider';
 
+export const AI_USAGE_FEES = 'AI usage fees, paid by you to the provider';
+
 export interface AddOn {
   id: string;
   name: string;
   description: string;
   price: number;
   perLanguage?: boolean;
+  /** Listed under AI features. */
+  ai?: boolean;
+  /** Add-on id ticked along with this one. */
+  requires?: string;
 }
 
 export const DEFAULT_LANGUAGE = 'English';
@@ -209,9 +215,8 @@ export const WEBSITES: PricingTab = {
         PAGE_LIMITS[0],
         CUSTOM_DESIGN,
         'Mobile responsive',
-        'WhatsApp, call and map buttons',
-        'Basic SEO and Google Analytics',
-        'Google Business Profile setup',
+        'Contact and map buttons',
+        'Basic SEO',
       ],
       excludes: ['Content editor (CMS)', CHAT_INTEGRATION],
     },
@@ -231,7 +236,7 @@ export const WEBSITES: PricingTab = {
       },
       includes: [
         PAGE_LIMITS[1],
-        'CMS for text, photos and prices',
+        'Basic CMS (text, photos and prices)',
         CHAT_INTEGRATION,
         'On-page SEO for every page',
       ],
@@ -246,6 +251,14 @@ const alerts = (when: string): AddOn => ({
   name: 'WhatsApp or Telegram alerts',
   description: `You get a message the moment ${when}. WhatsApp message fees paid by you to Meta; Telegram is free.`,
   price: 500,
+});
+
+const aiAssistant = (update: string): AddOn => ({
+  id: 'ai-assistant',
+  name: 'AI business assistant',
+  description: `Messages you each morning on what needs attention, like "${update}", and answers when you ask. WhatsApp message fees paid by you to Meta; Telegram is free.`,
+  price: 2500,
+  ai: true,
 });
 
 export const SYSTEMS: PricingTab = {
@@ -323,6 +336,15 @@ export const SYSTEMS: PricingTab = {
           price: 1500,
         },
         alerts('a new order is paid'),
+        {
+          id: 'ai-shopping',
+          name: 'AI shopping assistant',
+          description:
+            'A chat on your store answers questions about products, stock, delivery and orders, and hands over to WhatsApp when unsure.',
+          price: 3000,
+          ai: true,
+        },
+        aiAssistant('12 orders yesterday, 2 still to ship'),
       ],
     },
     {
@@ -386,12 +408,21 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a new booking comes in'),
+        {
+          id: 'ai-booking',
+          name: 'AI booking assistant',
+          description:
+            'Customers ask in chat, like "Saturday afternoon with Aina?", and it books a free slot for them.',
+          price: 3500,
+          ai: true,
+        },
+        aiAssistant('8 bookings tomorrow, 2 not paid yet'),
       ],
     },
     {
       id: 'qr-ordering',
-      shortName: 'QR ordering',
-      name: 'QR food ordering',
+      shortName: 'Food ordering',
+      name: 'Food ordering system',
       summary: 'Customers scan, order and pay at the table.',
       price: 10900,
       from: true,
@@ -441,6 +472,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a table places an order'),
+        {
+          id: 'ai-menu',
+          name: 'AI menu helper',
+          description:
+            'Customers ask about spice, allergies or ingredients in their own language. It answers only from what you enter for each dish.',
+          price: 2500,
+          ai: true,
+        },
+        aiAssistant('Nasi lemak sold out twice this week'),
       ],
     },
     {
@@ -496,6 +536,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('stock runs low'),
+        {
+          id: 'ai-stock-in',
+          name: 'AI stock-in from photos',
+          description:
+            "Snap a supplier's invoice or delivery order, and the items and quantities fill in for staff to confirm.",
+          price: 2500,
+          ai: true,
+        },
+        aiAssistant('5 items will run out this week'),
       ],
     },
     {
@@ -503,7 +552,7 @@ export const SYSTEMS: PricingTab = {
       shortName: 'Invoicing',
       name: 'Quotation and invoicing',
       summary: 'Quotes, invoices and payments in one place.',
-      price: 9900,
+      price: 8600,
       from: true,
       care: 'system',
       includes: [
@@ -552,6 +601,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('an invoice is paid or goes overdue'),
+        {
+          id: 'ai-quotes',
+          name: 'AI quotation drafts',
+          description:
+            "Paste the customer's request and get a draft quote from your saved products and prices, ready to check and send.",
+          price: 2000,
+          ai: true,
+        },
+        aiAssistant('3 invoices are overdue, RM4,200 in total'),
       ],
     },
     {
@@ -601,12 +659,21 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a staff member applies for leave or submits a claim'),
+        {
+          id: 'ai-receipts',
+          name: 'AI receipt reading',
+          description:
+            'Claims fill in from the receipt photo, and duplicate or over-limit claims are flagged.',
+          price: 2500,
+          ai: true,
+        },
+        aiAssistant('2 leave requests are waiting for you'),
       ],
     },
     {
       id: 'crm',
-      shortName: 'CRM & leads',
-      name: 'CRM and sales leads',
+      shortName: 'Sales tracking',
+      name: 'Customer and sales tracking',
       summary: 'Every lead, follow-up and deal in one place.',
       price: 10900,
       from: true,
@@ -627,7 +694,7 @@ export const SYSTEMS: PricingTab = {
         },
         {
           id: 'quotes',
-          name: 'Quotations from the CRM',
+          name: 'Quotations from each deal',
           description:
             'Send a quote from a deal and track when it is accepted.',
           price: 3000,
@@ -651,6 +718,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a new lead comes in from your website'),
+        {
+          id: 'ai-follow-ups',
+          name: 'AI lead follow-ups',
+          description:
+            'A summary of each lead, the next step to take and a drafted follow-up message.',
+          price: 2500,
+          ai: true,
+        },
+        aiAssistant("4 leads haven't been followed up"),
       ],
     },
     {
@@ -707,6 +783,16 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a fee is paid or goes overdue'),
+        {
+          id: 'ai-comments',
+          name: 'AI report comments',
+          description:
+            'A drafted comment for each student from their marks and attendance, for teachers to edit. Comes with exams and progress reports.',
+          price: 2000,
+          ai: true,
+          requires: 'progress',
+        },
+        aiAssistant("3 parents haven't paid this month"),
       ],
     },
     {
@@ -764,6 +850,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('someone joins, renews or checks in'),
+        {
+          id: 'ai-win-back',
+          name: 'AI win-back messages',
+          description:
+            'Spots members who come less or are about to expire, and drafts a personal renewal message.',
+          price: 2000,
+          ai: true,
+        },
+        aiAssistant('6 memberships expire this week'),
       ],
     },
     {
@@ -818,6 +913,15 @@ export const SYSTEMS: PricingTab = {
           price: 2000,
         },
         alerts('a booking is made or an item is due back'),
+        {
+          id: 'ai-availability',
+          name: 'AI availability assistant',
+          description:
+            'Customers ask in chat, like "3-ton lorry free next Friday?", and it checks the calendar, quotes the price and takes the booking.',
+          price: 3000,
+          ai: true,
+        },
+        aiAssistant('2 items are due back today'),
       ],
     },
   ],
@@ -836,11 +940,12 @@ export const CUSTOM_SYSTEM: Bundle = {
     item: SYSTEM_CHOICES,
     heading: 'Systems you can pick',
     items: SYSTEMS.bundles.map((bundle) => bundle.shortName ?? bundle.name),
-    note: 'Not listed? Pick "Something else" in the estimate and describe it.',
+    note: 'Not listed? Pick "Something Else" in the estimate and describe it.',
   },
   includes: [
     SYSTEM_CHOICES,
     'Payment gateway, if needed',
+    'AI features, if needed',
     'Staff or customer logins',
     'Database with daily backups',
     'Admin dashboard',
@@ -922,7 +1027,7 @@ export const AUTOMATION: PricingTab = {
         'Trained on your prices, hours and FAQ',
         'Human handover',
       ],
-      runningCost: 'AI usage fees, paid by you to the provider',
+      runningCost: AI_USAGE_FEES,
     },
     {
       id: 'approvals',
@@ -1034,6 +1139,16 @@ export interface TemplateAddOn extends AddOn {
   perPage?: boolean;
 }
 
+// Works like Hoon, the bot on this site, trained on the client's own details.
+const AI_CHATBOT: TemplateAddOn = {
+  id: 'ai-chatbot',
+  name: 'AI chatbot',
+  description:
+    "Answers customers' questions about your prices, hours and services, day and night, and hands over to WhatsApp. Works like Hoon, the bot on this site.",
+  price: 800,
+  ai: true,
+};
+
 const LANGUAGES = {
   id: 'languages',
   name: 'Extra language',
@@ -1050,6 +1165,8 @@ const STORE_TEMPLATE_PRICES: Record<string, number> = {
   languages: 1000,
   reports: 1200,
   alerts: 500,
+  'ai-shopping': 1800,
+  'ai-assistant': 1500,
 };
 
 const STORE_ADD_ONS = (
@@ -1075,6 +1192,7 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       price: 300,
     },
     { ...LANGUAGES, price: 300 },
+    AI_CHATBOT,
   ],
   business: [
     {
@@ -1092,6 +1210,7 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       description: 'Up to 30, from your list and photos.',
       price: 200,
     },
+    AI_CHATBOT,
   ],
   'online-store': [
     {

@@ -37,12 +37,7 @@ import { discountedPrice, promoAppliesTo } from '@lib/promo';
 import type { FeaturedDeal } from '@lib/data';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
-import {
-  ExtraLanguages,
-  LanguageSelect,
-  MAIN_LANGUAGES,
-  nextLanguage,
-} from './Languages';
+import { ExtraLanguages, MainLanguage, nextLanguage } from './Languages';
 import { CarePrices, careChoice, trackWhatsApp } from './PriceParts';
 
 function AddOnText({
@@ -269,21 +264,12 @@ export default function TemplateOrder({
             <>
               <h4 className="mt-6 text-sm font-semibold">Add if you need</h4>
               <ul className="mt-1 divide-y divide-gray-200 dark:divide-gray-700">
-                <li className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3 pl-8">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    Main language
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <LanguageSelect
-                      value={mainLanguage}
-                      options={MAIN_LANGUAGES}
-                      label="Main language"
-                      onChange={pickMain}
-                    />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      Included
-                    </span>
-                  </span>
+                <li className="py-3 pl-8">
+                  <MainLanguage
+                    value={mainLanguage}
+                    onChange={pickMain}
+                    className="justify-between"
+                  />
                 </li>
                 {addOns.map((item) => {
                   const qty = qtyOf(item);
@@ -374,6 +360,8 @@ export default function TemplateOrder({
           <p className="mt-4 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
             {store &&
               `${GATEWAY_FEES}. You sign up with the gateway in your business name, and it is connected for you. `}
+            {addOns.some((item) => item.ai) &&
+              'AI add-ons have usage fees, paid by you to the AI provider. '}
             Anything not listed is quoted on WhatsApp before any work starts.
           </p>
         </>
