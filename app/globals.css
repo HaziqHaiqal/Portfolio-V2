@@ -1683,10 +1683,10 @@ html:has([data-template-root]) {
 @keyframes hoon-wave {
   0%,
   100% {
-    transform: rotate(-115deg);
+    transform: rotate(-75deg);
   }
   50% {
-    transform: rotate(-145deg);
+    transform: rotate(-105deg);
   }
 }
 
@@ -1732,7 +1732,7 @@ html:has([data-template-root]) {
 
 .hoon-arm {
   transform-box: fill-box;
-  transform-origin: 15% 15%;
+  transform-origin: 25% 18%;
 }
 
 .hoon-waving .hoon-arm {

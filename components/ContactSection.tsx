@@ -463,7 +463,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             onClick={tickle}
             onMouseEnter={() => setHoonHovered(true)}
             onMouseLeave={() => setHoonHovered(false)}
-            className="absolute right-6 top-[3px] z-10 -translate-y-full cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 sm:right-10 lg:right-12"
+            className="absolute right-6 top-[8px] z-10 -translate-y-full cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 sm:right-10 lg:right-12"
           >
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2">
               <AnimatePresence>

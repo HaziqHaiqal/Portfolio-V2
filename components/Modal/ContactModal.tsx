@@ -15,6 +15,7 @@ const ContactSection = dynamic(() => import('@components/ContactSection'), {
 const GREETED_KEY = 'hoon-greeted-at';
 const GREET_EVERY = 10 * 60 * 1000;
 const GREET_FOR = 4000;
+const GREETINGS = ["Hi, I'm Hoon!", "Let's talk!"];
 
 const lastGreeted = () => {
   try {
@@ -40,7 +41,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
   const { isContactOpen, isChatVisible, toggleContact, closeContact } =
     useUIStore();
   const [hovered, setHovered] = useState(false);
-  const [greeting, setGreeting] = useState(false);
+  const [greeting, setGreeting] = useState<string | null>(null);
 
   useEffect(() => {
     let timer = 0;
@@ -53,9 +54,9 @@ const ContactModal = ({ profile }: ContactModalProps) => {
       const { isContactOpen, isChatVisible } = useUIStore.getState();
       markGreeted();
       if (isContactOpen || !isChatVisible || document.hidden) return schedule();
-      setGreeting(true);
+      setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
       timer = window.setTimeout(() => {
-        setGreeting(false);
+        setGreeting(null);
         schedule();
       }, GREET_FOR);
     };
@@ -147,7 +148,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                   exit={{ opacity: 0, y: 4, scale: 0.9 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                 >
-                  Let&apos;s talk!
+                  {greeting}
                   <span className="absolute -bottom-[7px] right-[18px] h-3 w-3 rotate-45 border-b border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:right-[22px]" />
                 </m.span>
               )}
@@ -176,7 +177,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                   transition={{ duration: 0.12 }}
                 >
                   <HoonBot
-                    excited={hovered || greeting}
+                    excited={hovered || !!greeting}
                     className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11"
                   />
                 </m.span>

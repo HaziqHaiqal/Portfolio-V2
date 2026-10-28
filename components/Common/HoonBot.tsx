@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 export type HoonMood =
   | 'happy'
@@ -22,10 +22,13 @@ const MOODS: HoonMood[] = [
   'wink',
   'excited',
 ];
-const GREEN = '#34D399';
+const INK = '#232838';
+const ACCENT = '#6B8EC4';
+const BODY =
+  'M24 10C33.4 10 39.5 16.6 39.5 26C39.5 31.2 38.9 35.6 37.2 38.6C35.6 41.4 33 43 30 43C27.6 43 26.2 41.6 24 41.6C21.8 41.6 20.4 43 18 43C15 43 12.4 41.4 10.8 38.6C9.1 35.6 8.5 31.2 8.5 26C8.5 16.6 14.6 10 24 10Z';
 const line = {
-  stroke: GREEN,
-  strokeWidth: 1.4,
+  stroke: INK,
+  strokeWidth: 1.3,
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
   fill: 'none',
@@ -33,20 +36,23 @@ const line = {
 
 const cheeks = (
   <>
-    <circle cx="15.6" cy="24.6" r="1.2" fill="#F472B6" opacity="0.5" />
-    <circle cx="32.4" cy="24.6" r="1.2" fill="#F472B6" opacity="0.5" />
+    <ellipse cx="14.4" cy="27.4" rx="2" ry="1.1" fill="#F4A6C0" opacity="0.5" />
+    <ellipse cx="33.6" cy="27.4" rx="2" ry="1.1" fill="#F4A6C0" opacity="0.5" />
   </>
 );
 
-const eye = (cx: number) => (
-  <ellipse
-    className="hoon-eye"
-    cx={cx}
-    cy="19.8"
-    rx="2.1"
-    ry="2.5"
-    fill={GREEN}
-  />
+const eye = (cx: number, cy = 23, rx = 1.8, ry = 2.6) => (
+  <g className="hoon-eye">
+    <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={INK} />
+    <ellipse
+      cx={cx - rx * 0.32}
+      cy={cy - ry * 0.42}
+      rx={rx * 0.3}
+      ry={ry * 0.26}
+      fill="#fff"
+      opacity="0.85"
+    />
+  </g>
 );
 
 function Face({ mood }: { mood: HoonMood }) {
@@ -56,27 +62,26 @@ function Face({ mood }: { mood: HoonMood }) {
         <>
           {cheeks}
           <path
-            d="M17.6 18l2.8 1.8-2.8 1.8M30.4 18l-2.8 1.8 2.8 1.8"
+            d="M16.4 21.4l2.6 1.6-2.6 1.6M31.6 21.4l-2.6 1.6 2.6 1.6"
             {...line}
-            strokeWidth={1.6}
+            strokeWidth={1.5}
           />
-          <path d="M20.8 23h6.4q0 4-3.2 4t-3.2-4z" fill={GREEN} />
+          <path d="M21.8 27h4.4q0 3-2.2 3t-2.2-3z" fill={INK} />
         </>
       );
     case 'thinking':
       return (
         <>
-          <ellipse cx="20.6" cy="18.6" rx="1.8" ry="2.1" fill={GREEN} />
-          <ellipse cx="29.2" cy="18.6" rx="1.8" ry="2.1" fill={GREEN} />
-          <path d="M22 25.2h4" {...line} />
-          {[37.2, 40, 42.8].map((cx, index) => (
+          {eye(18.6, 21.8, 1.7, 2.4)}
+          {eye(30.6, 21.8, 1.7, 2.4)}
+          {[38.6, 41.2, 43.8].map((cx, index) => (
             <circle
               key={cx}
               className="hoon-dot"
               cx={cx}
-              cy="10.4"
-              r="1.2"
-              fill={GREEN}
+              cy="9.4"
+              r="1.1"
+              fill={ACCENT}
               style={{ animationDelay: `${index * 0.2}s` }}
             />
           ))}
@@ -85,24 +90,8 @@ function Face({ mood }: { mood: HoonMood }) {
     case 'typing':
       return (
         <>
-          {cheeks}
-          <ellipse
-            className="hoon-eye"
-            cx="19.2"
-            cy="21"
-            rx="2.1"
-            ry="2.3"
-            fill={GREEN}
-          />
-          <ellipse
-            className="hoon-eye"
-            cx="28"
-            cy="21"
-            rx="2.1"
-            ry="2.3"
-            fill={GREEN}
-          />
-          <path d="M21.6 25.2q2.4 1.6 4.8 0" {...line} />
+          {eye(18, 24.6, 1.8, 2.2)}
+          {eye(30, 24.6, 1.8, 2.2)}
         </>
       );
     case 'excited':
@@ -110,21 +99,21 @@ function Face({ mood }: { mood: HoonMood }) {
         <>
           {cheeks}
           <path
-            d="M17.6 20.8l2-2.4 2 2.4M26.4 20.8l2-2.4 2 2.4"
+            d="M16 24l2-2.4 2 2.4M28 24l2-2.4 2 2.4"
             {...line}
-            strokeWidth={1.6}
+            strokeWidth={1.5}
           />
-          <path d="M21.2 23.4h5.6q0 3.4-2.8 3.4t-2.8-3.4z" fill={GREEN} />
+          <path d="M22.2 27h3.6q0 2.6-1.8 2.6t-1.8-2.6z" fill={INK} />
         </>
       );
     case 'confused':
       return (
         <>
-          {eye(19.6)}
-          <ellipse cx="28.4" cy="20.4" rx="1.6" ry="1.6" fill={GREEN} />
-          <path d="M26.4 16.6l3.8-1" {...line} />
-          <path d="M21 25q1.3-1.3 2.6 0t2.6 0" {...line} />
-          <text x="38.4" y="13.6" fontSize="7" fontWeight="700" fill={GREEN}>
+          {eye(18)}
+          {eye(30, 23.4, 1.5, 1.9)}
+          <path d="M28 18.8l3.6-.9" {...line} />
+          <path d="M21.6 28.4q1.2-1.2 2.4 0t2.4 0" {...line} />
+          <text x="38.6" y="13.4" fontSize="7" fontWeight="700" fill={ACCENT}>
             ?
           </text>
         </>
@@ -132,22 +121,21 @@ function Face({ mood }: { mood: HoonMood }) {
     case 'sad':
       return (
         <>
-          <ellipse cx="19.6" cy="20.6" rx="1.9" ry="2.1" fill={GREEN} />
-          <ellipse cx="28.4" cy="20.6" rx="1.9" ry="2.1" fill={GREEN} />
-          <path d="M17.4 17.6l3.6-1M30.6 17.6l-3.6-1" {...line} />
-          <path d="M21.4 26.2q2.6-2.2 5.2 0" {...line} />
-          <path d="M31.4 22.6q-1.3 1.9 0 2.7 1.3-.8 0-2.7z" fill="#7DD3FC" />
+          {eye(18, 23.6, 1.7, 2.3)}
+          {eye(30, 23.6, 1.7, 2.3)}
+          <path d="M15.8 19.8l3.4-1M32.2 19.8l-3.4-1" {...line} />
+          <path d="M22.2 29q1.8-1.5 3.6 0" {...line} />
+          <path d="M32.6 25.4q-1.3 1.9 0 2.7 1.3-.8 0-2.7z" fill="#7DD3FC" />
         </>
       );
     case 'sleepy':
       return (
         <>
-          <path d="M17.6 20.2q2 1.4 4 0M26.4 20.2q2 1.4 4 0" {...line} />
-          <circle cx="24" cy="25" r="1" fill={GREEN} />
-          <text x="37.4" y="14.4" fontSize="4.5" fontWeight="700" fill={GREEN}>
+          <path d="M16.2 23.4q1.8 1.3 3.6 0M28.2 23.4q1.8 1.3 3.6 0" {...line} />
+          <text x="37.6" y="13.6" fontSize="4.5" fontWeight="700" fill={ACCENT}>
             z
           </text>
-          <text x="39.8" y="11.4" fontSize="6" fontWeight="700" fill={GREEN}>
+          <text x="40.2" y="10.6" fontSize="6" fontWeight="700" fill={ACCENT}>
             z
           </text>
         </>
@@ -155,27 +143,25 @@ function Face({ mood }: { mood: HoonMood }) {
     case 'surprised':
       return (
         <>
-          <circle cx="19.6" cy="19.6" r="2.6" fill={GREEN} />
-          <circle cx="28.4" cy="19.6" r="2.6" fill={GREEN} />
-          <ellipse cx="24" cy="25.6" rx="1.5" ry="1.8" fill={GREEN} />
+          {eye(18, 22.6, 2.2, 2.9)}
+          {eye(30, 22.6, 2.2, 2.9)}
+          <ellipse cx="24" cy="28.8" rx="1.2" ry="1.5" fill={INK} />
         </>
       );
     case 'wink':
       return (
         <>
           {cheeks}
-          {eye(19.6)}
-          <path d="M26.4 20.6q2-2.2 4 0" {...line} strokeWidth={1.6} />
-          <path d="M21 23.8q3 2.6 6 0" {...line} />
+          {eye(18)}
+          <path d="M28.2 23.6q1.8-2 3.6 0" {...line} strokeWidth={1.5} />
+          <path d="M22.4 27.4q1.6 1.4 3.2 0" {...line} />
         </>
       );
     default:
       return (
         <>
-          {cheeks}
-          {eye(19.6)}
-          {eye(28.4)}
-          <path d="M21.4 24q2.6 2.2 5.2 0" {...line} />
+          {eye(18)}
+          {eye(30)}
         </>
       );
   }
@@ -195,6 +181,7 @@ export default function HoonBot({
 }) {
   const [idle, setIdle] = useState<HoonMood>('happy');
   const lookRef = useRef<SVGGElement>(null);
+  const id = `hoon${useId().replace(/[^\w-]/g, '')}`;
 
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -245,60 +232,64 @@ export default function HoonBot({
 
   return (
     <svg
-      viewBox="4 8 40 40"
+      viewBox="2 5 44 44"
       aria-hidden="true"
       data-mood={mood}
       className={mood === 'excited' ? `${className} hoon-waving` : className}
     >
-      <rect
-        x="10.4"
-        y="36.4"
-        width="3.6"
-        height="7.4"
-        rx="1.8"
-        fill="#94A3B8"
-      />
-      <rect
-        className="hoon-arm"
-        x="34"
-        y="36.4"
-        width="3.6"
-        height="7.4"
-        rx="1.8"
-        fill="#94A3B8"
-      />
-      <rect x="21" y="32" width="6" height="4" fill="#CBD5E1" />
-      <rect
-        x="14"
-        y="34.6"
-        width="20"
-        height="12"
-        rx="5"
-        fill="#F1F5F9"
-        stroke="#CBD5E1"
-        strokeWidth="0.8"
-      />
-      <circle cx="24" cy="40.6" r="1.8" fill={GREEN} />
+      <defs>
+        <radialGradient id={`${id}-body`} cx="0.38" cy="0.28" r="0.82">
+          <stop offset="0" stopColor="#EBF4FC" />
+          <stop offset="0.45" stopColor="#CCE0F2" />
+          <stop offset="0.85" stopColor="#ABC4DF" />
+          <stop offset="1" stopColor="#98B2D1" />
+        </radialGradient>
+        <linearGradient id={`${id}-shade`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.55" stopColor="#5D7FAF" stopOpacity="0" />
+          <stop offset="1" stopColor="#5D7FAF" stopOpacity="0.3" />
+        </linearGradient>
+        <linearGradient id={`${id}-arm`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#CFE1F4" />
+          <stop offset="1" stopColor="#9BB5D6" />
+        </linearGradient>
+        <radialGradient id={`${id}-shine`}>
+          <stop offset="0" stopColor="#fff" stopOpacity="0.75" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${id}-ground`}>
+          <stop offset="0" stopColor="#3C5A8A" stopOpacity="0.35" />
+          <stop offset="1" stopColor="#3C5A8A" stopOpacity="0" />
+        </radialGradient>
+      </defs>
 
-      <rect x="4.6" y="16.8" width="4" height="8.4" rx="2" fill="#94A3B8" />
-      <rect x="39.4" y="16.8" width="4" height="8.4" rx="2" fill="#94A3B8" />
-      <rect
-        x="8"
-        y="9"
-        width="32"
-        height="24"
-        rx="9"
-        fill="#F1F5F9"
-        stroke="#CBD5E1"
-        strokeWidth="0.8"
+      <ellipse cx="24" cy="44.4" rx="12.5" ry="2" fill={`url(#${id}-ground)`} />
+      <ellipse
+        cx="8.6"
+        cy="30.6"
+        rx="2.7"
+        ry="4.9"
+        transform="rotate(28 8.6 30.6)"
+        fill={`url(#${id}-arm)`}
       />
-      <rect
-        x="11.8"
-        y="12.8"
-        width="24.4"
-        height="16.4"
-        rx="6"
-        fill="#0F172A"
+      <g className="hoon-arm">
+        <ellipse
+          cx="39.4"
+          cy="30.6"
+          rx="2.7"
+          ry="4.9"
+          transform="rotate(-28 39.4 30.6)"
+          fill={`url(#${id}-arm)`}
+        />
+      </g>
+      <path d={BODY} fill={`url(#${id}-body)`} />
+      <path d={BODY} fill={`url(#${id}-shade)`} />
+      <ellipse
+        cx="18.4"
+        cy="15.6"
+        rx="6.4"
+        ry="3.6"
+        transform="rotate(-24 18.4 15.6)"
+        fill={`url(#${id}-shine)`}
       />
 
       <g ref={lookRef} className="hoon-look">
