@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- ImageResponse only renders plain <img>. */
 import { ImageResponse } from 'next/og';
+import type { CSSProperties, ReactNode } from 'react';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { getCachedPortfolio, getCachedTemplates } from '@lib/data';
@@ -44,90 +45,238 @@ export async function getAvatar() {
   return loadImage(profile?.profile_image_url);
 }
 
-const frame = {
-  flexShrink: 0,
-  backgroundColor: '#ffffff',
-  border: '8px solid #ffffff',
-  boxShadow: '0 24px 60px rgba(24,24,27,0.18)',
-  objectFit: 'cover',
-  objectPosition: 'top',
+// Pages share the dark home card; template demos sit on the site's light grey.
+const TONES = {
+  dark: {
+    bg: '#111827',
+    text: '#f9fafb',
+    glow: 'rgba(59,130,246,0.26)',
+    grid: 'rgba(255,255,255,0.04)',
+  },
+  light: {
+    bg: '#f9fafb',
+    text: '#111827',
+    glow: 'rgba(59,130,246,0.16)',
+    grid: 'rgba(0,0,0,0.05)',
+  },
+};
+
+const fill = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
 } as const;
 
-/** A page's link preview: a short title over one big screenshot, or a row of three. */
-export async function pageCard({
-  title,
-  shots,
+function Canvas({
+  tone = 'dark',
+  glowAt = '50% 30%',
+  style,
+  children,
 }: {
-  title: string;
-  shots: (string | null | undefined)[];
+  tone?: keyof typeof TONES;
+  glowAt?: string;
+  style?: CSSProperties;
+  children: ReactNode;
 }) {
-  const images = (await Promise.all(shots.slice(0, 3).map(loadImage))).filter(
-    (src): src is string => Boolean(src)
-  );
-  const row = images.length > 1;
-
-  return new ImageResponse(
+  const t = TONES[tone];
+  return (
     <div
       style={{
+        position: 'relative',
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: row ? 'center' : 'flex-start',
         width: '100%',
         height: '100%',
-        padding: row ? '0 56px' : '64px 72px 0',
         overflow: 'hidden',
-        backgroundImage: 'linear-gradient(160deg, #fafafa, #e4e4e7)',
-        color: '#18181b',
+        backgroundColor: t.bg,
+        color: t.text,
         fontFamily: 'Inter',
       }}
     >
       <div
         style={{
-          flexShrink: 0,
-          fontSize: 72,
-          fontWeight: 800,
-          letterSpacing: -3,
-          lineHeight: 1,
+          ...fill,
+          backgroundImage: `radial-gradient(circle at ${glowAt}, ${t.glow}, transparent 55%)`,
+        }}
+      />
+      <div
+        style={{
+          ...fill,
+          backgroundImage: `linear-gradient(${t.grid} 1px, transparent 1px), linear-gradient(90deg, ${t.grid} 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }}
+      />
+      <div
+        style={{ ...fill, display: 'flex', flexDirection: 'column', ...style }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Avatar({ src, size }: { src: string | null; size: number }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexShrink: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: size,
+        height: size,
+        borderRadius: 999,
+        border: `${Math.round(size / 30) + 1}px solid #374151`,
+        overflow: 'hidden',
+        backgroundImage: 'linear-gradient(135deg, #2563eb, #9333ea)',
+        fontSize: size * 0.45,
+        fontWeight: 800,
+      }}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          style={{ objectFit: 'cover' }}
+        />
+      ) : (
+        'H'
+      )}
+    </div>
+  );
+}
+
+function GradientName({ size }: { size: number }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        fontSize: size,
+        fontWeight: 800,
+        letterSpacing: -size / 30,
+        lineHeight: 1.1,
+      }}
+    >
+      <span
+        style={{
+          backgroundImage: 'linear-gradient(90deg, #60a5fa, #c084fc)',
+          backgroundClip: 'text',
+          color: 'transparent',
+          paddingRight: size / 4,
         }}
       >
-        {title}
-      </div>
+        Haziq
+      </span>
+      <span>Haiqal</span>
+    </div>
+  );
+}
 
-      {row ? (
-        <div style={{ display: 'flex', marginTop: 44 }}>
-          {images.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              width={352}
-              height={220}
-              style={{ ...frame, marginLeft: i ? 16 : 0, borderRadius: 20 }}
-            />
-          ))}
-        </div>
-      ) : (
-        images[0] && (
-          <img
-            src={images[0]}
-            alt=""
-            width={1056}
-            height={600}
-            style={{ ...frame, marginTop: 48, borderRadius: 28 }}
-          />
-        )
-      )}
-    </div>,
+export async function homeCard() {
+  const avatar = await getAvatar();
+
+  return new ImageResponse(
+    <Canvas style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Avatar src={avatar} size={176} />
+      <div style={{ display: 'flex', marginTop: 32 }}>
+        <GradientName size={92} />
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          marginTop: 12,
+          fontSize: 40,
+          color: '#d1d5db',
+        }}
+      >
+        Software Developer
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          marginTop: 36,
+          fontSize: 24,
+          color: '#6b7280',
+        }}
+      >
+        haziqhaiqal.com
+      </div>
+    </Canvas>,
     imageOptions
   );
 }
 
+/** The home card with the page name as the big text. */
+export async function pageCard(title: string) {
+  const avatar = await getAvatar();
+
+  return new ImageResponse(
+    <Canvas style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Avatar src={avatar} size={176} />
+      <div
+        style={{
+          marginTop: 32,
+          fontSize: 104,
+          fontWeight: 800,
+          letterSpacing: -4,
+          lineHeight: 1.05,
+        }}
+      >
+        {title}
+      </div>
+      <div style={{ display: 'flex', marginTop: 16 }}>
+        <GradientName size={36} />
+      </div>
+    </Canvas>,
+    imageOptions
+  );
+}
+
+/** A template demo: its name, the nav's "Haziq." wordmark and its gallery cover. */
 export async function templateCard(slug: string) {
   const templates = await getCachedTemplates().catch(() => []);
   const template = templates.find((t) => t.slug === slug);
+  const name = template?.name ?? 'Template demo';
+  const cover = await loadImage(template?.preview_image_url);
+  if (!cover) return pageCard(name);
 
-  return pageCard({
-    title: template?.name ?? 'Template demo',
-    shots: [template?.preview_image_url],
-  });
+  return new ImageResponse(
+    <Canvas tone="light" glowAt="50% 0%" style={{ padding: '64px 72px 0' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexShrink: 0,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontWeight: 800,
+          lineHeight: 1,
+        }}
+      >
+        <div style={{ fontSize: 72, letterSpacing: -3 }}>{name}</div>
+        <div style={{ display: 'flex', fontSize: 44, letterSpacing: -1.5 }}>
+          Haziq<span style={{ color: '#16a34a' }}>.</span>
+        </div>
+      </div>
+
+      <img
+        src={cover}
+        alt=""
+        width={1056}
+        height={600}
+        style={{
+          flexShrink: 0,
+          marginTop: 48,
+          borderRadius: 28,
+          border: '2px solid rgba(17,24,39,0.08)',
+          boxShadow: '0 24px 60px rgba(17,24,39,0.16)',
+          objectFit: 'cover',
+          objectPosition: 'top',
+        }}
+      />
+    </Canvas>,
+    imageOptions
+  );
 }
