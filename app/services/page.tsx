@@ -52,11 +52,10 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/services' },
+  // Shares read "Services"; the keyword title stays for search.
   openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    url: '/services',
-    siteName: 'Haziq Haiqal',
+    title: 'Services | Haziq Haiqal',
+    siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
     type: 'website',
   },

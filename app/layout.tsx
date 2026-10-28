@@ -45,10 +45,6 @@ export const metadata: Metadata = {
   publisher: 'Haziq Haiqal',
   robots: 'index, follow',
   openGraph: {
-    title: 'Haziq Haiqal | Software Developer',
-    description:
-      'Developer by day, pianist by night. I build websites, mobile apps and automation.',
-    url: SITE_URL,
     siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
     type: 'website',

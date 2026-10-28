@@ -1,35 +1,8 @@
 import { ImageResponse } from 'next/og';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { getCachedPortfolio } from '@lib/data';
+import { getAvatar, imageOptions } from '@lib/og';
 
+export { size, contentType } from '@lib/og';
 export const alt = 'Haziq Haiqal | Software Developer';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
-
-const [interMedium, interExtraBold] = await Promise.all([
-  readFile(join(process.cwd(), 'assets/fonts/Inter-Medium.ttf')),
-  readFile(join(process.cwd(), 'assets/fonts/Inter-ExtraBold.ttf')),
-]);
-
-async function getAvatar(): Promise<string | null> {
-  try {
-    const { profile } = await getCachedPortfolio();
-    if (!profile?.profile_image_url) return null;
-
-    const res = await fetch(profile.profile_image_url, {
-      cache: 'force-cache',
-    });
-    const type = res.headers.get('content-type') ?? '';
-    // ImageResponse can only decode JPEG and PNG.
-    if (!res.ok || !/^image\/(jpeg|png)$/.test(type)) return null;
-
-    const data = Buffer.from(await res.arrayBuffer()).toString('base64');
-    return `data:${type};base64,${data}`;
-  } catch {
-    return null;
-  }
-}
 
 export default async function Image() {
   const avatar = await getAvatar();
@@ -154,12 +127,6 @@ export default async function Image() {
         </div>
       </div>
     </div>,
-    {
-      ...size,
-      fonts: [
-        { name: 'Inter', data: interMedium, weight: 500, style: 'normal' },
-        { name: 'Inter', data: interExtraBold, weight: 800, style: 'normal' },
-      ],
-    }
+    imageOptions
   );
 }
