@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
-import { Briefcase, ChevronDown } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Briefcase } from 'lucide-react';
 import { Experience } from '@lib/supabase';
 import UniversalImage from '@components/Media/UniversalImage';
 import SectionHeader from '@components/Common/SectionHeader';
@@ -12,40 +11,99 @@ interface ExperienceSectionProps {
   experience: Experience[] | null | undefined;
 }
 
+// How far down the screen the line's tip sits. Whatever is above it is open.
+const TIP = 0.6;
+
+// Phones: logo column, then content. From md: the line runs down the centre and companies alternate sides.
+const COLUMNS =
+  'grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4 sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-x-6 md:grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] md:gap-x-8';
+
+const monthYear = (date: Date) =>
+  date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+const toBulletPoints = (text?: string) => {
+  if (!text) return [];
+  const normalized = text.replace(/\r\n/g, '\n').trim();
+  if (!normalized) return [];
+
+  const parts = normalized.includes('•')
+    ? normalized.split('•')
+    : normalized.includes('\n')
+      ? normalized.split('\n')
+      : normalized.includes(';')
+        ? normalized.split(';')
+        : [normalized];
+
+  return parts
+    .map((part) => part.trim().replace(/^[-*]\s+/, ''))
+    .filter(Boolean);
+};
+
 const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
-  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
-    new Set()
-  );
+  const listRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLSpanElement>(null);
+  const fillRef = useRef<HTMLSpanElement>(null);
+  // How many logos and role dots the line has reached, top to bottom.
+  const [passed, setPassed] = useState(0);
+
+  useEffect(() => {
+    const list = listRef.current;
+    const track = trackRef.current;
+    const fill = fillRef.current;
+    if (!list || !track || !fill) return;
+
+    let frame = 0;
+    const centre = (element: Element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.top + rect.height / 2;
+    };
+    const update = () => {
+      frame = 0;
+      const markers = Array.from(list.querySelectorAll('[data-marker]'));
+      if (markers.length === 0) return;
+      const tip = window.innerHeight * TIP;
+      const box = list.getBoundingClientRect();
+      const first = markers[0].getBoundingClientRect();
+      const start = first.top + first.height / 2;
+      const end = box.bottom;
+      track.style.left =
+        fill.style.left = `${first.left + first.width / 2 - box.left}px`;
+      track.style.top = fill.style.top = `${start - box.top}px`;
+      fill.style.height = `${Math.min(Math.max(tip - start, 0), end - start)}px`;
+      setPassed(markers.filter((marker) => centre(marker) <= tip).length);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    // Taller panels take longer, so every company unfolds at a similar speed.
+    const pace = () => {
+      list.querySelectorAll<HTMLElement>('[data-panel]').forEach((panel) => {
+        const height = panel.querySelector('ol')?.offsetHeight ?? 0;
+        panel.style.transitionDuration = `${Math.round(
+          Math.min(1400, 250 + height)
+        )}ms`;
+      });
+    };
+    const onResize = () => {
+      pace();
+      schedule();
+    };
+
+    pace();
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', onResize);
+    const observer = new ResizeObserver(schedule);
+    observer.observe(list);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
+      observer.disconnect();
+    };
+  }, []);
 
   if (!experience || experience.length === 0) return null;
-
-  const toBulletPoints = (text?: string) => {
-    if (!text) return [];
-    const normalized = text.replace(/\r\n/g, '\n').trim();
-    if (!normalized) return [];
-
-    const parts = normalized.includes('•')
-      ? normalized.split('•')
-      : normalized.includes('\n')
-        ? normalized.split('\n')
-        : normalized.includes(';')
-          ? normalized.split(';')
-          : [normalized];
-
-    return parts
-      .map((part) => part.trim().replace(/^[-*]\s+/, ''))
-      .filter(Boolean);
-  };
-
-  const toggleCompany = (company: string) => {
-    const newExpanded = new Set(expandedCompanies);
-    if (newExpanded.has(company)) {
-      newExpanded.delete(company);
-    } else {
-      newExpanded.add(company);
-    }
-    setExpandedCompanies(newExpanded);
-  };
 
   const groupedExperience = experience.reduce(
     (acc, exp) => {
@@ -75,6 +133,39 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
     return latestB - latestA;
   });
 
+  // Each company's logo is a marker, followed by one per role.
+  const markers = sortedCompanies.map(
+    (_, index) =>
+      index +
+      sortedCompanies
+        .slice(0, index)
+        .reduce((count, [, data]) => count + data.roles.length, 0)
+  );
+  const companies = sortedCompanies.map(([name, data], index) => {
+    const roles = [...data.roles].sort(
+      (a, b) =>
+        new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+    );
+    const current = roles.some((role) => role.is_current);
+    const first = new Date(
+      Math.min(...roles.map((role) => new Date(role.start_date).getTime()))
+    );
+    const last = new Date(
+      Math.max(
+        ...roles.map((role) =>
+          new Date(role.end_date || role.start_date).getTime()
+        )
+      )
+    );
+    return {
+      name,
+      logo: data.logo,
+      roles,
+      marker: markers[index],
+      period: `${monthYear(first)} - ${current ? 'Present' : monthYear(last)}`,
+    };
+  });
+
   return (
     <section id="experience" className="relative overflow-hidden px-6 py-32">
       <div className="relative z-10 mx-auto max-w-7xl">
@@ -85,273 +176,175 @@ const ExperienceSection = ({ experience }: ExperienceSectionProps) => {
           gradientClass="from-rose-600 to-rose-400"
         />
 
-        <div className="mx-auto max-w-4xl">
-          <m.div
-            className="rounded-3xl border border-gray-200 bg-white/70 p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800/70 sm:p-8"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <div className="relative">
-              <div className="flex flex-col">
-                {sortedCompanies.map(([company, data], companyIndex) => {
-                  const companyRoles = data.roles.sort(
-                    (a, b) =>
-                      new Date(b.start_date).getTime() -
-                      new Date(a.start_date).getTime()
-                  );
-                  const isExpanded = expandedCompanies.has(company);
-                  const isLast = companyIndex === sortedCompanies.length - 1;
-                  const lastSpaceIndex = company.lastIndexOf(' ');
-                  const companyLeadingWords =
-                    lastSpaceIndex === -1
-                      ? ''
-                      : company.slice(0, lastSpaceIndex);
-                  const companyLastWord =
-                    lastSpaceIndex === -1
-                      ? company
-                      : company.slice(lastSpaceIndex + 1);
+        <div ref={listRef} className="relative mx-auto max-w-3xl md:max-w-5xl">
+          <span
+            ref={trackRef}
+            aria-hidden="true"
+            className="absolute bottom-0 left-6 top-6 w-0.5 -translate-x-1/2 rounded-full bg-gray-200 dark:bg-gray-700 sm:left-7 sm:top-7 md:left-1/2"
+          />
+          <span
+            ref={fillRef}
+            aria-hidden="true"
+            className="absolute left-6 top-6 h-0 w-0.5 -translate-x-1/2 rounded-full bg-blue-500 sm:left-7 sm:top-7 md:left-1/2"
+          />
 
-                  return (
-                    <div
-                      key={company}
-                      className={`relative ${isLast ? '' : 'pb-8'}`}
+          <ol className="relative">
+            {companies.map((company, companyIndex) => {
+              const open = passed > company.marker;
+              const isLast = companyIndex === companies.length - 1;
+              const left = companyIndex % 2 === 1;
+              const side = left ? 'md:col-start-1' : 'md:col-start-3';
+              const align = left ? 'md:text-right' : '';
+
+              return (
+                <li
+                  key={company.name}
+                  className={isLast ? '' : 'pb-10 sm:pb-12'}
+                >
+                  <div className={COLUMNS}>
+                    <span
+                      data-marker
+                      className={`relative z-10 col-start-1 row-span-2 row-start-1 flex h-12 w-12 items-center justify-center self-center justify-self-center overflow-hidden rounded-full bg-white ring-4 transition-shadow duration-300 dark:bg-gray-700 sm:h-14 sm:w-14 md:col-start-2 ${
+                        open
+                          ? 'ring-blue-500'
+                          : 'ring-[color:var(--company-ring)]'
+                      }`}
                     >
-                      <div
-                        className={`absolute left-[27px] top-0 w-0.5 bg-gray-300 dark:bg-gray-600`}
-                        style={{
-                          height: isLast && !isExpanded ? '24px' : '100%',
-                        }}
-                      />
+                      {company.logo ? (
+                        <UniversalImage
+                          src={company.logo}
+                          alt={`${company.name} logo`}
+                          width={56}
+                          height={56}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Briefcase
+                          size={22}
+                          aria-hidden="true"
+                          className="text-gray-600 dark:text-gray-300"
+                        />
+                      )}
+                    </span>
+                    <h3
+                      className={`col-start-2 row-start-1 self-end text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 sm:text-xl ${side} ${align}`}
+                    >
+                      {company.name}
+                    </h3>
+                    <p
+                      className={`col-start-2 row-start-2 mt-1 text-sm text-gray-500 dark:text-gray-400 ${side} ${align}`}
+                    >
+                      {company.period}
+                    </p>
+                  </div>
 
-                      <m.div
-                        className="absolute left-[27px] top-0 z-[1] w-0.5 origin-top bg-blue-500"
-                        initial={{ scaleY: 0 }}
-                        animate={{ scaleY: isExpanded ? 1 : 0 }}
-                        transition={{ duration: 0.4, ease: 'easeOut' }}
-                        style={{
-                          height: isLast && !isExpanded ? '24px' : '100%',
-                          transformOrigin: 'top',
-                        }}
-                      />
+                  <div
+                    data-panel
+                    className={`grid transition-[grid-template-rows,opacity] ease-in-out motion-reduce:transition-none ${
+                      open
+                        ? 'grid-rows-[1fr] opacity-100'
+                        : 'grid-rows-[0fr] opacity-0'
+                    }`}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <ol className="space-y-8 pt-6">
+                        {company.roles.map((role, roleIndex) => {
+                          const lit = passed > company.marker + 1 + roleIndex;
+                          const roleHash = generateHash(
+                            role.position +
+                              (role.companies?.name || '') +
+                              role.start_date
+                          );
+                          const points =
+                            role.responsibilities &&
+                            role.responsibilities.length > 0
+                              ? role.responsibilities
+                              : toBulletPoints(role.description);
 
-                      <m.div
-                        className="flex items-start gap-4"
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{
-                          duration: 0.6,
-                          delay: companyIndex * 0.1,
-                        }}
-                        viewport={{ once: true }}
-                      >
-                        <div className="relative z-10 flex flex-col items-center">
-                          <div
-                            className="relative cursor-pointer"
-                            onClick={() => toggleCompany(company)}
-                          >
-                            <m.div
-                              className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-blue-500/40 bg-white shadow-lg shadow-blue-900/30 dark:border-blue-500/40 dark:bg-gray-700 dark:shadow-blue-900/30`}
-                              style={{
-                                boxShadow: isExpanded
-                                  ? '0 0 0 4px #3b82f6'
-                                  : '0 0 0 4px var(--company-ring)',
-                              }}
-                              animate={{
-                                boxShadow: isExpanded
-                                  ? '0 0 0 4px #3b82f6'
-                                  : '0 0 0 4px var(--company-ring)',
-                              }}
-                              transition={{
-                                duration: 0.3,
-                                delay: isExpanded ? 0.2 : 0,
-                              }}
-                            >
-                              {data.logo ? (
-                                <UniversalImage
-                                  src={data.logo}
-                                  alt={`${company} logo`}
-                                  width={56}
-                                  height={56}
-                                  className="h-14 w-14 rounded-full object-cover"
-                                />
-                              ) : (
-                                <Briefcase
-                                  size={24}
-                                  className="text-gray-600 dark:text-gray-300"
-                                />
-                              )}
-                            </m.div>
-                          </div>
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <button
-                            onClick={() => toggleCompany(company)}
-                            aria-expanded={isExpanded}
-                            className="group flex min-h-14 w-full items-center text-left"
-                          >
-                            <h4 className="min-w-0 text-lg font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-500 dark:text-gray-100">
-                              {companyLeadingWords}
-                              {companyLeadingWords && ' '}
-                              <span className="whitespace-nowrap">
-                                {companyLastWord}
-                                <m.span
-                                  className="ml-2 inline-flex align-middle"
-                                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                                  transition={{ duration: 0.3 }}
-                                >
-                                  <ChevronDown
-                                    aria-hidden="true"
-                                    size={16}
-                                    className="text-gray-600 dark:text-gray-400"
-                                  />
-                                </m.span>
-                              </span>
-                            </h4>
-                          </button>
-
-                          <AnimatePresence>
-                            {isExpanded && (
-                              <m.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="relative mt-6"
+                          return (
+                            <li key={roleHash} className={`${COLUMNS} gap-y-2`}>
+                              <span
+                                data-marker
+                                aria-hidden="true"
+                                className={`col-start-1 row-span-3 row-start-1 mt-1 h-3 w-3 self-start justify-self-center rounded-full transition-colors duration-300 md:col-start-2 ${
+                                  lit
+                                    ? 'bg-blue-500'
+                                    : 'bg-gray-300 dark:bg-gray-600'
+                                }`}
+                              />
+                              <div
+                                className={`col-start-2 row-start-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs ${side} ${
+                                  left ? 'md:justify-end' : ''
+                                }`}
                               >
-                                <div className="space-y-8">
-                                  {companyRoles.map((role, roleIndex) => {
-                                    const startDate = new Date(role.start_date);
-                                    const endDate = role.is_current
-                                      ? new Date()
-                                      : new Date(role.end_date!);
-                                    const roleHash = generateHash(
-                                      role.position +
-                                        (role.companies?.name || '') +
-                                        role.start_date
-                                    );
+                                <span className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-blue-700 dark:bg-blue-800 dark:text-blue-300">
+                                  {roleHash}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  {monthYear(new Date(role.start_date))} -{' '}
+                                  {role.is_current
+                                    ? 'Present'
+                                    : monthYear(new Date(role.end_date!))}
+                                </span>
+                                {role.is_current && (
+                                  <span
+                                    className="pulse-dot h-2 w-2 shrink-0 rounded-full bg-green-500"
+                                    style={
+                                      {
+                                        '--pulse-peak': '1.3',
+                                      } as React.CSSProperties
+                                    }
+                                  />
+                                )}
+                              </div>
 
-                                    return (
-                                      <m.div
-                                        key={`${company}-${roleIndex}`}
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{
-                                          duration: 0.4,
-                                          delay: roleIndex * 0.1,
-                                        }}
-                                        className="relative flex items-start gap-3"
-                                      >
-                                        <div className="absolute -left-[50px] top-[6px] z-10 h-3 w-3 rounded-full border-2 border-blue-500 bg-white dark:bg-gray-800" />
+                              <h4
+                                className={`col-start-2 row-start-2 text-base font-semibold text-gray-900 dark:text-gray-100 ${side} ${align}`}
+                              >
+                                {role.position}
+                              </h4>
 
-                                        <div className="min-w-0 flex-1">
-                                          <div className="mb-3 flex flex-wrap items-center gap-1">
-                                            <span
-                                              className={`whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[12px] text-blue-700 dark:bg-blue-800 dark:text-blue-300 sm:px-2 sm:py-1 sm:text-xs`}
-                                            >
-                                              {roleHash}
-                                            </span>
-                                            <span
-                                              className={`whitespace-nowrap text-[12px] text-gray-500 dark:text-gray-400 sm:text-xs`}
-                                            >
-                                              {startDate.toLocaleDateString(
-                                                'en-US',
-                                                {
-                                                  month: 'short',
-                                                  year: 'numeric',
-                                                }
-                                              )}{' '}
-                                              -{' '}
-                                              {role.is_current
-                                                ? 'Present'
-                                                : endDate.toLocaleDateString(
-                                                    'en-US',
-                                                    {
-                                                      month: 'short',
-                                                      year: 'numeric',
-                                                    }
-                                                  )}
-                                            </span>
-                                            {role.is_current && (
-                                              <span
-                                                className="pulse-dot h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
-                                                style={
-                                                  {
-                                                    '--pulse-peak': '1.3',
-                                                  } as React.CSSProperties
-                                                }
-                                              />
-                                            )}
-                                          </div>
+                              <div
+                                className={`col-start-2 row-start-3 min-w-0 ${side}`}
+                              >
+                                {points.length > 0 && (
+                                  <ul className="mt-1 list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600 marker:text-blue-500 dark:text-gray-300">
+                                    {points.map((point, index) => (
+                                      <li key={index}>{point}</li>
+                                    ))}
+                                  </ul>
+                                )}
 
-                                          <h5 className="font-semibold text-gray-800 dark:text-gray-200">
-                                            {role.position}
-                                          </h5>
-
-                                          {(() => {
-                                            const points =
-                                              role.responsibilities &&
-                                              role.responsibilities.length > 0
-                                                ? role.responsibilities
-                                                : toBulletPoints(
-                                                    role.description
-                                                  );
-
-                                            if (points.length === 0)
-                                              return null;
-
-                                            return (
-                                              <ul
-                                                className={`mb-4 mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300`}
-                                              >
-                                                {points.map((point, idx) => (
-                                                  <li
-                                                    key={`${roleHash}-point-${idx}`}
-                                                    className="marker:text-blue-500"
-                                                  >
-                                                    {point}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            );
-                                          })()}
-
-                                          {role.technologies &&
-                                            role.technologies.length > 0 && (
-                                              <div className="flex flex-wrap gap-2">
-                                                {role.technologies.map(
-                                                  (
-                                                    tech: string,
-                                                    techIndex: number
-                                                  ) => (
-                                                    <span
-                                                      key={techIndex}
-                                                      className={`rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:border dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300`}
-                                                    >
-                                                      {tech}
-                                                    </span>
-                                                  )
-                                                )}
-                                              </div>
-                                            )}
-                                        </div>
-                                      </m.div>
-                                    );
-                                  })}
-                                </div>
-                              </m.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      </m.div>
+                                {role.technologies &&
+                                  role.technologies.length > 0 && (
+                                    <ul
+                                      className={`mt-4 flex flex-wrap gap-2 ${
+                                        left ? 'md:justify-end' : ''
+                                      }`}
+                                    >
+                                      {role.technologies.map(
+                                        (tech: string, index: number) => (
+                                          <li
+                                            key={index}
+                                            className="rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                          >
+                                            {tech}
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ol>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </m.div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
     </section>
