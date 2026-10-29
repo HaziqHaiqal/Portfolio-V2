@@ -19,9 +19,9 @@ export default async function Home() {
       <HomeShell profile={profile} footer={<Footer profile={profile} />}>
         <HeroSection profile={profile} />
         <ActivitySlot />
-        <TechStackSection />
         <ExperienceSection experience={experience} />
         <EducationSection education={education} />
+        <TechStackSection />
         <GetInTouchSection profile={profile} />
       </HomeShell>
     </>
