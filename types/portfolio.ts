@@ -11,7 +11,6 @@ export interface ProjectProps {
   category: string;
   projectUrl?: string;
   demoUrl?: string;
-  githubUrl?: string;
   features?: string[];
   teamSize?: string;
   duration?: string;

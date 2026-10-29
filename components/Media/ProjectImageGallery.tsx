@@ -20,12 +20,16 @@ export default function ProjectImageGallery({
   const [images, setImages] = useState<UploadedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState<ReadonlySet<string>>(() => new Set());
-  const [viewing, setViewing] = useState<number | null>(null);
-  const stripRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const [viewing, setViewing] = useState(false);
+  const thumbsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getProjectImages(projectId)
-      .then(setImages)
+      .then((list) => {
+        setImages(list);
+        setActive(0);
+      })
       .catch((error) => console.error('Failed to load project images:', error))
       .finally(() => setLoading(false));
   }, [projectId]);
@@ -35,21 +39,17 @@ export default function ProjectImageGallery({
 
   const step = useCallback(
     (direction: 1 | -1) =>
-      setViewing((index) =>
-        index === null
-          ? index
-          : (index + direction + images.length) % images.length
-      ),
+      setActive((index) => (index + direction + images.length) % images.length),
     [images.length]
   );
 
   // Captured on document so Escape closes the viewer, not the project modal.
   useEffect(() => {
-    if (viewing === null) return;
+    if (!viewing) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        setViewing(null);
+        setViewing(false);
       }
       if (event.key === 'ArrowRight') step(1);
       if (event.key === 'ArrowLeft') step(-1);
@@ -58,30 +58,35 @@ export default function ProjectImageGallery({
     return () => document.removeEventListener('keydown', onKey);
   }, [viewing, step]);
 
-  const scrollStrip = (direction: 1 | -1) => {
-    const strip = stripRef.current;
-    if (strip)
-      strip.scrollBy({
-        left: direction * strip.clientWidth * 0.8,
-        behavior: 'smooth',
-      });
-  };
+  // Scrolls only the thumbnail row, so the modal never jumps.
+  useEffect(() => {
+    const row = thumbsRef.current;
+    const thumb = row?.children[active] as HTMLElement | undefined;
+    if (!row || !thumb) return;
+    row.scrollTo({
+      left: thumb.offsetLeft - (row.clientWidth - thumb.offsetWidth) / 2,
+      behavior: 'smooth',
+    });
+  }, [active]);
 
   if (loading) {
     return (
-      <div className={`flex gap-3 overflow-hidden ${className}`}>
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-56 w-40 shrink-0 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-700/50 sm:h-72 sm:w-48"
-          />
-        ))}
+      <div className={className}>
+        <div className="aspect-video animate-pulse rounded-xl bg-gray-100 dark:bg-gray-700/50" />
+        <div className="mt-4 flex gap-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="aspect-video h-14 shrink-0 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700/50 sm:h-16"
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (images.length === 0) return null;
-  const current = viewing === null ? null : images[viewing];
+  const current = images[active] ?? images[0];
 
   return (
     <div className={className}>
@@ -92,20 +97,20 @@ export default function ProjectImageGallery({
             {images.length}
           </span>
         </h3>
-        {images.length > 2 && (
-          <div className="hidden gap-2 sm:flex">
+        {images.length > 1 && (
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => scrollStrip(-1)}
-              aria-label="Scroll screenshots left"
+              onClick={() => step(-1)}
+              aria-label="Previous screenshot"
               className={ARROW}
             >
               <ChevronLeft size={17} aria-hidden="true" />
             </button>
             <button
               type="button"
-              onClick={() => scrollStrip(1)}
-              aria-label="Scroll screenshots right"
+              onClick={() => step(1)}
+              aria-label="Next screenshot"
               className={ARROW}
             >
               <ChevronRight size={17} aria-hidden="true" />
@@ -114,51 +119,76 @@ export default function ProjectImageGallery({
         )}
       </div>
 
-      <div
-        ref={stripRef}
-        className="scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 md:-mx-8 md:px-8"
+      <button
+        type="button"
+        onClick={() => setViewing(true)}
+        aria-label={`Open screenshot ${active + 1} of ${images.length} full screen`}
+        className="relative block aspect-video w-full overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/40 dark:bg-gray-900/60 dark:ring-white/10"
       >
-        {images.map((image, index) => (
-          <button
-            key={image.id}
-            type="button"
-            onClick={() => setViewing(index)}
-            aria-label={`View screenshot ${index + 1} of ${images.length}`}
-            className={`relative h-56 shrink-0 snap-start overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-900/5 transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/40 dark:bg-gray-700/50 dark:ring-white/10 sm:h-72 ${
-              loaded.has(image.url) ? '' : 'w-40 animate-pulse sm:w-48'
-            }`}
-          >
-            <Image
-              src={image.url}
-              alt={image.alt}
-              width={0}
-              height={0}
-              sizes="(max-width: 640px) 70vw, 420px"
-              onLoad={() => markLoaded(image.url)}
-              onError={() => markLoaded(image.url)}
-              className={`h-full w-auto max-w-[75vw] object-contain transition-opacity duration-300 sm:max-w-[34rem] ${
-                loaded.has(image.url) ? 'opacity-100' : 'opacity-0'
+        <Image
+          key={current.id}
+          src={current.url}
+          alt={current.alt}
+          fill
+          sizes="(max-width: 768px) 100vw, 704px"
+          onLoad={() => markLoaded(current.url)}
+          onError={() => markLoaded(current.url)}
+          className={`object-contain transition-opacity duration-300 ${
+            loaded.has(current.url) ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      </button>
+      {current.caption && (
+        <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+          {current.caption}
+        </p>
+      )}
+
+      {images.length > 1 && (
+        <div
+          ref={thumbsRef}
+          className="scrollbar-hide relative -mx-1 mt-3 flex gap-2 overflow-x-auto p-1"
+        >
+          {images.map((image, index) => (
+            <button
+              key={image.id}
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Show screenshot ${index + 1} of ${images.length}`}
+              aria-current={index === active ? 'true' : undefined}
+              className={`relative aspect-video h-14 shrink-0 overflow-hidden rounded-lg bg-gray-100 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/40 dark:bg-gray-700/50 sm:h-16 ${
+                index === active
+                  ? 'ring-2 ring-purple-500'
+                  : 'opacity-60 ring-1 ring-gray-900/5 hover:opacity-100 dark:ring-white/10'
               }`}
-            />
-          </button>
-        ))}
-      </div>
+            >
+              <Image
+                src={image.url}
+                alt=""
+                fill
+                sizes="120px"
+                className="object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
 
       <AnimatePresence>
-        {current && (
+        {viewing && (
           <m.div
             role="dialog"
             aria-modal="true"
-            aria-label={`Screenshot ${(viewing ?? 0) + 1} of ${images.length}`}
+            aria-label={`Screenshot ${active + 1} of ${images.length}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-4"
-            onClick={() => setViewing(null)}
+            onClick={() => setViewing(false)}
           >
             <button
               type="button"
-              onClick={() => setViewing(null)}
+              onClick={() => setViewing(false)}
               aria-label="Close screenshot"
               className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
             >
@@ -211,7 +241,7 @@ export default function ProjectImageGallery({
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-sm text-white">
               {images.length > 1 && (
                 <p>
-                  {(viewing ?? 0) + 1} / {images.length}
+                  {active + 1} / {images.length}
                 </p>
               )}
               {current.caption && (

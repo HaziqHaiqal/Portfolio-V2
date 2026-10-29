@@ -3,7 +3,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Check, CirclePlay, X } from 'lucide-react';
-import { SiGithub } from 'react-icons/si';
 import ProjectImageGallery from '@components/Media/ProjectImageGallery';
 import { getCategoryInfo } from '@constants/projects';
 import { themeClasses } from '@constants/theme';
@@ -90,15 +89,6 @@ export default function ProjectModal({
             href: project.demoUrl,
             label: 'Demo',
             icon: <CirclePlay size={15} aria-hidden="true" />,
-          },
-        ]
-      : []),
-    ...(project.githubUrl
-      ? [
-          {
-            href: project.githubUrl,
-            label: 'Code',
-            icon: <SiGithub size={14} aria-hidden="true" />,
           },
         ]
       : []),

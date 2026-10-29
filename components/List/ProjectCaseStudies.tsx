@@ -17,7 +17,6 @@ import {
   CirclePlay,
   Folder,
 } from 'lucide-react';
-import { SiGithub } from 'react-icons/si';
 import { PROJECT_CATEGORIES, getCategoryInfo } from '@constants/projects';
 import { useUIStore } from '@lib/stores';
 import type { ProjectProps } from 'types/portfolio';
@@ -149,17 +148,6 @@ function CaseStudy({
             >
               <CirclePlay size={15} aria-hidden="true" />
               Demo
-            </a>
-          )}
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={LINK}
-            >
-              <SiGithub size={14} aria-hidden="true" />
-              Code
             </a>
           )}
         </div>
