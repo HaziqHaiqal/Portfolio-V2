@@ -6,7 +6,7 @@ import { SiWhatsapp } from 'react-icons/si';
 import type { Profile } from '@lib/supabase';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { useUIStore } from '@lib/stores';
-import HoonBot from '@components/Common/HoonBot';
+import SpookyBot from '@components/Common/SpookyBot';
 
 interface Tile {
   key: string;
@@ -22,7 +22,7 @@ export default function ContactOptions({
   profile: Profile | null;
 }) {
   const openContact = useUIStore((state) => state.openContact);
-  const [hoonHovered, setHoonHovered] = useState(false);
+  const [spookyHovered, setSpookyHovered] = useState(false);
 
   const whatsapp = new URL(profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp);
   whatsapp.searchParams.set('text', "Hi Haziq, I'd like to discuss a project.");
@@ -90,12 +90,12 @@ export default function ContactOptions({
         <button
           type="button"
           onClick={openContact}
-          onMouseEnter={() => setHoonHovered(true)}
-          onMouseLeave={() => setHoonHovered(false)}
+          onMouseEnter={() => setSpookyHovered(true)}
+          onMouseLeave={() => setSpookyHovered(false)}
           className="inline-flex cursor-pointer items-center gap-1.5 rounded font-medium text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300"
         >
-          <HoonBot excited={hoonHovered} className="h-6 w-6" />
-          Not sure yet? Ask Hoon
+          <SpookyBot excited={spookyHovered} className="h-6 w-6" />
+          Not sure yet? Ask Spooky
           <ArrowRight size={15} aria-hidden="true" />
         </button>
       </div>

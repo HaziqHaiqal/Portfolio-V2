@@ -57,8 +57,8 @@ const gist = (text: string) =>
     .split(/\s(?:with|that|which|showcasing|using)\s|,\s/)[0]
     .replace(/\.$/, '');
 
-const HOON_INTRO =
-  "Hey! I'm Hoon, Haziq's little helper bot 👋 Ask me anything about his work, services or prices. For anything else, Haziq's on WhatsApp.";
+const SPOOKY_INTRO =
+  "Hey! I'm Spooky, Haziq's little helper bot 👋 Ask me anything about his work, services or prices. For anything else, Haziq's on WhatsApp.";
 
 const SYSTEM_PHRASES: Record<string, string[]> = {
   'online-store': [
@@ -681,10 +681,10 @@ export function buildTopics(
         : 'See the Projects page.',
     },
     {
-      title: 'Hoon',
+      title: 'Spooky',
       general: true,
       phrases: [
-        'hoon',
+        'spooky',
         'hi',
         'hello',
         'hey',
@@ -696,20 +696,20 @@ export function buildTopics(
         'good afternoon',
         'good evening',
       ],
-      answer: HOON_INTRO,
+      answer: SPOOKY_INTRO,
     },
     // Not general, so "are you ai" beats the AI features topic.
     {
-      title: 'Who Hoon is',
+      title: 'Who Spooky is',
       phrases: [
-        'who is hoon',
+        'who is spooky',
         'who are you',
         'siapa awak',
         'what are you',
         'are you a bot',
         'are you ai',
       ],
-      answer: HOON_INTRO,
+      answer: SPOOKY_INTRO,
     },
     ...SERVICE_FAQ.map((item) => ({
       title: item.question,

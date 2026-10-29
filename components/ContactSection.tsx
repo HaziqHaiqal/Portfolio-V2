@@ -6,7 +6,7 @@ import { Mail, Eraser, Trash2 } from 'lucide-react';
 import { SiGithub, SiLinkedin, SiWhatsapp } from 'react-icons/si';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import type { Profile } from '@lib/supabase';
-import HoonBot, { type HoonMood } from '@components/Common/HoonBot';
+import SpookyBot, { type SpookyMood } from '@components/Common/SpookyBot';
 
 interface ContactSectionProps {
   profile: Partial<Profile> | null;
@@ -24,7 +24,7 @@ interface Turn {
   text: string;
 }
 
-const HOON_FALLBACK =
+const SPOOKY_FALLBACK =
   "Oops, I couldn't answer that right now 😅 Type whatsapp to chat with Haziq!";
 const LIST_ITEM = /^\s*(?:[-*•]|(\d+)[.)])\s+(.*)$/;
 
@@ -32,7 +32,7 @@ const GREETING = "Hi, I'm Haziq.";
 
 const GUTTER = 'px-4 sm:px-6 lg:px-8';
 // Inside the chat a random sad or confused face would read as a reaction.
-const IDLE_MOODS: HoonMood[] = ['wink', 'sleepy', 'surprised'];
+const IDLE_MOODS: SpookyMood[] = ['wink', 'sleepy', 'surprised'];
 const GIGGLES = ['hehe', 'haha!', 'hihi'];
 
 const COMMANDS = [
@@ -48,15 +48,15 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [asking, setAsking] = useState(false);
   const turnsRef = useRef<Turn[]>([]);
-  const [reaction, setReaction] = useState<HoonMood | null>('excited');
-  const [hoonHovered, setHoonHovered] = useState(false);
+  const [reaction, setReaction] = useState<SpookyMood | null>('excited');
+  const [spookyHovered, setSpookyHovered] = useState(false);
   const [tickles, setTickles] = useState(0);
   const [giggle, setGiggle] = useState<string | null>(null);
   const giggleTimer = useRef(0);
   const wiggleRef = useRef<HTMLSpanElement>(null);
   const reactionTimer = useRef(0);
 
-  const react = useCallback((mood: HoonMood, ms: number) => {
+  const react = useCallback((mood: SpookyMood, ms: number) => {
     window.clearTimeout(reactionTimer.current);
     setReaction(mood);
     reactionTimer.current = window.setTimeout(() => setReaction(null), ms);
@@ -168,9 +168,9 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         );
 
       let answer = '';
-      let mood: HoonMood = 'excited';
+      let mood: SpookyMood = 'excited';
       try {
-        const response = await fetch('/api/hoon', {
+        const response = await fetch('/api/spooky', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: question, history }),
@@ -189,7 +189,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         mood = 'sad';
       }
       if (!answer) {
-        answer = HOON_FALLBACK;
+        answer = SPOOKY_FALLBACK;
         mood = 'sad';
       }
       if (answer.startsWith("Oops, that's outside")) mood = 'confused';
@@ -324,7 +324,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           <div
             className={`flex flex-col gap-0.5 pl-5 sm:flex-row sm:items-baseline sm:gap-2 ${t.entryAnswer}`}
           >
-            <span className={`shrink-0 ${t.accent}`}>hoon ›</span>
+            <span className={`shrink-0 ${t.accent}`}>spooky ›</span>
             <span className="flex min-w-0 flex-col gap-1 break-words">
               {lines.map((line, index) => {
                 const item = LIST_ITEM.exec(line);
@@ -357,7 +357,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           <div className="mt-1 space-y-1.5 pl-5">
             <div className={`text-xs italic ${t.screenMuted}`}>
               {COMMANDS.length} commands · click one to run it · or just ask
-              Hoon a question, like &ldquo;how much is a website?&rdquo;
+              Spooky a question, like &ldquo;how much is a website?&rdquo;
             </div>
             <div className="space-y-0.5">
               {COMMANDS.map(({ name, hint, icon: Icon }) => (
@@ -448,7 +448,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             transition={{ duration: 0.4 }}
           >
             Got a question? Ask my bot{' '}
-            <span className={`font-semibold ${t.accent}`}>Hoon</span>, or
+            <span className={`font-semibold ${t.accent}`}>Spooky</span>, or
             message me directly.
           </m.p>
         </div>
@@ -459,10 +459,10 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
         >
           <button
             type="button"
-            aria-label="Tickle Hoon"
+            aria-label="Tickle Spooky"
             onClick={tickle}
-            onMouseEnter={() => setHoonHovered(true)}
-            onMouseLeave={() => setHoonHovered(false)}
+            onMouseEnter={() => setSpookyHovered(true)}
+            onMouseLeave={() => setSpookyHovered(false)}
             className="absolute right-6 top-[8px] z-10 -translate-y-full cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 sm:right-10 lg:right-12"
           >
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2">
@@ -481,9 +481,9 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
                 )}
               </AnimatePresence>
             </span>
-            <span className="hoon-bob">
+            <span className="spooky-bob">
               <span ref={wiggleRef} className="block origin-bottom">
-                <HoonBot
+                <SpookyBot
                   moods={IDLE_MOODS}
                   mood={
                     reaction === 'laughing'
@@ -491,7 +491,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
                       : asking
                         ? 'thinking'
                         : (reaction ??
-                          (hoonHovered
+                          (spookyHovered
                             ? 'excited'
                             : input.trim()
                               ? 'typing'
@@ -509,7 +509,7 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
           >
             {entries.length === 0 ? (
               <div className={`space-y-1 italic ${t.screenMuted}`}>
-                <div># ask Hoon about my work, services or prices</div>
+                <div># ask Spooky about my work, services or prices</div>
                 <div>
                   # type <span className={t.accent}>help</span> for a list of
                   commands
@@ -568,8 +568,8 @@ const ContactSection = ({ profile }: ContactSectionProps) => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Hoon anything, or type help"
-            aria-label="Ask Hoon or type a command"
+            placeholder="Ask Spooky anything, or type help"
+            aria-label="Ask Spooky or type a command"
             className={`min-w-0 flex-1 border-none bg-transparent font-mono text-sm caret-emerald-500 outline-none ${t.input}`}
             autoComplete="off"
             autoCapitalize="off"

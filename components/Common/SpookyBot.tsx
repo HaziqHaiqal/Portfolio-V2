@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 
-export type HoonMood =
+export type SpookyMood =
   | 'happy'
   | 'thinking'
   | 'typing'
@@ -14,7 +14,7 @@ export type HoonMood =
   | 'surprised'
   | 'wink';
 
-const MOODS: HoonMood[] = [
+const MOODS: SpookyMood[] = [
   'confused',
   'sad',
   'sleepy',
@@ -42,7 +42,7 @@ const cheeks = (
 );
 
 const eye = (cx: number, cy = 23, rx = 1.8, ry = 2.6) => (
-  <g className="hoon-eye">
+  <g className="spooky-eye">
     <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={INK} />
     <ellipse
       cx={cx - rx * 0.32}
@@ -55,7 +55,7 @@ const eye = (cx: number, cy = 23, rx = 1.8, ry = 2.6) => (
   </g>
 );
 
-function Face({ mood }: { mood: HoonMood }) {
+function Face({ mood }: { mood: SpookyMood }) {
   switch (mood) {
     case 'laughing':
       return (
@@ -77,7 +77,7 @@ function Face({ mood }: { mood: HoonMood }) {
           {[38.6, 41.2, 43.8].map((cx, index) => (
             <circle
               key={cx}
-              className="hoon-dot"
+              className="spooky-dot"
               cx={cx}
               cy="9.4"
               r="1.1"
@@ -131,7 +131,10 @@ function Face({ mood }: { mood: HoonMood }) {
     case 'sleepy':
       return (
         <>
-          <path d="M16.2 23.4q1.8 1.3 3.6 0M28.2 23.4q1.8 1.3 3.6 0" {...line} />
+          <path
+            d="M16.2 23.4q1.8 1.3 3.6 0M28.2 23.4q1.8 1.3 3.6 0"
+            {...line}
+          />
           <text x="37.6" y="13.6" fontSize="4.5" fontWeight="700" fill={ACCENT}>
             z
           </text>
@@ -167,7 +170,7 @@ function Face({ mood }: { mood: HoonMood }) {
   }
 }
 
-export default function HoonBot({
+export default function SpookyBot({
   className = '',
   excited = false,
   mood: forced,
@@ -175,13 +178,13 @@ export default function HoonBot({
 }: {
   className?: string;
   excited?: boolean;
-  mood?: HoonMood;
-  /** The moods Hoon picks from when idle. */
-  moods?: HoonMood[];
+  mood?: SpookyMood;
+  /** The moods Spooky picks from when idle. */
+  moods?: SpookyMood[];
 }) {
-  const [idle, setIdle] = useState<HoonMood>('happy');
+  const [idle, setIdle] = useState<SpookyMood>('happy');
   const lookRef = useRef<SVGGElement>(null);
-  const id = `hoon${useId().replace(/[^\w-]/g, '')}`;
+  const id = `spooky${useId().replace(/[^\w-]/g, '')}`;
 
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -235,7 +238,7 @@ export default function HoonBot({
       viewBox="2 5 44 44"
       aria-hidden="true"
       data-mood={mood}
-      className={mood === 'excited' ? `${className} hoon-waving` : className}
+      className={mood === 'excited' ? `${className} spooky-waving` : className}
     >
       <defs>
         <radialGradient id={`${id}-body`} cx="0.38" cy="0.28" r="0.82">
@@ -271,7 +274,7 @@ export default function HoonBot({
         transform="rotate(28 8.6 30.6)"
         fill={`url(#${id}-arm)`}
       />
-      <g className="hoon-arm">
+      <g className="spooky-arm">
         <ellipse
           cx="39.4"
           cy="30.6"
@@ -292,8 +295,8 @@ export default function HoonBot({
         fill={`url(#${id}-shine)`}
       />
 
-      <g ref={lookRef} className="hoon-look">
-        <g key={mood} className="hoon-face">
+      <g ref={lookRef} className="spooky-look">
+        <g key={mood} className="spooky-face">
           <Face mood={mood} />
         </g>
       </g>

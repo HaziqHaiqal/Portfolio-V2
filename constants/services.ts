@@ -1139,12 +1139,12 @@ export interface TemplateAddOn extends AddOn {
   perPage?: boolean;
 }
 
-// Works like Hoon, the bot on this site, trained on the client's own details.
+// Works like Spooky, the bot on this site, trained on the client's own details.
 const AI_CHATBOT: TemplateAddOn = {
   id: 'ai-chatbot',
   name: 'AI chatbot',
   description:
-    "Answers customers' questions about your prices, hours and services, day and night, and hands over to WhatsApp. Works like Hoon, the bot on this site.",
+    "Answers customers' questions about your prices, hours and services, day and night, and hands over to WhatsApp. Works like Spooky, the bot on this site.",
   price: 800,
   ai: true,
 };

@@ -6,16 +6,16 @@ import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useUIStore } from '@lib/stores';
 import type { Profile } from '@lib/supabase';
-import HoonBot from '@components/Common/HoonBot';
+import SpookyBot from '@components/Common/SpookyBot';
 
 const ContactSection = dynamic(() => import('@components/ContactSection'), {
   ssr: false,
 });
 
-const GREETED_KEY = 'hoon-greeted-at';
+const GREETED_KEY = 'spooky-greeted-at';
 const GREET_EVERY = 10 * 60 * 1000;
 const GREET_FOR = 4000;
-const GREETINGS = ["Hi, I'm Hoon!", "Let's talk!"];
+const GREETINGS = ["Hi, I'm Spooky!", "Let's talk!"];
 
 const lastGreeted = () => {
   try {
@@ -168,7 +168,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                 </m.span>
               ) : (
                 <m.span
-                  key="hoon"
+                  key="spooky"
                   aria-hidden="true"
                   className="absolute inset-0 flex items-end justify-center"
                   initial={{ opacity: 0, scale: 0.7 }}
@@ -176,7 +176,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
                   exit={{ opacity: 0, scale: 0.7 }}
                   transition={{ duration: 0.12 }}
                 >
-                  <HoonBot
+                  <SpookyBot
                     excited={hovered || !!greeting}
                     className="h-10 w-10 drop-shadow-[0_5px_7px_rgba(15,23,42,0.28)] sm:h-11 sm:w-11"
                   />
