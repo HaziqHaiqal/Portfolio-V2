@@ -4,5 +4,5 @@ export { size, contentType } from '@lib/og';
 export const alt = 'Projects by Haziq Haiqal';
 
 export default function Image() {
-  return pageCard('Projects');
+  return pageCard('projects', 'Projects', 'Websites, apps and games');
 }

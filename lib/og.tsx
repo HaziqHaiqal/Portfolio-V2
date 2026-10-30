@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og';
 import type { CSSProperties, ReactNode } from 'react';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { getCachedPortfolio, getCachedTemplates } from '@lib/data';
+import { getCachedTemplates } from '@lib/data';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -38,29 +38,6 @@ async function loadImage(url?: string | null): Promise<string | null> {
   }
 }
 
-export async function getAvatar() {
-  const { profile } = await getCachedPortfolio().catch(() => ({
-    profile: null,
-  }));
-  return loadImage(profile?.profile_image_url);
-}
-
-// Pages share the dark home card; template demos sit on the site's light grey.
-const TONES = {
-  dark: {
-    bg: '#111827',
-    text: '#f9fafb',
-    glow: 'rgba(59,130,246,0.26)',
-    grid: 'rgba(255,255,255,0.04)',
-  },
-  light: {
-    bg: '#f9fafb',
-    text: '#111827',
-    glow: 'rgba(59,130,246,0.16)',
-    grid: 'rgba(0,0,0,0.05)',
-  },
-};
-
 const fill = {
   position: 'absolute',
   top: 0,
@@ -69,18 +46,16 @@ const fill = {
   height: '100%',
 } as const;
 
+/** The site's light grey with its grid and a soft blue glow. */
 function Canvas({
-  tone = 'dark',
   glowAt = '50% 30%',
   style,
   children,
 }: {
-  tone?: keyof typeof TONES;
   glowAt?: string;
   style?: CSSProperties;
   children: ReactNode;
 }) {
-  const t = TONES[tone];
   return (
     <div
       style={{
@@ -89,21 +64,22 @@ function Canvas({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        backgroundColor: t.bg,
-        color: t.text,
+        backgroundColor: '#f9fafb',
+        color: '#111827',
         fontFamily: 'Inter',
       }}
     >
       <div
         style={{
           ...fill,
-          backgroundImage: `radial-gradient(circle at ${glowAt}, ${t.glow}, transparent 55%)`,
+          backgroundImage: `radial-gradient(circle at ${glowAt}, rgba(59,130,246,0.16), transparent 55%)`,
         }}
       />
       <div
         style={{
           ...fill,
-          backgroundImage: `linear-gradient(${t.grid} 1px, transparent 1px), linear-gradient(90deg, ${t.grid} 1px, transparent 1px)`,
+          backgroundImage:
+            'linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }}
       />
@@ -116,123 +92,153 @@ function Canvas({
   );
 }
 
-function Avatar({ src, size }: { src: string | null; size: number }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexShrink: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: size,
-        height: size,
-        borderRadius: 999,
-        border: `${Math.round(size / 30) + 1}px solid #374151`,
-        overflow: 'hidden',
-        backgroundImage: 'linear-gradient(135deg, #2563eb, #9333ea)',
-        fontSize: size * 0.45,
-        fontWeight: 800,
-      }}
-    >
-      {src ? (
-        <img
-          src={src}
-          alt=""
-          width={size}
-          height={size}
-          style={{ objectFit: 'cover' }}
+// One plain shape per page, drawn on a 24-unit box.
+const SYMBOLS = {
+  home: <path d="M3 2h5.5v7.6h7V2H21v20h-5.5v-7.6h-7V22H3z" />,
+  projects: (
+    <g>
+      <rect x="2" y="2" width="9" height="9" rx="2.4" />
+      <rect x="13" y="2" width="9" height="9" rx="2.4" />
+      <rect x="2" y="13" width="9" height="9" rx="2.4" />
+      <rect x="13" y="13" width="9" height="9" rx="2.4" />
+    </g>
+  ),
+  services: (
+    <path
+      fillRule="evenodd"
+      d="M2 4.2C2 3 3 2 4.2 2h6.9c.6 0 1.1.2 1.6.6l8.7 8.7c.9.9.9 2.3 0 3.1l-6.9 6.9c-.9.9-2.3.9-3.1 0L2.6 12.7C2.2 12.2 2 11.7 2 11.1zM7.6 9.4a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z"
+    />
+  ),
+  demos: (
+    <path d="M6 4.3c0-1.3 1.4-2.1 2.5-1.4l12.3 7.7c1 .7 1 2.2 0 2.8L8.5 21.1C7.4 21.8 6 21 6 19.7z" />
+  ),
+  contact: (
+    <path
+      fillRule="evenodd"
+      d="M2 6c0-2.2 1.8-4 4-4h12c2.2 0 4 1.8 4 4v8c0 2.2-1.8 4-4 4h-6.5L6 22v-4c-2.2 0-4-1.8-4-4zm5 6.2a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2zm5 0a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2zm5 0a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2z"
+    />
+  ),
+};
+
+export type PageSymbol = keyof typeof SYMBOLS;
+
+// The hero's rings around the photo: [radius, border width, opacity].
+const RINGS = [
+  [430, 4, 0.15],
+  [350, 3, 0.3],
+  [270, 2, 0.5],
+] as const;
+const CENTRE = { x: 940, y: 315 };
+
+/** Words on the left; on the right, the rings around a solid circle holding the page's symbol. */
+function RingsCard({
+  symbol,
+  title,
+  line,
+  byline = true,
+}: {
+  symbol: PageSymbol;
+  title: string;
+  line?: string;
+  byline?: boolean;
+}) {
+  return new ImageResponse(
+    <Canvas glowAt="78% 50%">
+      {RINGS.map(([radius, width, opacity]) => (
+        <div
+          key={radius}
+          style={{
+            position: 'absolute',
+            left: CENTRE.x - radius,
+            top: CENTRE.y - radius,
+            width: radius * 2,
+            height: radius * 2,
+            borderRadius: '50%',
+            border: `${width}px solid rgba(37,99,235,${opacity})`,
+          }}
         />
-      ) : (
-        'H'
+      ))}
+      <div
+        style={{
+          position: 'absolute',
+          left: CENTRE.x - 190,
+          top: CENTRE.y - 190,
+          width: 380,
+          height: 380,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50%',
+          backgroundImage: 'linear-gradient(135deg, #2563eb, #9333ea)',
+          boxShadow: '0 30px 60px -20px rgba(17,24,39,0.35)',
+        }}
+      >
+        <svg width={180} height={180} viewBox="0 0 24 24">
+          <g fill="#fff">{SYMBOLS[symbol]}</g>
+        </svg>
+      </div>
+
+      {byline && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 80,
+            top: 72,
+            fontSize: 30,
+            fontWeight: 800,
+            letterSpacing: -0.6,
+          }}
+        >
+          Haziq Haiqal
+        </div>
       )}
-    </div>
-  );
-}
-
-function GradientName({ size }: { size: number }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        fontSize: size,
-        fontWeight: 800,
-        letterSpacing: -size / 30,
-        lineHeight: 1.1,
-      }}
-    >
-      <span
-        style={{
-          backgroundImage: 'linear-gradient(90deg, #60a5fa, #c084fc)',
-          backgroundClip: 'text',
-          color: 'transparent',
-          paddingRight: size / 4,
-        }}
-      >
-        Haziq
-      </span>
-      <span>Haiqal</span>
-    </div>
-  );
-}
-
-export async function homeCard() {
-  const avatar = await getAvatar();
-
-  return new ImageResponse(
-    <Canvas style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <Avatar src={avatar} size={176} />
-      <div style={{ display: 'flex', marginTop: 32 }}>
-        <GradientName size={92} />
-      </div>
       <div
         style={{
-          display: 'flex',
-          marginTop: 12,
-          fontSize: 40,
-          color: '#d1d5db',
-        }}
-      >
-        Software Developer
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          marginTop: 36,
-          fontSize: 24,
-          color: '#6b7280',
-        }}
-      >
-        haziqhaiqal.com
-      </div>
-    </Canvas>,
-    imageOptions
-  );
-}
-
-/** The home card with the page name as the big text. */
-export async function pageCard(title: string) {
-  const avatar = await getAvatar();
-
-  return new ImageResponse(
-    <Canvas style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <Avatar src={avatar} size={176} />
-      <div
-        style={{
-          marginTop: 32,
-          fontSize: 104,
+          position: 'absolute',
+          left: 80,
+          top: 430,
+          fontSize: 84,
           fontWeight: 800,
-          letterSpacing: -4,
-          lineHeight: 1.05,
+          letterSpacing: -3.8,
+          lineHeight: 1,
         }}
       >
         {title}
       </div>
-      <div style={{ display: 'flex', marginTop: 16 }}>
-        <GradientName size={36} />
-      </div>
+      {line && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 84,
+            top: 528,
+            fontSize: 32,
+            color: '#4b5563',
+          }}
+        >
+          {line}
+        </div>
+      )}
     </Canvas>,
     imageOptions
   );
+}
+
+export async function homeCard() {
+  return RingsCard({
+    symbol: 'home',
+    title: 'Haziq Haiqal',
+    line: 'Software Developer',
+    byline: false,
+  });
+}
+
+/** A page: your name small, its title large, one short line, and its symbol in the rings. */
+export async function pageCard(
+  symbol: PageSymbol,
+  title: string,
+  line?: string
+) {
+  return RingsCard({ symbol, title, line });
 }
 
 /** A template demo: its name, the nav's "Haziq." wordmark and its gallery cover. */
@@ -241,10 +247,10 @@ export async function templateCard(slug: string) {
   const template = templates.find((t) => t.slug === slug);
   const name = template?.name ?? 'Template demo';
   const cover = await loadImage(template?.preview_image_url);
-  if (!cover) return pageCard(name);
+  if (!cover) return pageCard('demos', name, 'Template demo');
 
   return new ImageResponse(
-    <Canvas tone="light" glowAt="50% 0%" style={{ padding: '64px 72px 0' }}>
+    <Canvas glowAt="50% 0%" style={{ padding: '64px 72px 0' }}>
       <div
         style={{
           display: 'flex',

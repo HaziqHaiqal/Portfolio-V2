@@ -4,5 +4,5 @@ export { size, contentType } from '@lib/og';
 export const alt = 'Live website demos by Haziq Haiqal';
 
 export default function Image() {
-  return pageCard('Live demos');
+  return pageCard('demos', 'Live demos', 'Try every template first');
 }
