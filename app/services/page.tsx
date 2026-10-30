@@ -45,16 +45,15 @@ const FROM = formatRM(
   )
 );
 
-const TITLE = `Website Design Malaysia from ${FROM} | Haziq Haiqal`;
+const TITLE = 'Services | Haziq Haiqal';
 const DESCRIPTION = `Ready-made and custom websites from ${FROM}, online stores, booking, inventory and HR systems, mobile apps and WhatsApp automation for Malaysian businesses. Clear prices and a free quote.`;
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/services' },
-  // Shares read "Services"; the keyword title stays for search.
   openGraph: {
-    title: 'Services | Haziq Haiqal',
+    title: TITLE,
     siteName: 'Haziq Haiqal Portfolio',
     locale: 'en_MY',
     type: 'website',
