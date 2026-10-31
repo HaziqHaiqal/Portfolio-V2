@@ -147,4 +147,24 @@ export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
       line: '#E1EDFC',
     }),
   ],
+  sapa: [
+    light('equaliser', 'Equaliser', '#3A4BFF', '#E5E2DB', {
+      bg: '#EFEDE8',
+      ink: '#141414',
+      muted: '#55534D',
+      line: '#DCD9D1',
+    }),
+    light('ring', 'Ring', '#7B5CFF', '#ECE9F3', {
+      bg: '#F6F5F9',
+      ink: '#17161B',
+      muted: '#5D5A66',
+      line: '#E2DFEA',
+    }),
+    light('light', 'Light', '#E8459B', '#E6E8EF', {
+      bg: '#F1F2F6',
+      ink: '#12131A',
+      muted: '#5F6170',
+      line: '#DDE0E8',
+    }),
+  ],
 };

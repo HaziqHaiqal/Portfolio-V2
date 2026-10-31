@@ -80,6 +80,7 @@ export function PaletteRoot({
     <PaletteContext value={{ slug, palettes, active }}>
       <div
         data-template-root
+        data-palette={active.id}
         style={style}
         className={`min-h-screen bg-tpl-bg font-tpl text-tpl-ink antialiased [--demo-bar:3rem] ${className}`}
       >
@@ -87,6 +88,11 @@ export function PaletteRoot({
       </div>
     </PaletteContext>
   );
+}
+
+/** The chosen palette's id, for demos whose palettes are whole themes. */
+export function useActivePalette() {
+  return use(PaletteContext)?.active.id;
 }
 
 export function PaletteSwitcher() {

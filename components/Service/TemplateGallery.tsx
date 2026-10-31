@@ -241,9 +241,11 @@ export default function TemplateGallery({
     category === ALL
       ? items
       : items.filter((item) => item.category === category);
+  // One per category leads "All", in the admin's sort order.
   const firsts = categories
     .map((c) => items.find((item) => item.category === c.id))
-    .filter((item): item is WebsiteTemplate => Boolean(item));
+    .filter((item): item is WebsiteTemplate => Boolean(item))
+    .sort((a, b) => items.indexOf(a) - items.indexOf(b));
   const featured =
     category === ALL
       ? [...firsts, ...items.filter((item) => !firsts.includes(item))]
