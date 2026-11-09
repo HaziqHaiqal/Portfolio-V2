@@ -8,9 +8,17 @@ import {
   type ReactNode,
 } from 'react';
 import { MotionRoot } from './motion';
-import { PALETTE_ROLES, TEMPLATE_PALETTES, type Palette } from './palettes';
+import {
+  PALETTE_ROLES,
+  TEMPLATE_PALETTES,
+  THEMED_TEMPLATES,
+  type Palette,
+} from './palettes';
 
 export const PALETTE_PARAM = 'colour';
+const THEME_PARAM = 'theme';
+const paramOf = (slug: string) =>
+  THEMED_TEMPLATES.includes(slug) ? THEME_PARAM : PALETTE_PARAM;
 
 const listeners = new Set<() => void>();
 const subscribe = (listener: () => void) => {
@@ -24,8 +32,10 @@ const subscribe = (listener: () => void) => {
 // session copy keeps the choice across pages of multi-page demos.
 function readChoice(slug: string) {
   try {
+    const params = new URLSearchParams(window.location.search);
     return (
-      new URLSearchParams(window.location.search).get(PALETTE_PARAM) ||
+      params.get(THEME_PARAM) ||
+      params.get(PALETTE_PARAM) ||
       window.sessionStorage.getItem(`palette:${slug}`)
     );
   } catch {
@@ -38,7 +48,8 @@ function saveChoice(slug: string, id: string) {
     window.sessionStorage.setItem(`palette:${slug}`, id);
   } catch {}
   const url = new URL(window.location.href);
-  url.searchParams.set(PALETTE_PARAM, id);
+  url.searchParams.delete(PALETTE_PARAM);
+  url.searchParams.set(paramOf(slug), id);
   window.history.replaceState(window.history.state, '', url);
   listeners.forEach((listener) => listener());
 }
@@ -99,6 +110,39 @@ export function PaletteSwitcher() {
   const context = use(PaletteContext);
   if (!context || context.palettes.length < 2) return null;
   const { slug, palettes, active } = context;
+
+  if (THEMED_TEMPLATES.includes(slug)) {
+    return (
+      <div
+        role="group"
+        aria-label="Page design"
+        className="flex items-center rounded-full bg-white/10 p-0.5"
+      >
+        {palettes.map((palette) => {
+          const selected = palette.id === active.id;
+          return (
+            <button
+              key={palette.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => {
+                if (selected) return;
+                saveChoice(slug, palette.id);
+                window.scrollTo({ top: 0 });
+              }}
+              className={`h-7 rounded-full px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:px-3.5 ${
+                selected
+                  ? 'bg-white text-neutral-950'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              {palette.name}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2.5">

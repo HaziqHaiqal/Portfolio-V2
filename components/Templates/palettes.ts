@@ -60,6 +60,9 @@ const dark = (
   },
 });
 
+/** Demos whose palettes are whole page designs, switched by name, not colour. */
+export const THEMED_TEMPLATES = ['sapa'];
+
 export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
   'seri-glow': [
     light('blush', 'Blush', '#B4475E', '#FBEFEC', { ink: '#231518' }),

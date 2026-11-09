@@ -24,7 +24,7 @@ export const SOCIALS = [
 ] as const;
 
 export const BIO = [
-  "I grew up on my grandmother's upright piano in Ipoh. Now I play slow, quiet music in Kuala Lumpur: Satie, Bach, film themes and old Malay songs.",
+  "I grew up on my grandmother's upright piano in Ipoh. Now I play slow, quiet music in Kuala Lumpur: Beethoven, Yiruma, film themes and old Malay songs.",
   'I post a new piece every Friday and play live most weekends.',
 ];
 
@@ -42,36 +42,64 @@ export const noteName = (m: number) => NAMES[m % 12] + (Math.floor(m / 12) - 1);
 export const whiteNote = (base: number, i: number) =>
   base + 12 * Math.floor(i / 7) + WSTEP[i % 7];
 
-function gymnopedie(): Note[] {
-  const melody = [[66, 1.4], [69, 0.7], [67, 0.7], [66, 0.7], [61, 0.7], [59, 0.7], [61, 0.7], [62, 0.7], [57, 2.1], [66, 1.4], [69, 0.7], [67, 0.7], [66, 0.7], [61, 0.7], [59, 0.7], [61, 0.7], [62, 0.7], [64, 2.1]];
+function moonlight(): Note[] {
+  const beat = 0.9;
+  const tri = { cm: [56, 61, 64], a: [57, 61, 64], d: [57, 62, 66], g7: [56, 60, 66], g: [56, 61, 64], gs: [56, 61, 63], fs: [54, 60, 63] };
+  // One entry per beat: [bass, triplet].
+  const beats: [number, number[]][] = [
+    ...Array(4).fill([37, tri.cm]),
+    ...Array(4).fill([35, tri.cm]),
+    [33, tri.a], [33, tri.a], [30, tri.d], [30, tri.d],
+    [32, tri.g7], [32, tri.g], [32, tri.gs], [32, tri.fs],
+    ...Array(4).fill([37, tri.cm]),
+    [37, tri.cm], [37, tri.cm], [33, tri.a], [33, tri.a],
+    [30, tri.d], [30, tri.d], [32, tri.g7], [32, tri.g7],
+  ];
+  const notes: Note[] = [];
+  beats.forEach(([bass, chord], i) => {
+    const t = i * beat;
+    if (i % 2 === 0) notes.push([bass, t, beat * 2.2, 0.11], [bass + 12, t, beat * 2.2, 0.08]);
+    chord.forEach((m, k) => notes.push([m, t + (k * beat) / 3, 1.2, 0.1]));
+  });
+  const tune = [[68, 19, 0.75], [68, 19.75, 0.25], [68, 20, 2], [69, 22, 1], [68, 23, 1], [66, 24, 2], [68, 26, 1.5], [67, 27.5, 0.5]];
+  tune.forEach(([m, at, len]) => notes.push([m, at * beat, len * beat + 0.8, 0.17]));
+  const end = beats.length * beat;
+  [37, 49, 56, 61, 64, 68].forEach((m) => notes.push([m, end, 3.2, m === 68 ? 0.15 : 0.08]));
+  return notes;
+}
+
+function fifth(): Note[] {
+  const e = 0.17;
+  const motifs = [[67, 63, 1.4, 48], [65, 62, 1.9, 43], [67, 63, 0.55, 48], [68, 67, 0.55, 44], [75, 72, 2.2, 48]];
   const notes: Note[] = [];
   let t = 0;
-  for (const [m, d] of melody) {
-    notes.push([m, t, Math.max(1.6, d * 2.4), 0.17]);
-    t += d;
-  }
-  for (let b = 0, tb = 0; tb < t; b++, tb += 2.1) {
-    notes.push(
-      [b % 2 ? 50 : 43, tb, 2.6, 0.11],
-      [b % 2 ? 57 : 59, tb + 0.7, 2.2, 0.06],
-      [b % 2 ? 61 : 62, tb + 0.7, 2.2, 0.06],
-      [66, tb + 0.7, 2.2, 0.05]
-    );
+  for (const [short, long, hold, bass] of motifs) {
+    t += e;
+    for (let k = 0; k < 3; k++, t += e) notes.push([short, t, 0.3, 0.17], [short - 12, t, 0.3, 0.12]);
+    notes.push([long, t, hold + 0.6, 0.17], [long - 12, t, hold + 0.6, 0.13], [bass - 12, t, hold + 0.6, 0.1]);
+    t += hold;
   }
   return notes;
 }
 
-function prelude(): Note[] {
-  const bars = [[60, 64, 67, 72, 76], [60, 62, 69, 74, 77], [59, 62, 67, 74, 77], [60, 64, 67, 72, 76], [60, 64, 69, 76, 81], [60, 62, 66, 69, 74], [59, 62, 67, 74, 79], [59, 60, 64, 67, 72]];
-  const s = 0.16;
+function ode(): Note[] {
+  const b = 0.46;
+  const tune = [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62, 64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60];
+  const lens = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 0.5, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 0.5, 2];
   const notes: Note[] = [];
-  bars.forEach((c, b) => {
-    for (let h = 0; h < 2; h++) {
-      const t = (b * 16 + h * 8) * s;
-      notes.push([c[0], t, 8 * s + 1, 0.11], [c[1], t + s, 7 * s + 1, 0.09]);
-      [2, 3, 4, 2, 3, 4].forEach((k, j) => notes.push([c[k], t + (j + 2) * s, 1.2, 0.12]));
-    }
+  let t = 0;
+  tune.forEach((m, i) => {
+    notes.push([m + 12, t * b, lens[i] * b * 1.6, 0.16]);
+    t += lens[i];
   });
+  const left = [[48, 55, 60, 64], [43, 55, 59, 62]];
+  for (let bar = 0; bar < 8; bar++) {
+    const [bass, ...chord] = left[bar === 7 ? 1 : bar % 2];
+    const at = bar * 4 * b;
+    notes.push([bass, at, 4 * b, 0.11]);
+    chord.forEach((m, k) => notes.push([m, at + (k + 1) * b, b * 1.4, 0.06]));
+  }
+  notes.push([48, 30 * b, 2.6, 0.11], [55, 30 * b, 2.6, 0.06], [64, 30 * b, 2.6, 0.06]);
   return notes;
 }
 
@@ -87,28 +115,11 @@ function furElise(): Note[] {
   return notes;
 }
 
-function canon(): Note[] {
-  const bass = [50, 45, 47, 42, 43, 38, 43, 45];
-  const chords = [[62, 66, 69], [61, 64, 69], [62, 66, 71], [61, 66, 69], [62, 67, 71], [62, 66, 69], [62, 67, 71], [61, 64, 69]];
-  const melody = [[78, 76, 74, 73, 71, 69, 71, 73], [74, 73, 71, 69, 67, 66, 67, 64]];
-  const d = 1.5;
-  const notes: Note[] = [];
-  for (let r = 0; r < 2; r++) {
-    bass.forEach((b, i) => {
-      const t = (r * 8 + i) * d;
-      notes.push([b, t, d * 1.6, 0.12], [melody[r][i], t, d * 1.2, 0.15]);
-      chords[i].forEach((m, j) => notes.push([m, t + ((j + 1) * d) / 4, 1.4, 0.06]));
-    });
-  }
-  notes.push([50, 16 * d, 3, 0.12], [62, 16 * d, 3, 0.08], [66, 16 * d, 3, 0.08], [74, 16 * d, 3, 0.14]);
-  return notes;
-}
-
 export const PIECES = [
-  { id: 'gymnopedie', title: 'Gymnopédie No. 1', by: 'Erik Satie, 1888', notes: gymnopedie() },
-  { id: 'prelude', title: 'Prelude in C major', by: 'J. S. Bach, 1722', notes: prelude() },
+  { id: 'moonlight', title: 'Moonlight Sonata', by: 'Ludwig van Beethoven, 1801', notes: moonlight() },
   { id: 'elise', title: 'Für Elise', by: 'Ludwig van Beethoven, 1810', notes: furElise() },
-  { id: 'canon', title: 'Canon in D', by: 'Johann Pachelbel, c. 1680', notes: canon() },
+  { id: 'fifth', title: 'Symphony No. 5', by: 'Ludwig van Beethoven, 1808', notes: fifth() },
+  { id: 'ode', title: 'Ode to Joy', by: 'Ludwig van Beethoven, 1824', notes: ode() },
 ];
 
 export interface Song {
@@ -135,4 +146,22 @@ export function songNotes(song: Song): Note[] {
     t += song.beats[i] * song.beat;
     return note;
   });
+}
+
+/** The tune of a piece: the top melody note at each moment. */
+export function melodyOf(notes: Note[]) {
+  const steps: number[] = [];
+  let at = -1;
+  [...notes]
+    .filter((note) => note[3] >= 0.1)
+    .sort((a, b) => a[1] - b[1])
+    .forEach(([m, t]) => {
+      if (Math.abs(t - at) > 0.03) {
+        steps.push(m);
+        at = t;
+      } else if (m > steps[steps.length - 1]) {
+        steps[steps.length - 1] = m;
+      }
+    });
+  return steps;
 }
