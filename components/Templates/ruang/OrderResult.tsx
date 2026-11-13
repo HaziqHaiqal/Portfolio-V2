@@ -14,8 +14,8 @@ import {
   FAIL_REASONS,
   PAY_METHODS,
   STUDIO,
-  type FailReason,
 } from './data';
+import { NEXT_STEPS } from '@components/Templates/pay/data';
 import { useHydrated, useStore, type Order, type OrderStatus } from './store';
 import { Logo } from './ui';
 
@@ -33,22 +33,6 @@ const stopIndex = (status: OrderStatus) =>
         0,
         STOPS.findIndex((stop) => stop.status === status)
       );
-
-const NEXT_STEPS: Record<FailReason, string> = {
-  declined: 'Try another card, or pay by FPX online banking instead.',
-  insufficient_funds:
-    'Top up the account, use another card, or pay by FPX or e-wallet.',
-  bank_declined:
-    'Approve the request in your bank app next time, or choose another bank.',
-  bank_unavailable:
-    'Pick another bank, or try again in a few minutes. Banks go offline for maintenance.',
-  otp_failed: 'Ask your bank for a new code and type it exactly as sent.',
-  qr_expired:
-    'Open the payment again for a fresh QR code. Each one lasts five minutes.',
-  wallet_declined:
-    'Approve it in your e-wallet next time, or choose another way to pay.',
-  cancelled: 'Your order is saved. Pay whenever you are ready.',
-};
 
 const PILL =
   'inline-flex h-12 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-90';

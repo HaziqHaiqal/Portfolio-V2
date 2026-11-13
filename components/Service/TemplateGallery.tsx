@@ -19,6 +19,7 @@ import { discountedPrice, isTemplateSale, promoAppliesTo } from '@lib/promo';
 import {
   countLabel,
   packageOfTemplate,
+  realPriceOf,
   pageCount,
   TEMPLATE_CATEGORIES,
   templateCategoryLabel,
@@ -263,6 +264,7 @@ export default function TemplateGallery({
   const cards = visible.map((template, index) => {
     const offer = bestOffer(deals, template, true);
     const pkg = packageOfTemplate(template);
+    const real = realPriceOf(template);
     return (
       <div
         key={template.id}
@@ -312,12 +314,14 @@ export default function TemplateGallery({
                 price={template.price}
                 salePrice={offer ? template.price - offer.saving : undefined}
               />
-              {pkg.bundle.price > template.price && (
+              {real > template.price && (
                 <span className="text-sm font-medium tracking-normal text-gray-500 dark:text-gray-400">
                   <span className="sr-only">
-                    {pkg.bundle.name} package price:{' '}
+                    {real > pkg.bundle.price
+                      ? 'Custom build price: '
+                      : `${pkg.bundle.name} package price: `}
                   </span>
-                  <s>{formatRM(pkg.bundle.price)}</s>
+                  <s>{formatRM(real)}</s>
                 </span>
               )}
             </>

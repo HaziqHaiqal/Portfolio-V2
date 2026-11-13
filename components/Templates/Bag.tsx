@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, use, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  use,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import Link from 'next/link';
 import { Check, Minus, Plus, ShoppingBag, X } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import OrderPreview from './OrderPreview';
@@ -11,9 +19,10 @@ export interface BagProduct {
   name: string;
   price: number;
   image: string;
+  fit?: 'contain';
 }
 
-interface BagLine {
+export interface BagLine {
   key: string;
   product: BagProduct;
   variant?: string;
@@ -21,9 +30,12 @@ interface BagLine {
 }
 
 interface BagContextValue {
+  lines: BagLine[];
+  ready: boolean;
   count: number;
   total: number;
   add: (product: BagProduct, variant?: string, qty?: number) => void;
+  clear: () => void;
   openBag: () => void;
 }
 
@@ -83,19 +95,42 @@ export function BagProvider({
   freeShippingAt,
   note,
   buttonClassName = 'rounded-full',
+  checkoutHref,
+  storageKey,
   children,
 }: {
   brand: string;
   freeShippingAt?: number;
   note: string;
   buttonClassName?: string;
+  checkoutHref?: string;
+  storageKey?: string;
   children: ReactNode;
 }) {
   const [lines, setLines] = useState<BagLine[]>([]);
+  const [ready, setReady] = useState(!storageKey);
   const [open, setOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [toast, setToast] = useState<BagLine | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    if (!storageKey) return;
+    let saved: BagLine[] = [];
+    try {
+      saved = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+    } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved bag only exists in the browser
+    if (Array.isArray(saved) && saved.length) setLines(saved);
+    setReady(true);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || !ready) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(lines));
+    } catch {}
+  }, [lines, ready, storageKey]);
 
   const count = lines.reduce((sum, line) => sum + line.qty, 0);
   const total = lines.reduce(
@@ -145,7 +180,17 @@ export function BagProvider({
   ].join('\n');
 
   return (
-    <BagContext value={{ count, total, add, openBag }}>
+    <BagContext
+      value={{
+        lines,
+        ready,
+        count,
+        total,
+        add,
+        clear: () => setLines([]),
+        openBag,
+      }}
+    >
       {children}
 
       <div
@@ -164,7 +209,11 @@ export function BagProvider({
                 alt=""
                 fill
                 sizes="48px"
-                className="object-cover"
+                className={
+                  toast.product.fit === 'contain'
+                    ? 'object-contain p-1'
+                    : 'object-cover'
+                }
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -263,7 +312,11 @@ export function BagProvider({
                         alt=""
                         fill
                         sizes="80px"
-                        className="object-cover"
+                        className={
+                          line.product.fit === 'contain'
+                            ? 'object-contain p-1.5'
+                            : 'object-cover'
+                        }
                       />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col justify-between">
@@ -302,15 +355,34 @@ export function BagProvider({
               </span>
             </div>
             <p className="mt-1 text-xs text-tpl-muted">{note}</p>
-            <button
-              type="button"
-              disabled={!lines.length}
-              onClick={() => setPreviewOpen(true)}
-              className={`mt-4 flex h-12 w-full items-center justify-center gap-2 bg-tpl-accent text-sm font-semibold text-tpl-on-accent transition-opacity hover:opacity-90 disabled:opacity-40 ${buttonClassName}`}
-            >
-              <SiWhatsapp size={17} aria-hidden="true" />
-              Checkout on WhatsApp
-            </button>
+            {checkoutHref ? (
+              lines.length > 0 ? (
+                <Link
+                  href={checkoutHref}
+                  onClick={() => setOpen(false)}
+                  className={`mt-4 flex h-12 w-full items-center justify-center bg-tpl-accent text-sm font-semibold text-tpl-on-accent transition-opacity hover:opacity-90 ${buttonClassName}`}
+                >
+                  Checkout
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className={`mt-4 flex h-12 w-full items-center justify-center bg-tpl-accent text-sm font-semibold text-tpl-on-accent opacity-40 ${buttonClassName}`}
+                >
+                  Checkout
+                </span>
+              )
+            ) : (
+              <button
+                type="button"
+                disabled={!lines.length}
+                onClick={() => setPreviewOpen(true)}
+                className={`mt-4 flex h-12 w-full items-center justify-center gap-2 bg-tpl-accent text-sm font-semibold text-tpl-on-accent transition-opacity hover:opacity-90 disabled:opacity-40 ${buttonClassName}`}
+              >
+                <SiWhatsapp size={17} aria-hidden="true" />
+                Checkout on WhatsApp
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -322,11 +394,13 @@ export function BagProvider({
         </aside>
       </div>
 
-      <OrderPreview
-        open={previewOpen}
-        message={message}
-        onClose={() => setPreviewOpen(false)}
-      />
+      {!checkoutHref && (
+        <OrderPreview
+          open={previewOpen}
+          message={message}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </BagContext>
   );
 }

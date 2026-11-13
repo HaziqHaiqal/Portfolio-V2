@@ -18,6 +18,7 @@ import {
   GATEWAY_FEES,
   isStoreTemplate,
   packageOfTemplate,
+  realPriceOf,
   pageCount,
   PAYMENT_TERMS,
   templateCategoryLabel,
@@ -89,7 +90,8 @@ export default function TemplateOrder({
   const careLabel = CARE_PLAN;
   const pages = pageCount(template.pages);
   const { tab, bundle } = packageOfTemplate(template);
-  const saving = Math.max(0, bundle.price - template.price);
+  const real = realPriceOf(template);
+  const saving = Math.max(0, real - template.price);
   const packageIncludes = store
     ? [BUG_FIX_INCLUDE]
     : templateIncludesOf(tab, bundle);
@@ -101,6 +103,16 @@ export default function TemplateOrder({
   const [counts, setCounts] = useState<Record<string, number>>({});
   const setCount = (id: string, qty: number) =>
     setCounts((current) => ({ ...current, [id]: qty }));
+  // Ticking an add-on ticks what it requires; unticking drops what needs it.
+  const tick = (item: TemplateAddOn, on: boolean) =>
+    setCounts((current) => {
+      const next = { ...current, [item.id]: on ? 1 : 0 };
+      if (on && item.requires) next[item.requires] = 1;
+      if (!on)
+        for (const other of addOns)
+          if (other.requires === item.id) next[other.id] = 0;
+      return next;
+    });
   const [mainLanguage, setMainLanguage] = useState(DEFAULT_LANGUAGE);
   const [languages, setLanguages] = useState<string[]>([]);
   const pickMain = (value: string) => {
@@ -316,7 +328,7 @@ export default function TemplateOrder({
                                 const first = nextLanguage([mainLanguage]);
                                 setLanguages(on && first ? [first] : []);
                               } else {
-                                setCount(item.id, on ? 1 : 0);
+                                tick(item, on);
                               }
                             }}
                             className="sr-only"
@@ -405,8 +417,11 @@ export default function TemplateOrder({
           footnote={
             saving > 0 && (
               <p className="mt-3 text-xs font-medium text-green-700 dark:text-green-400 md:text-center">
-                {formatRM(saving)} less than the {bundle.name} package at{' '}
-                {formatRM(bundle.price)}
+                {formatRM(saving)} less than{' '}
+                {real > bundle.price
+                  ? 'building this design from scratch at'
+                  : `the ${bundle.name} package at`}{' '}
+                {formatRM(real)}
               </p>
             )
           }

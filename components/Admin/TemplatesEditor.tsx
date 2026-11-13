@@ -54,7 +54,7 @@ import {
   useConfirm,
 } from '@components/Admin/shared';
 import {
-  packageOfTemplate,
+  realPriceOf,
   TEMPLATE_CATEGORIES,
   TEMPLATE_PACKAGES,
 } from '@constants/services';
@@ -392,7 +392,7 @@ function TemplateForm({
       toast.error('Enter a valid price.');
       return;
     }
-    const comparePrice = packageOfTemplate(form).bundle.price;
+    const comparePrice = realPriceOf(form);
 
     let previewUrl = form.preview_image_url;
     if (uploadRef.current?.hasPending()) {

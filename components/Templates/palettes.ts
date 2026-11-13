@@ -150,6 +150,29 @@ export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
       line: '#E1EDFC',
     }),
   ],
+  gaya: [
+    light('krim', 'Krim', '#141414', '#E9E6DF', {
+      bg: '#F3F1EC',
+      surface: '#FBFAF7',
+      ink: '#141414',
+      muted: '#75726B',
+      line: '#DFDCD4',
+    }),
+    light('oren', 'Oren', '#F2541B', '#F1EFEA', {
+      bg: '#F3F1EC',
+      surface: '#FBFAF7',
+      ink: '#141414',
+      muted: '#75726B',
+      line: '#DFDCD4',
+    }),
+    light('biru', 'Biru', '#2F5BFF', '#EEF0F6', {
+      bg: '#F3F1EC',
+      surface: '#FBFAF7',
+      ink: '#141414',
+      muted: '#75726B',
+      line: '#DFDCD4',
+    }),
+  ],
   sapa: [
     light('equaliser', 'Equaliser', '#3A4BFF', '#E5E2DB', {
       bg: '#EFEDE8',

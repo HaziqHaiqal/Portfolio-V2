@@ -1,4 +1,5 @@
 import { RUANG as P } from '@components/Templates/photos';
+import type { FailReason } from '../pay/data';
 
 export const BRAND = 'Ruang';
 export const BASE_PATH = '/templates/ruang';
@@ -700,57 +701,16 @@ export const deliveryFee = (id: DeliveryId, subtotal: number) => {
 
 export const DISCOUNT = { code: 'DEMO20', amount: 20, minSpend: 200 };
 
-export const PAY_METHODS = [
-  {
-    id: 'fpx',
-    label: 'Online banking (FPX)',
-    note: 'Pay straight from your bank account',
-  },
-  {
-    id: 'card',
-    label: 'Credit or debit card',
-    note: 'Visa and Mastercard',
-  },
-  {
-    id: 'ewallet',
-    label: 'E-wallet or DuitNow QR',
-    note: 'Scan with your e-wallet or banking app',
-  },
-  {
-    id: 'cod',
-    label: 'Cash on delivery',
-    note: 'Pay the rider when it arrives',
-  },
-] as const;
-
-export type PayMethod = (typeof PAY_METHODS)[number]['id'];
-
-export const DEMO_BANKS = [
-  { id: 'a', name: 'Demo Bank A' },
-  { id: 'b', name: 'Demo Bank B' },
-  { id: 'c', name: 'Demo Bank C', offline: true },
-];
-
-export type FailReason =
-  | 'declined'
-  | 'insufficient_funds'
-  | 'bank_declined'
-  | 'bank_unavailable'
-  | 'otp_failed'
-  | 'qr_expired'
-  | 'wallet_declined'
-  | 'cancelled';
-
-export const FAIL_REASONS: Record<FailReason, string> = {
-  declined: 'Your card was declined by the bank.',
-  insufficient_funds: 'The card does not have enough funds.',
-  bank_declined: 'The payment was declined in your bank.',
-  bank_unavailable: 'Your bank is offline right now.',
-  otp_failed: 'The one-time password did not match.',
-  qr_expired: 'The QR code expired before it was paid.',
-  wallet_declined: 'The payment was declined in your e-wallet.',
-  cancelled: 'You cancelled the payment.',
-};
+export {
+  DEMO_BANKS,
+  FAIL_REASONS,
+  MY_STATES,
+  PAY_METHODS,
+  TEST_CARDS,
+  TEST_OTP,
+  type FailReason,
+  type PayMethod,
+} from '../pay/data';
 
 /** How a failed payment reads to the shop owner. */
 export const OWNER_REASONS: Record<FailReason, string> = {
@@ -764,33 +724,6 @@ export const OWNER_REASONS: Record<FailReason, string> = {
   cancelled: 'left the payment page',
 };
 
-export const TEST_CARDS = [
-  { number: '4242424242424242', result: 'Payment succeeds' },
-  { number: '4000000000003220', result: 'Asks for a one-time password' },
-  { number: '4000000000000002', result: 'Card declined' },
-  { number: '4000000000009995', result: 'Insufficient funds' },
-] as const;
-
-export const TEST_OTP = '123456';
-
-export const MY_STATES = [
-  'Johor',
-  'Kedah',
-  'Kelantan',
-  'Melaka',
-  'Negeri Sembilan',
-  'Pahang',
-  'Penang',
-  'Perak',
-  'Perlis',
-  'Sabah',
-  'Sarawak',
-  'Selangor',
-  'Terengganu',
-  'W.P. Kuala Lumpur',
-  'W.P. Labuan',
-  'W.P. Putrajaya',
-];
 
 export const DEMO_DETAILS = {
   name: 'Aisyah Rahman',

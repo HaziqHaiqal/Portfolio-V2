@@ -1103,6 +1103,30 @@ export function packageOfTemplate(template: {
   return { tab: WEBSITES, bundle: WEBSITES.bundles[1] };
 }
 
+// What a design adds to its package, or leaves out of it, priced as if built from scratch.
+const TEMPLATE_BUILD_CHANGES: Record<string, { name: string; price: number }[]> =
+  {
+    gaya: [
+      { name: 'Admin portal, sold as an add-on', price: -4000 },
+      { name: 'Photo-real ampaian shop scene', price: 2000 },
+      { name: 'Measurement sheet for every piece and size', price: 1200 },
+      { name: 'Rail and shoe rack list pages', price: 800 },
+      { name: 'Matching product photos with shadows', price: 500 },
+    ],
+  };
+
+/** What this exact design would cost built from scratch. */
+export function realPriceOf(template: {
+  slug: string;
+  package?: string | null;
+  category: string;
+}) {
+  return (TEMPLATE_BUILD_CHANGES[template.slug] ?? []).reduce(
+    (sum, item) => sum + item.price,
+    packageOfTemplate(template).bundle.price
+  );
+}
+
 export function fullIncludesOf(tab: PricingTab, bundle: Bundle): string[] {
   const chain = (item: Bundle): string[] => {
     const base = tab.bundles.find((other) => other.id === item.basedOn);
@@ -1224,10 +1248,47 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
   ],
 };
 
-export const templateAddOnsOf = (template: {
+const ADMIN_PORTAL = 'admin-portal';
+const LIVES_IN_ADMIN = ['page-editor', 'shipping', 'reports'];
+
+// Designs whose demo leaves out parts of their package sell those parts here.
+const TEMPLATE_OWN_ADD_ONS: Record<string, TemplateAddOn[]> = {
+  gaya: [
+    {
+      id: 'catalogue',
+      name: 'Additional product catalogue',
+      description:
+        'More products and categories beyond the 18 in the demo, each with sizes, stock and its own measurement sheet.',
+      price: 1500,
+    },
+    {
+      id: ADMIN_PORTAL,
+      name: 'Admin portal',
+      description:
+        'Add and edit products, see orders and payments, and make discount codes.',
+      price: 2500,
+    },
+  ],
+};
+
+export function templateAddOnsOf(template: {
+  slug?: string;
   package?: string | null;
   category: string;
-}) => TEMPLATE_ADD_ONS[packageOfTemplate(template).bundle.id] ?? [];
+}): TemplateAddOn[] {
+  const base = TEMPLATE_ADD_ONS[packageOfTemplate(template).bundle.id] ?? [];
+  const own = template.slug ? TEMPLATE_OWN_ADD_ONS[template.slug] : undefined;
+  if (!own) return base;
+  const sellsAdmin = own.some((item) => item.id === ADMIN_PORTAL);
+  return [
+    ...own,
+    ...base.map((item) =>
+      sellsAdmin && LIVES_IN_ADMIN.includes(item.id)
+        ? { ...item, requires: ADMIN_PORTAL }
+        : item
+    ),
+  ];
+}
 
 export const TAKEOVER = {
   options: [
