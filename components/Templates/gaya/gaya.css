@@ -1673,14 +1673,6 @@
   color: rgb(var(--tpl-ink) / 0.72);
 }
 
-.gaya-meas .gaya-meas-cta {
-  width: auto;
-  height: 56px;
-  margin-top: 32px;
-  padding: 0 26px;
-  font-size: 15px;
-}
-
 .gaya-list {
   max-width: 90rem;
   margin: 0 auto;

@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { hrefOf, ITEMS } from './data';
+import { ITEMS } from './data';
 import { fitLine } from './sheet';
 import { Sheet, sizeWord } from './ProductDetail';
 
@@ -40,10 +38,6 @@ export default function MeasureTeaser() {
         <p className="gaya-meas-read" aria-live="polite">
           {ITEM.name}, size {size}. {fitLine(ITEM, size)}.
         </p>
-        <Link href={hrefOf(ITEM)} className="gaya-btn gaya-meas-cta">
-          See the {ITEM.name}
-          <ArrowRight size={16} aria-hidden="true" />
-        </Link>
       </div>
       <div className="gaya-meas-sheet">
         <Sheet item={ITEM} size={size} on />
