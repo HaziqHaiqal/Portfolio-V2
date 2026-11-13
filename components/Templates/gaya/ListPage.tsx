@@ -8,7 +8,6 @@ import { rm } from '@components/Templates/Bag';
 import {
   BASE_PATH,
   hrefOf,
-  hungOf,
   imageOf,
   listBySlug,
   shadowOf,
@@ -16,6 +15,7 @@ import {
   type Item,
   type ListSlug,
 } from './data';
+import { useGarment } from './garment';
 
 const SORTS = [
   { id: 'new', label: 'Newest' },
@@ -24,6 +24,7 @@ const SORTS = [
 ];
 
 function Rails({ items }: { items: Item[] }) {
+  const garment = useGarment();
   return (
     <div className="gaya-rails-wrap">
       <div className="gaya-rails">
@@ -41,7 +42,7 @@ function Rails({ items }: { items: Item[] }) {
                   className="gaya-rail-shadow"
                 />
                 <Image
-                  src={hungOf(item.id)}
+                  src={garment(item.id)}
                   alt=""
                   width={687}
                   height={944}

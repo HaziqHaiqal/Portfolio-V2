@@ -24,6 +24,7 @@ import {
   type Details,
   type OrderLine,
 } from './orders';
+import { useThumb } from './garment';
 
 const EMPTY: Details = {
   name: '',
@@ -75,6 +76,7 @@ export function Summary({
   action?: ReactNode;
   eta?: boolean;
 }) {
+  const thumb = useThumb();
   return (
     <div className="gaya-sum">
       <div className="gaya-sum-head">
@@ -86,7 +88,7 @@ export function Summary({
           <li key={line.key}>
             <span className="gaya-sum-img">
               <Image
-                src={line.image}
+                src={thumb(line.image)}
                 alt=""
                 fill
                 sizes="64px"

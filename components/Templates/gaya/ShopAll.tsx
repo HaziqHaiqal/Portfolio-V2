@@ -20,7 +20,6 @@ import { rm, useBag } from '@components/Templates/Bag';
 import {
   bagProduct,
   hrefOf,
-  hungOf,
   imageOf,
   ITEMS,
   listBySlug,
@@ -32,6 +31,7 @@ import {
   type Item,
   type List,
 } from './data';
+import { useGarment } from './garment';
 import { useStockLeft } from './orders';
 import { fitLine } from './sheet';
 
@@ -284,6 +284,7 @@ function Hung({
   eager?: boolean;
   onPick: Pick;
 }) {
+  const garment = useGarment();
   const loading = eager ? 'eager' : 'lazy';
   const [swing, setSwing] = useState<{ n: number; dir: 'l' | 'r' } | null>(
     null
@@ -310,7 +311,7 @@ function Hung({
           className="gaya-amp-shadow"
         />
         <Image
-          src={hungOf(item.id)}
+          src={garment(item.id)}
           alt=""
           width={687}
           height={944}

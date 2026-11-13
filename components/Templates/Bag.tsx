@@ -98,6 +98,7 @@ export function BagProvider({
   checkoutHref,
   storageKey,
   limit,
+  imageFor = (src) => src,
   children,
 }: {
   brand: string;
@@ -107,6 +108,7 @@ export function BagProvider({
   checkoutHref?: string;
   storageKey?: string;
   limit?: (key: string) => number;
+  imageFor?: (src: string) => string;
   children: ReactNode;
 }) {
   const [lines, setLines] = useState<BagLine[]>([]);
@@ -211,7 +213,7 @@ export function BagProvider({
           <div className="flex items-center gap-3 rounded-2xl bg-tpl-surface p-3 text-tpl-ink shadow-2xl ring-1 ring-tpl-line">
             <div className="relative h-14 w-12 shrink-0 overflow-hidden rounded-lg bg-tpl-tint">
               <Photo
-                src={toast.product.image}
+                src={imageFor(toast.product.image)}
                 alt=""
                 fill
                 sizes="48px"
@@ -314,7 +316,7 @@ export function BagProvider({
                   <li key={line.key} className="flex gap-4 py-5">
                     <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-tpl-tint">
                       <Photo
-                        src={line.product.image}
+                        src={imageFor(line.product.image)}
                         alt=""
                         fill
                         sizes="80px"

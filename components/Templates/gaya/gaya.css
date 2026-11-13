@@ -1,3 +1,64 @@
+.gaya-root {
+  --gaya-wall: 230 224 214;
+  --gaya-wall-hi: 233 227 217;
+  --gaya-wall-lo: 220 212 199;
+  --gaya-rak-lo: 226 219 207;
+  --gaya-glow: 247 243 235;
+  --gaya-sun: 255 243 222;
+  --gaya-floor-edge: 185 174 158;
+  --gaya-floor: 211 202 188;
+  --gaya-floor-far: 216 208 195;
+  --gaya-dusk: 150 135 115;
+  --gaya-ring: 207 198 182;
+  --gaya-shade: 60 45 30;
+  --gaya-error: 180 35 24;
+}
+
+.gaya-root[data-palette='putih'] {
+  --gaya-wall: 239 239 236;
+  --gaya-wall-hi: 242 242 239;
+  --gaya-wall-lo: 229 229 225;
+  --gaya-rak-lo: 235 235 231;
+  --gaya-glow: 249 249 247;
+  --gaya-sun: 255 255 249;
+  --gaya-floor-edge: 191 191 186;
+  --gaya-floor: 219 219 215;
+  --gaya-floor-far: 224 224 220;
+  --gaya-dusk: 156 156 149;
+  --gaya-ring: 215 215 211;
+  --gaya-shade: 62 62 56;
+}
+
+.gaya-root[data-palette='malam'] {
+  --gaya-wall: 44 41 37;
+  --gaya-wall-hi: 48 45 41;
+  --gaya-wall-lo: 36 34 31;
+  --gaya-rak-lo: 41 38 34;
+  --gaya-glow: 78 71 62;
+  --gaya-sun: 64 58 50;
+  --gaya-floor-edge: 18 17 15;
+  --gaya-floor: 29 27 25;
+  --gaya-floor-far: 33 31 28;
+  --gaya-dusk: 0 0 0;
+  --gaya-ring: 28 26 24;
+  --gaya-shade: 0 0 0;
+  --gaya-error: 255 138 117;
+  color-scheme: dark;
+}
+
+.gaya-root[data-palette='malam']
+  :is(.gaya-amp-piece, .gaya-amp-swing, .gaya-amp-cloth, .gaya-rail-hang, .gaya-rail-swing, .gaya-rail-cloth, .gaya-p2-art) {
+  mix-blend-mode: normal;
+}
+
+.gaya-root[data-palette='malam'] :is(.gaya-amp-shadow, .gaya-rail-shadow) {
+  display: none;
+}
+
+.gaya-root[data-palette='malam'] :is(.gaya-amp-cloth, .gaya-rail-cloth) {
+  filter: drop-shadow(10px 16px 14px rgb(0 0 0 / 0.5));
+}
+
 .gaya-btn {
   display: inline-flex;
   width: 100%;
@@ -53,7 +114,7 @@
   position: relative;
   isolation: isolate;
   overflow: clip;
-  background: #e6e0d6;
+  background: rgb(var(--gaya-wall));
   user-select: none;
   -webkit-user-select: none;
 }
@@ -69,15 +130,15 @@
   background:
     radial-gradient(
       50% 70% at 18% 8%,
-      rgb(247 243 235 / 0.95),
-      rgb(247 243 235 / 0) 70%
+      rgb(var(--gaya-glow) / 0.95),
+      rgb(var(--gaya-glow) / 0) 70%
     ),
     radial-gradient(
       45% 70% at 78% 6%,
-      rgb(245 240 231 / 0.7),
-      rgb(245 240 231 / 0) 70%
+      rgb(var(--gaya-glow) / 0.7),
+      rgb(var(--gaya-glow) / 0) 70%
     ),
-    linear-gradient(#e9e3d9, #dcd4c7);
+    linear-gradient(rgb(var(--gaya-wall-hi)), rgb(var(--gaya-wall-lo)));
 }
 
 .gaya-amp-wall > .gaya-amp-window {
@@ -87,10 +148,10 @@
   width: 490px;
   height: 850px;
   background:
-    linear-gradient(#fff3de, #fff3de) 0 0 / 230px 430px no-repeat,
-    linear-gradient(#fff3de, #fff3de) 260px 0 / 230px 430px no-repeat,
-    linear-gradient(#fff3de, #fff3de) 0 460px / 230px 390px no-repeat,
-    linear-gradient(#fff3de, #fff3de) 260px 460px / 230px 390px no-repeat;
+    linear-gradient(rgb(var(--gaya-sun)), rgb(var(--gaya-sun))) 0 0 / 230px 430px no-repeat,
+    linear-gradient(rgb(var(--gaya-sun)), rgb(var(--gaya-sun))) 260px 0 / 230px 430px no-repeat,
+    linear-gradient(rgb(var(--gaya-sun)), rgb(var(--gaya-sun))) 0 460px / 230px 390px no-repeat,
+    linear-gradient(rgb(var(--gaya-sun)), rgb(var(--gaya-sun))) 260px 460px / 230px 390px no-repeat;
   filter: blur(26px);
   mix-blend-mode: screen;
   opacity: 0.8;
@@ -106,7 +167,11 @@
 .gaya-amp-wall > .gaya-amp-floor {
   top: auto;
   height: var(--floor);
-  background: linear-gradient(#b9ae9e, #d3cabc 70px, #d8d0c3);
+  background: linear-gradient(
+    rgb(var(--gaya-floor-edge)),
+    rgb(var(--gaya-floor)) 70px,
+    rgb(var(--gaya-floor-far))
+  );
 }
 
 .gaya-amp-floor::before {
@@ -116,7 +181,7 @@
   right: 0;
   bottom: 100%;
   height: 90px;
-  background: linear-gradient(rgb(150 135 115 / 0), rgb(150 135 115 / 0.35));
+  background: linear-gradient(rgb(var(--gaya-dusk) / 0), rgb(var(--gaya-dusk) / 0.35));
 }
 
 .gaya-amp-grain {
@@ -343,8 +408,8 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgb(60 45 30 / 0.36),
-    rgb(60 45 30 / 0)
+    rgb(var(--gaya-shade) / 0.36),
+    rgb(var(--gaya-shade) / 0)
   );
 }
 
@@ -567,8 +632,8 @@
   background: rgb(var(--tpl-surface));
   color: rgb(var(--tpl-ink));
   box-shadow:
-    0 24px 40px -20px rgb(60 45 30 / 0.45),
-    0 2px 6px rgb(60 45 30 / 0.12);
+    0 24px 40px -20px rgb(var(--gaya-shade) / 0.45),
+    0 2px 6px rgb(var(--gaya-shade) / 0.12);
   transform: rotate(-1.5deg);
   transform-origin: 50% 0;
   visibility: hidden;
@@ -602,8 +667,8 @@
   height: 12px;
   margin-left: -6px;
   border-radius: 6px;
-  background: #e6e0d6;
-  box-shadow: inset 0 0 0 2.5px #cfc6b6;
+  background: rgb(var(--gaya-wall));
+  box-shadow: inset 0 0 0 2.5px rgb(var(--gaya-ring));
 }
 
 .gaya-amp-x {
@@ -1525,7 +1590,7 @@
 
 .gaya-foot {
   padding-top: 64px;
-  background: #e6e0d6;
+  background: rgb(var(--gaya-wall));
   color: rgb(var(--tpl-ink));
 }
 
@@ -1763,8 +1828,8 @@
     linear-gradient(
         to bottom,
         transparent 30px,
-        rgb(60 45 30 / 0.07) 33px,
-        rgb(60 45 30 / 0) 42px
+        rgb(var(--gaya-shade) / 0.07) 33px,
+        rgb(var(--gaya-shade) / 0) 42px
       )
       0 0 / 100% var(--row) repeat-y,
     linear-gradient(
@@ -1874,7 +1939,7 @@
   position: relative;
   padding: 30px 34px 26px;
   border-radius: 2px;
-  background: linear-gradient(#e9e3d9, #e2dbcf);
+  background: linear-gradient(rgb(var(--gaya-wall-hi)), rgb(var(--gaya-rak-lo)));
 }
 
 .gaya-rak::before,
@@ -1975,7 +2040,7 @@
   width: min(230px, 90%);
   height: 28px;
   padding: 0 12px;
-  background: #fbfaf7;
+  background: rgb(var(--tpl-surface));
   box-shadow: 0 1px 2px rgb(60 45 30 / 0.25);
   font-size: 12.5px;
   font-weight: 600;
@@ -2248,13 +2313,13 @@
 }
 
 .gaya-co-field [aria-invalid='true'] {
-  border-color: #b42318;
+  border-color: rgb(var(--gaya-error));
 }
 
 .gaya-co-err {
   margin-top: 6px;
   font-size: 12.5px;
-  color: #b42318;
+  color: rgb(var(--gaya-error));
 }
 
 .gaya-co-opts {
@@ -2515,7 +2580,7 @@
 }
 
 .gaya-done-mark.is-fail {
-  color: #b42318;
+  color: rgb(var(--gaya-error));
 }
 
 .gaya-done-lead {

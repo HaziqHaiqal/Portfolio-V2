@@ -25,7 +25,7 @@ export default function GayaRootLayout({ children }: { children: ReactNode }) {
   return (
     <PaletteRoot
       slug={SLUG}
-      className={`${font.variable} ${logoFont.variable}`}
+      className={`gaya-root ${font.variable} ${logoFont.variable}`}
     >
       <OrdersHydrator />
       <DemoBar slug={SLUG} />

@@ -158,19 +158,20 @@ export const TEMPLATE_PALETTES: Record<string, Palette[]> = {
       muted: '#75726B',
       line: '#DFDCD4',
     }),
-    light('oren', 'Oren', '#F2541B', '#F1EFEA', {
-      bg: '#F3F1EC',
-      surface: '#FBFAF7',
-      ink: '#141414',
-      muted: '#75726B',
-      line: '#DFDCD4',
+    light('putih', 'Putih', '#111111', '#F1F1F1', {
+      bg: '#FFFFFF',
+      surface: '#FFFFFF',
+      ink: '#111111',
+      muted: '#707070',
+      line: '#E6E6E6',
     }),
-    light('biru', 'Biru', '#2F5BFF', '#EEF0F6', {
-      bg: '#F3F1EC',
-      surface: '#FBFAF7',
-      ink: '#141414',
-      muted: '#75726B',
-      line: '#DFDCD4',
+    light('malam', 'Malam', '#EEE9E0', '#2C2A27', {
+      bg: '#1B1A18',
+      surface: '#242220',
+      ink: '#EEE9E0',
+      muted: '#A39D92',
+      line: '#383531',
+      'on-accent': '#1B1A18',
     }),
   ],
   sapa: [

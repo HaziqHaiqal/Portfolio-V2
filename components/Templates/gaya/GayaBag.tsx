@@ -3,10 +3,12 @@
 import type { ReactNode } from 'react';
 import { BagProvider } from '@components/Templates/Bag';
 import { BASE_PATH, BRAND, FREE_POSTAGE_AT } from './data';
+import { useThumb } from './garment';
 import { useStockLeft } from './orders';
 
 export default function GayaBag({ children }: { children: ReactNode }) {
   const left = useStockLeft();
+  const thumb = useThumb();
   return (
     <BagProvider
       buttonClassName="rounded-[2px]"
@@ -16,6 +18,7 @@ export default function GayaBag({ children }: { children: ReactNode }) {
       checkoutHref={`${BASE_PATH}/checkout`}
       storageKey="gaya-bag"
       limit={left}
+      imageFor={thumb}
     >
       {children}
     </BagProvider>

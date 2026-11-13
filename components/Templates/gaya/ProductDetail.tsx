@@ -16,7 +16,6 @@ import {
   bagProduct,
   FREE_POSTAGE_AT,
   hrefOf,
-  hungOf,
   imageOf,
   ITEMS,
   listHref,
@@ -26,6 +25,7 @@ import {
   variantOf,
   type Item,
 } from './data';
+import { useGarment } from './garment';
 import { useStockLeft } from './orders';
 import {
   careOf,
@@ -69,6 +69,7 @@ export function Sheet({
   size: string | null;
   on: boolean;
 }) {
+  const garment = useGarment();
   const shoe = item.kind === 'shoes';
   const W = shoe ? 804 : 687;
   const H = shoe ? 500 : 944;
@@ -100,7 +101,7 @@ export function Sheet({
         <div ref={frame} className="gaya-p2-frame">
           <div className="gaya-p2-art">
             <Image
-              src={shoe ? imageOf(item.id) : hungOf(item.id)}
+              src={shoe ? imageOf(item.id) : garment(item.id)}
               alt={`${item.name}, ${item.colour}`}
               fill
               priority
