@@ -686,6 +686,18 @@
   color: rgb(var(--tpl-surface));
 }
 
+.gaya-amp-sizes button:disabled {
+  background: none;
+  color: rgb(var(--tpl-ink) / 0.3);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.gaya-amp-low {
+  font-weight: 700;
+  color: rgb(var(--tpl-ink));
+}
+
 .gaya-amp-fit {
   min-height: 18px;
   margin-top: 10px;
@@ -1287,6 +1299,21 @@
 
 .gaya-p2-sizes[data-missing='true'] button {
   color: color-mix(in srgb, var(--dim) 55%, transparent);
+}
+
+.gaya-p2-sizes button:disabled {
+  color: rgb(var(--tpl-ink) / 0.13);
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+  cursor: not-allowed;
+}
+
+.gaya-p2-low {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(var(--tpl-ink));
 }
 
 .gaya-p2-sizes button:focus-visible,

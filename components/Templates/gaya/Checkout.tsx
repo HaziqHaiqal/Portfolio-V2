@@ -20,6 +20,7 @@ import {
   totalsFor,
   useOrders,
   useOrdersReady,
+  useStockLeft,
   type Details,
   type OrderLine,
 } from './orders';
@@ -200,12 +201,17 @@ function CheckoutForm({ initial }: { initial: Details | null }) {
   const router = useRouter();
   const { lines, clear, openBag } = useBag();
   const placeOrder = useOrders((state) => state.placeOrder);
+  const stockLeft = useStockLeft();
   const [form, setForm] = useState<Details>(initial ?? EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [now] = useState(() => Date.now());
 
   const totals = totalsFor(lines, form.deliveryId);
+  const short = lines.find((line) => line.qty > stockLeft(line.key));
+  const shortName = short
+    ? `${short.product.name}${short.variant ? ` (${short.variant})` : ''}`
+    : '';
   const pickup = form.deliveryId === 'pickup';
   const cod = form.method === 'cod';
 
@@ -222,6 +228,7 @@ function CheckoutForm({ initial }: { initial: Details | null }) {
       document.getElementById(`co-${first}`)?.focus();
       return;
     }
+    if (short) return;
     setSubmitting(true);
     const order = placeOrder(lines, form);
     if (cod) {
@@ -447,6 +454,13 @@ function CheckoutForm({ initial }: { initial: Details | null }) {
                 ? `Place order, ${rm(totals.total)}`
                 : `Pay ${rm(totals.total)}`}
             </button>
+            {short && (
+              <p className="gaya-co-err" role="alert">
+                {stockLeft(short.key)
+                  ? `Only ${stockLeft(short.key)} of ${shortName} left. Lower it in your bag to continue.`
+                  : `${shortName} has sold out. Remove it from your bag to continue.`}
+              </p>
+            )}
             <p className="gaya-co-small">
               {cod
                 ? `Your order is confirmed straight away. Pay ${pickup ? 'when you collect it' : 'when it arrives'}.`

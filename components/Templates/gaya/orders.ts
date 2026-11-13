@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { BagLine } from '@components/Templates/Bag';
@@ -9,7 +9,7 @@ import {
   type FailReason,
   type PayMethod,
 } from '@components/Templates/pay/data';
-import { deliveryFee, type DeliveryId } from './data';
+import { deliveryFee, startingStock, type DeliveryId } from './data';
 
 export interface Details {
   name: string;
@@ -174,4 +174,19 @@ export function useOrdersReady() {
     () => useOrders.persist.hasHydrated(),
     () => false
   );
+}
+
+const TAKES_STOCK: OrderStatus[] = ['paid', 'cod_pending'];
+
+/** Units left of a bag line key, after this browser's confirmed orders. */
+export function useStockLeft() {
+  const orders = useOrders((state) => state.orders);
+  return useMemo(() => {
+    const sold: Record<string, number> = {};
+    for (const order of orders)
+      if (TAKES_STOCK.includes(order.status))
+        for (const line of order.lines)
+          sold[line.key] = (sold[line.key] ?? 0) + line.qty;
+    return (key: string) => Math.max(0, startingStock(key) - (sold[key] ?? 0));
+  }, [orders]);
 }

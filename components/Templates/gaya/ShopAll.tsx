@@ -25,11 +25,14 @@ import {
   ITEMS,
   listBySlug,
   listHref,
+  LOW_STOCK,
   shadowOf,
+  stockKey,
   variantOf,
   type Item,
   type List,
 } from './data';
+import { useStockLeft } from './orders';
 import { fitLine } from './sheet';
 
 const TOPS = listBySlug('tops');
@@ -402,7 +405,8 @@ function Tag({
   sheet: boolean;
   onClose: () => void;
 }) {
-  const { add } = useBag();
+  const { add, lines } = useBag();
+  const stockLeft = useStockLeft();
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
@@ -414,6 +418,10 @@ function Tag({
   }, [keyboard]);
 
   const label = item.kind === 'shoes' ? 'EU' : item.category === 'Bottoms' ? 'Waist' : '';
+  const left = size ? stockLeft(stockKey(item, size)) : 0;
+  const room =
+    left -
+    (lines.find((line) => size && line.key === stockKey(item, size))?.qty ?? 0);
 
   return (
     <div
@@ -443,38 +451,51 @@ function Tag({
       <p className="gaya-amp-colour">{item.colour}</p>
       <p className="gaya-amp-price">{rm(item.price)}</p>
       <div className="gaya-amp-sizes" role="group" aria-label="Size">
-        {item.sizes.map((s) => (
-          <button
-            key={s}
-            type="button"
-            aria-pressed={size === s}
-            aria-label={label ? `${label} ${s}` : s}
-            onClick={() => {
-              setSize(s);
-              setAdded(false);
-            }}
-          >
-            {s}
-          </button>
-        ))}
+        {item.sizes.map((s) => {
+          const out = stockLeft(stockKey(item, s)) === 0;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={out}
+              aria-pressed={size === s}
+              aria-label={`${label ? `${label} ${s}` : s}${out ? ', sold out' : ''}`}
+              onClick={() => {
+                setSize(s);
+                setAdded(false);
+              }}
+            >
+              {s}
+            </button>
+          );
+        })}
       </div>
       <p className="gaya-amp-fit" aria-live="polite">
         {size ? fitLine(item, size) : 'Pick a size to see how it measures.'}
+        {size && left > 0 && left <= LOW_STOCK && (
+          <span className="gaya-amp-low">{`\nOnly ${left} left`}</span>
+        )}
       </p>
       <button
         type="button"
         className="gaya-btn gaya-amp-add"
-        disabled={!size}
+        disabled={!size || (room < 1 && !added)}
         data-added={added}
         onClick={() => {
-          if (!size) return;
+          if (!size || room < 1) return;
           add(bagProduct(item), variantOf(item, size));
           setAdded(true);
           clearTimeout(timer.current);
           timer.current = setTimeout(() => setAdded(false), 1800);
         }}
       >
-        {added ? 'Added to bag' : size ? 'Add to bag' : 'Pick a size'}
+        {added
+          ? 'Added to bag'
+          : !size
+            ? 'Pick a size'
+            : room < 1
+              ? 'All in your bag'
+              : 'Add to bag'}
       </button>
       <Link href={hrefOf(item)} className="gaya-amp-more">
         View details

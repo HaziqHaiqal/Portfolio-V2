@@ -21,9 +21,12 @@ import {
   ITEMS,
   listHref,
   listOf,
+  LOW_STOCK,
+  stockKey,
   variantOf,
   type Item,
 } from './data';
+import { useStockLeft } from './orders';
 import {
   careOf,
   fmtCm,
@@ -226,7 +229,8 @@ export function Sheet({
 const MAX_QTY = 10;
 
 export default function ProductDetail({ item }: { item: Item }) {
-  const { add } = useBag();
+  const { add, lines } = useBag();
+  const stockLeft = useStockLeft();
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [draft, setDraft] = useState('1');
@@ -245,8 +249,16 @@ export default function ProductDetail({ item }: { item: Item }) {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  const setQuantity = (n: number) => {
-    const next = Math.min(MAX_QTY, Math.max(1, n));
+  const leftOf = (s: string) => stockLeft(stockKey(item, s));
+  const canAdd = (s: string) =>
+    leftOf(s) -
+    (lines.find((line) => line.key === stockKey(item, s))?.qty ?? 0);
+  const left = size ? leftOf(size) : null;
+  const room = size ? canAdd(size) : MAX_QTY;
+  const maxQty = Math.max(1, Math.min(MAX_QTY, room));
+
+  const setQuantity = (n: number, max = maxQty) => {
+    const next = Math.min(max, Math.max(1, n));
     setQty(next);
     setDraft(String(next));
     setAdded(false);
@@ -256,10 +268,14 @@ export default function ProductDetail({ item }: { item: Item }) {
     if (!size) {
       setMissing(true);
       setNudge((n) => n + 1);
-      sizesRef.current?.querySelector('button')?.focus({ preventScroll: true });
+      sizesRef.current
+        ?.querySelector<HTMLButtonElement>('button:not(:disabled)')
+        ?.focus({ preventScroll: true });
       return;
     }
+    if (room < 1) return;
     add(bagProduct(item), variantOf(item, size), qty);
+    setQuantity(qty, Math.max(1, Math.min(MAX_QTY, room - qty)));
     setAdded(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setAdded(false), 1800);
@@ -296,9 +312,17 @@ export default function ProductDetail({ item }: { item: Item }) {
         <div className="gaya-p2-field">
           <p className="gaya-p2-label-row">
             <span>{word}</span>
-            <span className="gaya-p2-missing" aria-live="polite">
-              {missing && !size ? 'Pick a size first' : ''}
-            </span>
+            {missing && !size ? (
+              <span className="gaya-p2-missing" aria-live="polite">
+                Pick a size first
+              </span>
+            ) : (
+              <span className="gaya-p2-low" aria-live="polite">
+                {left !== null && left > 0 && left <= LOW_STOCK
+                  ? `Only ${left} left`
+                  : ''}
+              </span>
+            )}
           </p>
           <div
             ref={sizesRef}
@@ -314,21 +338,25 @@ export default function ProductDetail({ item }: { item: Item }) {
                 : 'none',
             }}
           >
-            {item.sizes.map((s) => (
-              <button
-                key={s}
-                type="button"
-                aria-pressed={size === s}
-                aria-label={`${sizeWord(item)} ${s}`}
-                onClick={() => {
-                  setSize(s);
-                  setMissing(false);
-                  setAdded(false);
-                }}
-              >
-                {s}
-              </button>
-            ))}
+            {item.sizes.map((s) => {
+              const out = leftOf(s) === 0;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={out}
+                  aria-pressed={size === s}
+                  aria-label={`${sizeWord(item)} ${s}${out ? ', sold out' : ''}`}
+                  onClick={() => {
+                    setSize(s);
+                    setMissing(false);
+                    setQuantity(qty, Math.max(1, Math.min(MAX_QTY, canAdd(s))));
+                  }}
+                >
+                  {s}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -361,7 +389,7 @@ export default function ProductDetail({ item }: { item: Item }) {
             <button
               type="button"
               aria-label="One more"
-              disabled={qty >= MAX_QTY}
+              disabled={qty >= maxQty}
               onClick={() => setQuantity(qty + 1)}
             >
               <Plus size={22} strokeWidth={2} aria-hidden="true" />
@@ -369,8 +397,21 @@ export default function ProductDetail({ item }: { item: Item }) {
           </div>
         </div>
 
-        <button type="button" className="gaya-btn gaya-p2-add" onClick={addToBag}>
-          <span>{added ? 'Added to bag' : 'Add to bag'}</span>
+        <button
+          type="button"
+          className="gaya-btn gaya-p2-add"
+          disabled={!!size && room < 1 && !added}
+          onClick={addToBag}
+        >
+          <span>
+            {added
+              ? 'Added to bag'
+              : size && room < 1
+                ? left === 0
+                  ? 'Sold out'
+                  : 'All in your bag'
+                : 'Add to bag'}
+          </span>
           <span>{rm(item.price * qty)}</span>
         </button>
         <p className="gaya-p2-note-line">

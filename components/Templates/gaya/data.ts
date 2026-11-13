@@ -339,6 +339,20 @@ export const variantOf = (item: Item, size: string) =>
       ? `Waist ${size}`
       : size;
 
+export const LOW_STOCK = 3;
+
+export const stockKey = (item: Item, size: string) =>
+  `${item.id}:${variantOf(item, size)}`;
+
+// A fixed starting stock per size: most in stock, some low, a few sold out.
+export function startingStock(key: string) {
+  let hash = 2166136263;
+  for (const char of key) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  hash >>>= 0;
+  const roll = hash % 16;
+  return roll === 0 ? 0 : roll < 4 ? roll : 6 + ((hash >>> 8) % 15);
+}
+
 export const bagProduct = (item: Item): BagProduct => ({
   id: item.id,
   name: `${item.name}, ${item.colour}`,

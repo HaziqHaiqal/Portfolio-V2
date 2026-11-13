@@ -97,6 +97,7 @@ export function BagProvider({
   buttonClassName = 'rounded-full',
   checkoutHref,
   storageKey,
+  limit,
   children,
 }: {
   brand: string;
@@ -105,6 +106,7 @@ export function BagProvider({
   buttonClassName?: string;
   checkoutHref?: string;
   storageKey?: string;
+  limit?: (key: string) => number;
   children: ReactNode;
 }) {
   const [lines, setLines] = useState<BagLine[]>([]);
@@ -139,11 +141,14 @@ export function BagProvider({
   );
   const remaining = freeShippingAt ? Math.max(0, freeShippingAt - total) : 0;
 
+  const cap = (key: string, qty: number) =>
+    limit ? Math.min(qty, limit(key)) : qty;
+
   const change = (key: string, delta: number) =>
     setLines((prev) =>
       prev
         .map((line) =>
-          line.key === key ? { ...line, qty: line.qty + delta } : line
+          line.key === key ? { ...line, qty: cap(key, line.qty + delta) } : line
         )
         .filter((line) => line.qty > 0)
     );
@@ -151,11 +156,12 @@ export function BagProvider({
   const add = (product: BagProduct, variant?: string, qty = 1) => {
     const key = variant ? `${product.id}:${variant}` : product.id;
     setLines((prev) =>
-      prev.some((line) => line.key === key)
+      (prev.some((line) => line.key === key)
         ? prev.map((line) =>
-            line.key === key ? { ...line, qty: line.qty + qty } : line
+            line.key === key ? { ...line, qty: cap(key, line.qty + qty) } : line
           )
-        : [...prev, { key, product, variant, qty }]
+        : [...prev, { key, product, variant, qty: cap(key, qty) }]
+      ).filter((line) => line.qty > 0)
     );
     clearTimeout(toastTimer.current);
     setToast({ key, product, variant, qty });
@@ -338,6 +344,7 @@ export function BagProvider({
                       <QtyStepper
                         qty={line.qty}
                         name={line.product.name}
+                        max={limit?.(line.key)}
                         onChange={(delta) => change(line.key, delta)}
                       />
                     </div>
