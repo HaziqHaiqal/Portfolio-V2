@@ -218,7 +218,7 @@ export default function TemplateGallery({
   };
   const [ordering, setOrdering] = useState<WebsiteTemplate | null>(null);
 
-  // "Order this design" on a demo hands its slug over to open the order.
+  // "Order" on a demo hands its slug over to open the order.
   useEffect(() => {
     const slug = takeHandoff(HANDOFF.templateOrder);
     const template = templates.find((item) => item.slug === slug);
@@ -336,7 +336,7 @@ export default function TemplateGallery({
                 onClick={() => setOrdering(template)}
                 className={PRIMARY}
               >
-                <PrimaryLabel>Order this design</PrimaryLabel>
+                <PrimaryLabel>Order</PrimaryLabel>
               </button>
             </>
           }
