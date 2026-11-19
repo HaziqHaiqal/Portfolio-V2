@@ -328,8 +328,7 @@ export const findBySlug = (slug: string) =>
 export const imageOf = (id: string) =>
   `/templates/${SLUG}/${id.startsWith('shoe-') ? 'shoes' : 'clothes'}/${id}.webp`;
 
-export const hungOf = (id: string) => `/templates/${SLUG}/ampaian/wb/${id}.webp`;
-// Cut-outs for the dark theme, where white-ground photos cannot blend in.
+// Hung garments, cut out so they sit on any wall.
 export const cutOf = (id: string) => `/templates/${SLUG}/ampaian/cut/${id}.webp`;
 export const DARK_PALETTE = 'malam';
 export const shadowOf = (id: string) =>

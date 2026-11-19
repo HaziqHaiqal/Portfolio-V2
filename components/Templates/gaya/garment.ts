@@ -1,16 +1,15 @@
 'use client';
 
 import { useActivePalette } from '@components/Templates/Palette';
-import { cutOf, DARK_PALETTE, hungOf, SLUG } from './data';
+import { cutOf, DARK_PALETTE, SLUG } from './data';
 
 export function useDark() {
   return useActivePalette() === DARK_PALETTE;
 }
 
-/** The hung garment photo for the active theme. */
+/** Cut-outs in every theme: iOS Safari drops multiply inside scrolling rows, so white-ground photos show boxes. */
 export function useGarment() {
-  const dark = useDark();
-  return (id: string) => (dark ? cutOf(id) : hungOf(id));
+  return (id: string) => cutOf(id);
 }
 
 /** Bag and summary thumbnails: cream-ground photos turn into squares on the dark theme. */
