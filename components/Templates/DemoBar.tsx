@@ -48,8 +48,8 @@ export default async function DemoBar({
             slug={slug}
             className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full bg-white px-3.5 text-xs font-semibold text-neutral-950 transition-colors hover:bg-neutral-200"
           >
-            <span className="hidden sm:inline">Use this template</span>
-            <span className="sm:hidden">Use</span>
+            <span className="hidden sm:inline">Order this design</span>
+            <span className="sm:hidden">Order</span>
             {template && (
               <span className="border-l border-neutral-300 pl-2">
                 {formatRM(template.price)}

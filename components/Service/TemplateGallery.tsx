@@ -218,7 +218,7 @@ export default function TemplateGallery({
   };
   const [ordering, setOrdering] = useState<WebsiteTemplate | null>(null);
 
-  // "Use this template" on a demo hands its slug over to open the order.
+  // "Order this design" on a demo hands its slug over to open the order.
   useEffect(() => {
     const slug = takeHandoff(HANDOFF.templateOrder);
     const template = templates.find((item) => item.slug === slug);
@@ -272,8 +272,6 @@ export default function TemplateGallery({
       >
         <a
           href={template.demo_url ?? undefined}
-          target="_blank"
-          rel="noopener noreferrer"
           aria-label={`Open the ${template.name} live demo`}
           className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
         >
@@ -329,12 +327,7 @@ export default function TemplateGallery({
           priceNote={`${pkg.bundle.name} package, ready-made design`}
           actions={
             <>
-              <a
-                href={template.demo_url ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={SECONDARY}
-              >
+              <a href={template.demo_url ?? undefined} className={SECONDARY}>
                 Try it
                 <ArrowUpRight size={15} aria-hidden="true" />
               </a>
@@ -343,7 +336,7 @@ export default function TemplateGallery({
                 onClick={() => setOrdering(template)}
                 className={PRIMARY}
               >
-                <PrimaryLabel>Use template</PrimaryLabel>
+                <PrimaryLabel>Order this design</PrimaryLabel>
               </button>
             </>
           }
