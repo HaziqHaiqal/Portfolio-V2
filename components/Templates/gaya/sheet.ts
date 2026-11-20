@@ -1,4 +1,4 @@
-import { ITEMS, type Item } from './data';
+import { listSlugOf, numberOf, type Item, type ListSlug } from './data';
 
 export type Pt = [number, number];
 export type Dim =
@@ -6,7 +6,7 @@ export type Dim =
   | { kind: 'v'; at: number; p1: Pt; p2: Pt }
   | { kind: 'o'; off: Pt; p1: Pt; p2: Pt };
 
-interface Drawing {
+export interface Drawing {
   dims: Dim[];
   dots: Pt[];
 }
@@ -19,13 +19,24 @@ interface Spec {
   draw: Drawing;
 }
 
-const h = (at: number, x1: number, x2: number, y1 = at, y2 = at): Dim => ({
+export const h = (
+  at: number,
+  x1: number,
+  x2: number,
+  y1 = at,
+  y2 = at
+): Dim => ({
   kind: 'h',
   at,
   p1: [x1, y1],
   p2: [x2, y2],
 });
-const v = (at: number, p1: Pt, p2: Pt): Dim => ({ kind: 'v', at, p1, p2 });
+export const v = (at: number, p1: Pt, p2: Pt): Dim => ({
+  kind: 'v',
+  at,
+  p1,
+  p2,
+});
 const o = (p1: Pt, p2: Pt, off: Pt): Dim => ({ kind: 'o', off, p1, p2 });
 
 const TEE: Drawing = {
@@ -326,7 +337,14 @@ const SPECS: Record<string, Spec> = {
 const WAIST_FLAT = [35.5, 38, 40.5, 43, 45.5];
 const INSOLE = [24.6, 25.3, 26, 26.7, 27.3, 28, 28.6];
 
-export const specOf = (item: Item) => SPECS[item.id];
+export const specOf = (item: Item): Spec =>
+  SPECS[item.id] ?? {
+    fabric: item.spec?.fabric || 'Not given',
+    fit: item.spec?.fit || 'Regular',
+    notes: [],
+    base: [],
+    draw: item.spec?.draw ?? { dims: [], dots: [] },
+  };
 
 export const middleSize = (item: Item) =>
   item.sizes[Math.floor(item.sizes.length / 2)];
@@ -338,7 +356,45 @@ export interface Measure {
   cm: number;
 }
 
+/** What A and B mean for each line, for pieces added in the admin portal. */
+export const OWN_MEASURES: Record<ListSlug, [string, string][]> = {
+  tops: [
+    ['Chest, pit to pit', 'Chest'],
+    ['Length, from shoulder', 'Length'],
+  ],
+  bottoms: [
+    ['Waist, laid flat', 'Waist'],
+    ['Length, outseam', 'Length'],
+  ],
+  shoes: [
+    ['Insole length', 'Insole'],
+    ['Heel to collar', 'Height'],
+  ],
+};
+
+/** Usual flat measurements for a size, used to prefill the admin form. */
+export function typicalCm(
+  slug: ListSlug,
+  sizes: string[],
+  size: string
+): [number, number] {
+  const i = sizes.indexOf(size);
+  const d = i - Math.floor(sizes.length / 2);
+  if (slug === 'shoes') return [INSOLE[i] ?? 26, 9];
+  if (slug === 'bottoms') return [WAIST_FLAT[i] ?? 40.5, 104 + d];
+  return [57 + 2.5 * d, 70 + 2 * d];
+}
+
 export const measuresOf = (item: Item, size: string): Measure[] => {
+  if (!SPECS[item.id]) {
+    const cm = item.spec?.cm[size] ?? [0, 0];
+    return OWN_MEASURES[listSlugOf(item)].map(([name, short], j) => ({
+      key: j ? 'B' : 'A',
+      name,
+      short,
+      cm: cm[j],
+    }));
+  }
   const spec = SPECS[item.id];
   const i = item.sizes.indexOf(size);
   const d = i - Math.floor(item.sizes.length / 2);
@@ -371,7 +427,7 @@ export const fitLine = (item: Item, size: string) => {
 };
 
 export const styleOf = (item: Item) =>
-  `GY-${String(ITEMS.findIndex((x) => x.id === item.id) + 1).padStart(2, '0')}`;
+  `GY-${String(numberOf(item)).padStart(2, '0')}`;
 
 export const careOf = (item: Item) => {
   if (item.kind === 'shoes')

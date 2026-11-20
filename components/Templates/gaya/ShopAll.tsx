@@ -18,36 +18,30 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { rm, useBag } from '@components/Templates/Bag';
 import {
+  artOf,
   bagProduct,
   hrefOf,
-  imageOf,
-  ITEMS,
-  listBySlug,
   listHref,
   LOW_STOCK,
-  shadowOf,
+  numberOf,
+  shadowFor,
   stockKey,
   variantOf,
   type Item,
   type List,
 } from './data';
+import { useLists } from './catalogue';
 import { useGarment } from './garment';
 import { useStockLeft } from './orders';
 import { fitLine } from './sheet';
 
-const TOPS = listBySlug('tops');
-const BOTTOMS = listBySlug('bottoms');
-const SHOES = listBySlug('shoes');
 const ROPE_Y = 22;
 const SAG = 14;
-
-const numberOf = (item: Item) =>
-  `No. ${String(ITEMS.indexOf(item) + 1).padStart(2, '0')}`;
 
 type Picked = { item: Item; el: HTMLElement; keyboard: boolean };
 type Pick = (item: Item, el: HTMLElement, keyboard: boolean) => void;
 
-function Rope() {
+export function Rope() {
   const ref = useRef<SVGSVGElement>(null);
   const [w, setW] = useState(2400);
   const uid = useId().replace(/:/g, '');
@@ -285,6 +279,7 @@ function Hung({
   onPick: Pick;
 }) {
   const garment = useGarment();
+  const shadow = shadowFor(item);
   const loading = eager ? 'eager' : 'lazy';
   const [swing, setSwing] = useState<{ n: number; dir: 'l' | 'r' } | null>(
     null
@@ -300,18 +295,20 @@ function Hung({
         className="gaya-amp-swing"
         style={swing ? { animationName: `gaya-sw-${swing.dir}${swing.n % 2}` } : undefined}
       >
+        {shadow && (
+          <Image
+            src={shadow}
+            alt=""
+            width={967}
+            height={1224}
+            unoptimized
+            loading={loading}
+            draggable={false}
+            className="gaya-amp-shadow"
+          />
+        )}
         <Image
-          src={shadowOf(item.id)}
-          alt=""
-          width={967}
-          height={1224}
-          unoptimized
-          loading={loading}
-          draggable={false}
-          className="gaya-amp-shadow"
-        />
-        <Image
-          src={garment(item.id)}
+          src={garment(item)}
           alt=""
           width={687}
           height={944}
@@ -368,7 +365,7 @@ function Shoe({
             style={rock ? { animationName: `gaya-rock${rock % 2}` } : undefined}
           >
             <Image
-              src={imageOf(item.id)}
+              src={artOf(item)}
               alt=""
               width={804}
               height={500}
@@ -446,7 +443,7 @@ function Tag({
         <X size={16} aria-hidden="true" />
       </button>
       <p className="gaya-amp-brand">
-        GAYA <span>{numberOf(item)}</span>
+        GAYA <span>No. {String(numberOf(item)).padStart(2, '0')}</span>
       </p>
       <h2 className="gaya-amp-name">{item.name}</h2>
       <p className="gaya-amp-colour">{item.colour}</p>
@@ -506,6 +503,7 @@ function Tag({
 }
 
 export default function ShopAll() {
+  const [TOPS, BOTTOMS, SHOES] = useLists();
   const scene = useRef<HTMLDivElement>(null);
   const tagBox = useRef<HTMLDivElement>(null);
   const shoesRow = useRef<HTMLDivElement>(null);

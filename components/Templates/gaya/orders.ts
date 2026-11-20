@@ -9,6 +9,7 @@ import {
   type FailReason,
   type PayMethod,
 } from '@components/Templates/pay/data';
+import { useCatalogue } from './catalogue';
 import { deliveryFee, startingStock, type DeliveryId } from './data';
 
 export interface Details {
@@ -55,6 +56,7 @@ export interface Order {
     ref?: string;
     reason?: FailReason;
   };
+  shipped?: { at: number; tracking: string };
 }
 
 export function totalsFor(lines: BagLine[], deliveryId: DeliveryId) {
@@ -73,6 +75,8 @@ interface OrderState {
   retryPayment: (id: string) => void;
   markPaid: (id: string, detail: string) => void;
   markFailed: (id: string, reason: FailReason, detail?: string) => void;
+  markShipped: (id: string, tracking: string) => void;
+  reset: () => void;
 }
 
 export const useOrders = create<OrderState>()(
@@ -149,6 +153,15 @@ export const useOrders = create<OrderState>()(
                 }
               : order
           ),
+
+        markShipped: (id, tracking) =>
+          update(id, (order) =>
+            TAKES_STOCK.includes(order.status) && !order.shipped
+              ? { ...order, shipped: { at: Date.now(), tracking } }
+              : order
+          ),
+
+        reset: () => set({ orders: [], details: null }),
       };
     },
     {
@@ -176,17 +189,30 @@ export function useOrdersReady() {
   );
 }
 
-const TAKES_STOCK: OrderStatus[] = ['paid', 'cod_pending'];
+export const TAKES_STOCK: OrderStatus[] = ['paid', 'cod_pending'];
 
-/** Units left of a bag line key, after this browser's confirmed orders. */
+export function soldOf(orders: Order[]) {
+  const sold: Record<string, number> = {};
+  for (const order of orders)
+    if (TAKES_STOCK.includes(order.status))
+      for (const line of order.lines)
+        sold[line.key] = (sold[line.key] ?? 0) + line.qty;
+  return sold;
+}
+
+/** Units left of a bag line key, after the owner's counts and this browser's confirmed orders. */
 export function useStockLeft() {
   const orders = useOrders((state) => state.orders);
+  const counts = useCatalogue((state) => state.stock);
   return useMemo(() => {
-    const sold: Record<string, number> = {};
-    for (const order of orders)
-      if (TAKES_STOCK.includes(order.status))
-        for (const line of order.lines)
-          sold[line.key] = (sold[line.key] ?? 0) + line.qty;
-    return (key: string) => Math.max(0, startingStock(key) - (sold[key] ?? 0));
-  }, [orders]);
+    const sold = soldOf(orders);
+    return (key: string) => {
+      const count = counts[key];
+      const n = sold[key] ?? 0;
+      return Math.max(
+        0,
+        count ? count.qty - Math.max(0, n - count.base) : startingStock(key) - n
+      );
+    };
+  }, [orders, counts]);
 }

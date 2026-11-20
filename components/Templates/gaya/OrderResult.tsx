@@ -126,6 +126,12 @@ function Success({ order }: { order: Order }) {
       <Link href={BASE_PATH} className="gaya-btn gaya-done-btn">
         Continue shopping
       </Link>
+      <Link
+        href={`${BASE_PATH}/admin?order=${order.id}`}
+        className="gaya-done-alt block w-fit"
+      >
+        See this order in the admin portal
+      </Link>
     </Layout>
   );
 }

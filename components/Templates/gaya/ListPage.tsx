@@ -6,15 +6,15 @@ import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { rm } from '@components/Templates/Bag';
 import {
+  artOf,
   BASE_PATH,
   hrefOf,
-  imageOf,
-  listBySlug,
-  shadowOf,
+  shadowFor,
   typeOf,
   type Item,
   type ListSlug,
 } from './data';
+import { useLists } from './catalogue';
 import { useGarment } from './garment';
 
 const SORTS = [
@@ -32,17 +32,19 @@ function Rails({ items }: { items: Item[] }) {
           <Link key={item.id} href={hrefOf(item)} className="gaya-rail-cell">
             <span className="gaya-rail-hang" aria-hidden="true">
               <span className="gaya-rail-swing">
+                {shadowFor(item) && (
+                  <Image
+                    src={shadowFor(item)!}
+                    alt=""
+                    width={967}
+                    height={1224}
+                    unoptimized
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    className="gaya-rail-shadow"
+                  />
+                )}
                 <Image
-                  src={shadowOf(item.id)}
-                  alt=""
-                  width={967}
-                  height={1224}
-                  unoptimized
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                  className="gaya-rail-shadow"
-                />
-                <Image
-                  src={garment(item.id)}
+                  src={garment(item)}
                   alt=""
                   width={687}
                   height={944}
@@ -72,7 +74,7 @@ function Rak({ items }: { items: Item[] }) {
           <Link key={item.id} href={hrefOf(item)} className="gaya-rak-slot">
             <span className="gaya-rak-contact" aria-hidden="true" />
             <Image
-              src={imageOf(item.id)}
+              src={artOf(item)}
               alt=""
               width={804}
               height={500}
@@ -95,7 +97,7 @@ function Rak({ items }: { items: Item[] }) {
 }
 
 export default function ListPage({ slug }: { slug: ListSlug }) {
-  const list = listBySlug(slug);
+  const list = useLists().find((other) => other.slug === slug)!;
   const types = [...new Set(list.items.map(typeOf).filter(Boolean))];
   const [type, setType] = useState('All');
   const [sort, setSort] = useState('new');

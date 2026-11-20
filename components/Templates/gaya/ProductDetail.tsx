@@ -16,8 +16,6 @@ import {
   bagProduct,
   FREE_POSTAGE_AT,
   hrefOf,
-  imageOf,
-  ITEMS,
   listHref,
   listOf,
   LOW_STOCK,
@@ -25,6 +23,7 @@ import {
   variantOf,
   type Item,
 } from './data';
+import { useItem, useItems } from './catalogue';
 import { useGarment } from './garment';
 import { useStockLeft } from './orders';
 import {
@@ -101,7 +100,7 @@ export function Sheet({
         <div ref={frame} className="gaya-p2-frame">
           <div className="gaya-p2-art">
             <Image
-              src={shoe ? imageOf(item.id) : garment(item.id)}
+              src={garment(item)}
               alt={`${item.name}, ${item.colour}`}
               fill
               priority
@@ -229,7 +228,9 @@ export function Sheet({
 
 const MAX_QTY = 10;
 
-export default function ProductDetail({ item }: { item: Item }) {
+export default function ProductDetail({ item: base }: { item: Item }) {
+  const item = useItem(base);
+  const items = useItems();
   const { add, lines } = useBag();
   const stockLeft = useStockLeft();
   const [size, setSize] = useState<string | null>(null);
@@ -244,7 +245,7 @@ export default function ProductDetail({ item }: { item: Item }) {
   const shoe = item.kind === 'shoes';
   const spec = specOf(item);
   const word = shoe ? 'Size (EU)' : sizeWord(item);
-  const more = ITEMS.filter(
+  const more = items.filter(
     (other) => other.category === item.category && other.id !== item.id
   ).slice(0, 5);
 
@@ -445,7 +446,7 @@ export default function ProductDetail({ item }: { item: Item }) {
               >
                 <Link href={hrefOf(other)} className="block">
                   <Figure
-                    id={other.id}
+                    item={other}
                     alt={`${other.name}, ${other.colour}`}
                     sizes="176px"
                   />

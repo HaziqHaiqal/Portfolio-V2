@@ -1107,7 +1107,7 @@ export function packageOfTemplate(template: {
 const TEMPLATE_BUILD_CHANGES: Record<string, { name: string; price: number }[]> =
   {
     gaya: [
-      { name: 'Admin portal, sold as an add-on', price: -4000 },
+      { name: 'Photo upload with automatic cut-out', price: 1000 },
       { name: 'Photo-real ampaian shop scene', price: 2000 },
       { name: 'Measurement sheet for every piece and size', price: 1200 },
       { name: 'Rail and shoe rack list pages', price: 800 },
@@ -1169,7 +1169,7 @@ const AI_CHATBOT: TemplateAddOn = {
   name: 'AI chatbot',
   description:
     "Answers customers' questions about your prices, hours and services, day and night, and hands over to WhatsApp. Works like Spooky, the bot on this site.",
-  price: 800,
+  price: 500,
   ai: true,
 };
 
@@ -1182,15 +1182,15 @@ const LANGUAGES = {
 
 // Store templates are for small shops, so they keep small-shop add-on prices.
 const STORE_TEMPLATE_PRICES: Record<string, number> = {
-  accounts: 1200,
-  shipping: 1500,
-  loyalty: 1800,
-  reviews: 800,
-  languages: 1000,
-  reports: 1200,
-  alerts: 500,
-  'ai-shopping': 1800,
-  'ai-assistant': 1500,
+  accounts: 800,
+  shipping: 1200,
+  loyalty: 1000,
+  reviews: 500,
+  languages: 400,
+  reports: 600,
+  alerts: 300,
+  'ai-shopping': 1200,
+  'ai-assistant': 1000,
 };
 
 const STORE_ADD_ONS = (
@@ -1206,7 +1206,7 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       id: 'cms',
       name: 'Content editor (CMS)',
       description: 'Change your text, photos and prices yourself.',
-      price: 400,
+      price: 300,
     },
     {
       id: 'chat',
@@ -1215,7 +1215,7 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
         'Orders or bookings sent to your WhatsApp or Telegram. You confirm each one.',
       price: 300,
     },
-    { ...LANGUAGES, price: 300 },
+    { ...LANGUAGES, price: 200 },
     AI_CHATBOT,
   ],
   business: [
@@ -1226,8 +1226,8 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       price: 150,
       perPage: true,
     },
-    { ...LANGUAGES, price: 400 },
-    ONLINE_PAYMENT,
+    { ...LANGUAGES, price: 300 },
+    { ...ONLINE_PAYMENT, price: 700 },
     {
       id: 'content',
       name: 'Products or projects added for you',
@@ -1241,32 +1241,22 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
       id: 'page-editor',
       name: 'Content editor for banners and pages',
       description: 'Change your home banners, photos and page text yourself.',
-      price: 800,
+      price: 500,
     },
     // The template already loads 50 products, so the import add-on is left out.
     ...STORE_ADD_ONS.filter((item) => item.id !== 'import'),
   ],
 };
 
-const ADMIN_PORTAL = 'admin-portal';
-const LIVES_IN_ADMIN = ['page-editor', 'shipping', 'reports'];
-
-// Designs whose demo leaves out parts of their package sell those parts here.
+// Add-ons only one design needs, listed before its package's add-ons.
 const TEMPLATE_OWN_ADD_ONS: Record<string, TemplateAddOn[]> = {
   gaya: [
     {
       id: 'catalogue',
-      name: 'Additional product catalogue',
+      name: 'Extra products added for you',
       description:
-        'More products and categories beyond the 18 in the demo, each with sizes, stock and its own measurement sheet.',
-      price: 1500,
-    },
-    {
-      id: ADMIN_PORTAL,
-      name: 'Admin portal',
-      description:
-        'Add and edit products, see orders and payments, and make discount codes.',
-      price: 2500,
+        'Up to 20 more products, each cut out, hung on the line and measured.',
+      price: 800,
     },
   ],
 };
@@ -1278,16 +1268,7 @@ export function templateAddOnsOf(template: {
 }): TemplateAddOn[] {
   const base = TEMPLATE_ADD_ONS[packageOfTemplate(template).bundle.id] ?? [];
   const own = template.slug ? TEMPLATE_OWN_ADD_ONS[template.slug] : undefined;
-  if (!own) return base;
-  const sellsAdmin = own.some((item) => item.id === ADMIN_PORTAL);
-  return [
-    ...own,
-    ...base.map((item) =>
-      sellsAdmin && LIVES_IN_ADMIN.includes(item.id)
-        ? { ...item, requires: ADMIN_PORTAL }
-        : item
-    ),
-  ];
+  return own ? [...own, ...base] : base;
 }
 
 export const TAKEOVER = {

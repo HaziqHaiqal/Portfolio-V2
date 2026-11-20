@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import ProductDetail from '@components/Templates/gaya/ProductDetail';
+import LocalProduct from '@components/Templates/gaya/LocalProduct';
 import { findBySlug, ITEMS, slugOf } from '@components/Templates/gaya/data';
 
 export function generateStaticParams() {
@@ -24,6 +24,5 @@ export default async function GayaProduct({
 }) {
   const { slug } = await params;
   const item = findBySlug(slug);
-  if (!item) notFound();
-  return <ProductDetail item={item} />;
+  return item ? <ProductDetail item={item} /> : <LocalProduct slug={slug} />;
 }

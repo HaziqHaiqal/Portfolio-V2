@@ -2719,3 +2719,319 @@
     gap: 2px;
   }
 }
+
+/* Admin portal */
+
+.gaya-adm {
+  min-height: calc(100svh - var(--demo-bar, 0px));
+  background: rgb(var(--tpl-bg));
+  color: rgb(var(--tpl-ink));
+}
+
+.gaya-adm-in {
+  max-width: 86rem;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 3vw, 32px);
+}
+
+.gaya-adm-head {
+  border-bottom: 1px solid rgb(var(--tpl-line));
+}
+
+.gaya-adm-head .gaya-adm-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 40px;
+  min-height: 68px;
+  padding-top: 14px;
+}
+
+@media (min-width: 768px) {
+  .gaya-adm-head .gaya-adm-in {
+    padding-top: 0;
+  }
+}
+
+.gaya-adm-tabs {
+  display: flex;
+  gap: 28px;
+  font-size: 15px;
+}
+
+.gaya-adm-tabs a {
+  padding: 22px 0 20px;
+  border-bottom: 2px solid transparent;
+  color: rgb(var(--tpl-ink) / 0.7);
+}
+
+.gaya-adm-tabs a[aria-current='page'] {
+  border-bottom-color: rgb(var(--tpl-ink));
+  color: rgb(var(--tpl-ink));
+  font-weight: 600;
+}
+
+.gaya-adm-title {
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.gaya-adm-sub {
+  margin-top: 14px;
+  font-size: 16px;
+  color: rgb(var(--tpl-ink) / 0.72);
+}
+
+.gaya-adm-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gaya-adm-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--tpl-ink) / 0.28);
+  border-radius: 2px;
+  background: rgb(var(--tpl-surface));
+  color: rgb(var(--tpl-ink));
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+textarea.gaya-adm-input {
+  height: auto;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.gaya-adm-input:focus {
+  border-color: rgb(var(--tpl-ink));
+  box-shadow: inset 0 0 0 1px rgb(var(--tpl-ink));
+}
+
+.gaya-adm-input[aria-invalid='true'] {
+  border-color: rgb(var(--gaya-error));
+}
+
+.gaya-adm-input.is-small {
+  height: 38px;
+  padding: 0 10px;
+}
+
+.gaya-adm-err {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: rgb(var(--gaya-error));
+}
+
+.gaya-adm-note {
+  font-size: 13px;
+  color: rgb(var(--tpl-ink) / 0.7);
+}
+
+.gaya-adm-seg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gaya-adm-seg button,
+.gaya-adm-ghost {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgb(var(--tpl-ink) / 0.28);
+  border-radius: 2px;
+  background: rgb(var(--tpl-surface));
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.gaya-adm-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-color: rgb(var(--tpl-ink));
+  background: transparent;
+}
+
+.gaya-adm-seg button[aria-pressed='true'] {
+  border-color: rgb(var(--tpl-accent));
+  background: rgb(var(--tpl-accent));
+  color: rgb(var(--tpl-on-accent));
+}
+
+.gaya-adm-cell {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(var(--tpl-ink) / 0.28);
+  border-radius: 2px;
+  background: rgb(var(--tpl-surface));
+}
+
+.gaya-adm-cell:focus-within {
+  border-color: rgb(var(--tpl-ink));
+  box-shadow: inset 0 0 0 1px rgb(var(--tpl-ink));
+}
+
+.gaya-adm-cell > span:first-child {
+  padding: 6px 10px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--tpl-ink) / 0.7);
+}
+
+.gaya-adm-cell input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px 4px;
+  border: 0;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 600;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.gaya-adm-cell input::placeholder {
+  color: rgb(var(--tpl-ink) / 0.35);
+  font-weight: 500;
+}
+
+.gaya-adm-link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.gaya-adm-wall {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      70% 80% at 30% 0%,
+      rgb(var(--gaya-glow) / 0.9),
+      rgb(var(--gaya-glow) / 0) 70%
+    ),
+    linear-gradient(rgb(var(--gaya-wall-hi)), rgb(var(--gaya-wall-lo)));
+}
+
+.gaya-adm-wall .gaya-amp-rope {
+  z-index: 1;
+}
+
+.gaya-adm-piece {
+  position: absolute;
+  mix-blend-mode: multiply;
+}
+
+.gaya-adm-piece img {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+.gaya-adm-piece .gaya-adm-cloth {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.gaya-adm-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background: linear-gradient(
+    rgb(var(--gaya-floor-far)),
+    rgb(var(--gaya-floor))
+  );
+  border-top: 1px solid rgb(var(--gaya-floor-edge) / 0.5);
+}
+
+.gaya-adm-shoe {
+  position: absolute;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 6px 4px rgb(var(--gaya-shade) / 0.25));
+}
+
+.gaya-root[data-palette='malam'] .gaya-adm-piece {
+  mix-blend-mode: normal;
+}
+
+.gaya-root[data-palette='malam'] .gaya-adm-piece .gaya-adm-shadow {
+  display: none;
+}
+
+.gaya-root[data-palette='malam'] .gaya-adm-piece .gaya-adm-cloth {
+  filter: drop-shadow(10px 16px 14px rgb(0 0 0 / 0.5));
+}
+
+.gaya-adm-drop {
+  border: 1.5px dashed rgb(var(--tpl-ink) / 0.4);
+}
+
+.gaya-adm-drop[data-over='true'] {
+  border-color: rgb(var(--tpl-ink));
+  background-color: rgb(var(--tpl-ink) / 0.04);
+}
+
+.gaya-adm-stat {
+  padding: 18px 20px 20px 0;
+}
+
+.gaya-adm-stat dd {
+  margin-top: 6px;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.gaya-adm-stat dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--tpl-ink) / 0.7);
+}
+
+@keyframes gaya-adm-busy {
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.gaya-adm-busy {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(var(--tpl-ink) / 0.12);
+}
+
+.gaya-adm-busy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: rgb(var(--tpl-ink));
+  transform: translateX(-100%);
+  animation: gaya-adm-busy 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaya-adm-busy::after {
+    animation-duration: 3s;
+  }
+}

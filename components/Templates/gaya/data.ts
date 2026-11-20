@@ -1,4 +1,5 @@
 import type { BagProduct } from '@components/Templates/Bag';
+import type { Drawing } from './sheet';
 
 export const SLUG = 'gaya';
 export const BRAND = 'Gaya';
@@ -66,6 +67,21 @@ export const DEMO_DETAILS = {
 export type Kind = 'clothes' | 'shoes';
 export type Category = 'Tops' | 'Outerwear' | 'Bottoms' | 'Shoes';
 
+/** Pictures of a piece the owner added: the hung cut-out, its wall shadow and a bag thumbnail. */
+export interface OwnImages {
+  cut: string;
+  shadow?: string;
+  thumb: string;
+}
+
+/** Measurements typed in the admin portal, drawn on lines found from the cut-out. */
+export interface OwnSpec {
+  fabric: string;
+  fit: string;
+  draw: Drawing;
+  cm: Record<string, [number, number]>;
+}
+
 export interface Item {
   id: string;
   kind: Kind;
@@ -75,11 +91,15 @@ export interface Item {
   price: number;
   sizes: string[];
   details: string;
+  slug?: string;
+  no?: number;
+  images?: OwnImages;
+  spec?: OwnSpec;
 }
 
-const TOP_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
-const WAIST_SIZES = ['28', '30', '32', '34', '36'];
-const SHOE_SIZES = ['39', '40', '41', '42', '43', '44', '45'];
+export const TOP_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+export const WAIST_SIZES = ['28', '30', '32', '34', '36'];
+export const SHOE_SIZES = ['39', '40', '41', '42', '43', '44', '45'];
 
 const top = (
   id: string,
@@ -286,7 +306,8 @@ const TYPES: Record<string, string> = {
   'cargo-khaki': 'Trousers',
   'shorts-black': 'Shorts',
 };
-export const typeOf = (item: Item) => TYPES[item.id] ?? '';
+export const typeOf = (item: Item) =>
+  TYPES[item.id] ?? (item.category === 'Outerwear' ? 'Jackets' : '');
 
 export type ListSlug = 'tops' | 'bottoms' | 'shoes';
 export interface List {
@@ -312,18 +333,29 @@ export const LISTS: List[] = [
 ];
 export const listBySlug = (slug: ListSlug) =>
   LISTS.find((list) => list.slug === slug)!;
-export const listOf = (item: Item) =>
-  LISTS.find((list) => list.items.some((other) => other.id === item.id))!;
+export const listSlugOf = (item: Pick<Item, 'kind' | 'category'>): ListSlug =>
+  item.kind === 'shoes'
+    ? 'shoes'
+    : item.category === 'Bottoms'
+      ? 'bottoms'
+      : 'tops';
+export const listOf = (item: Item) => listBySlug(listSlugOf(item));
 export const listHref = (slug: ListSlug) => `${BASE_PATH}/${slug}`;
 
-export const slugOf = (item: Item) =>
-  `${item.name} ${item.colour}`
+export const slugify = (text: string) =>
+  text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
+export const slugOf = (item: Item) =>
+  item.slug ?? slugify(`${item.name} ${item.colour}`);
 export const hrefOf = (item: Item) => `${BASE_PATH}/product/${slugOf(item)}`;
 export const findBySlug = (slug: string) =>
   ITEMS.find((item) => slugOf(item) === slug);
+
+/** Catalogue number on tags and sheets: added pieces continue after the demo ones. */
+export const numberOf = (item: Item) =>
+  item.no ?? ITEMS.findIndex((other) => other.id === item.id) + 1;
 
 export const imageOf = (id: string) =>
   `/templates/${SLUG}/${id.startsWith('shoe-') ? 'shoes' : 'clothes'}/${id}.webp`;
@@ -333,6 +365,13 @@ export const cutOf = (id: string) => `/templates/${SLUG}/ampaian/cut/${id}.webp`
 export const DARK_PALETTE = 'malam';
 export const shadowOf = (id: string) =>
   `/templates/${SLUG}/ampaian/sh/${id}.webp`;
+
+/** The hung cut-out of a garment, or the side-on picture of a shoe. */
+export const artOf = (item: Item) =>
+  item.images?.cut ??
+  (item.kind === 'shoes' ? imageOf(item.id) : cutOf(item.id));
+export const shadowFor = (item: Item) =>
+  item.images ? item.images.shadow : shadowOf(item.id);
 
 export const variantOf = (item: Item, size: string) =>
   item.kind === 'shoes'
@@ -359,6 +398,6 @@ export const bagProduct = (item: Item): BagProduct => ({
   id: item.id,
   name: `${item.name}, ${item.colour}`,
   price: item.price,
-  image: imageOf(item.id),
-  fit: item.kind === 'shoes' ? 'contain' : undefined,
+  image: item.images?.thumb ?? imageOf(item.id),
+  fit: item.kind === 'shoes' || item.images ? 'contain' : undefined,
 });

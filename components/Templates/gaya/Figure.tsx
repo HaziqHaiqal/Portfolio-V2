@@ -1,17 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { imageOf } from './data';
+import type { Item } from './data';
 import { useDark, useGarment } from './garment';
 
 export default function Figure({
-  id,
+  item,
   alt,
   sizes,
   priority = false,
   className = '',
 }: {
-  id: string;
+  item: Item;
   alt: string;
   sizes: string;
   priority?: boolean;
@@ -19,12 +19,12 @@ export default function Figure({
 }) {
   const garment = useGarment();
   const dark = useDark();
-  const shoe = id.startsWith('shoe-');
+  const shoe = item.kind === 'shoes';
   const ratio = shoe ? 'aspect-[804/500]' : 'aspect-[687/944]';
   return (
     <span className={`relative block ${ratio} ${className}`}>
       <Image
-        src={shoe ? imageOf(id) : garment(id)}
+        src={garment(item)}
         alt={alt}
         fill
         sizes={sizes}
