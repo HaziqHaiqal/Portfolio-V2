@@ -64,7 +64,6 @@ const LINE_NAME: Record<ListSlug, string> = {
   shoes: 'Shoes',
 };
 
-// Stand-ins until phone-style sample photos are made.
 const SAMPLES: Record<
   ListSlug,
   {
@@ -79,37 +78,37 @@ const SAMPLES: Record<
   }
 > = {
   tops: {
-    src: `${BASE_PATH}/clothes/chore-indigo.webp`,
+    src: `${BASE_PATH}/samples/overshirt-navy.jpg`,
     category: 'Outerwear',
-    name: 'Work Jacket',
-    colour: 'Indigo',
-    price: '229',
-    fabric: '12 oz cotton twill',
-    fit: 'Relaxed',
-    details:
-      'A square work jacket in washed cotton twill, with three patch pockets and corozo buttons.',
-  },
-  bottoms: {
-    src: `${BASE_PATH}/clothes/cargo-khaki.webp`,
-    category: 'Bottoms',
-    name: 'Field Cargo',
-    colour: 'Khaki',
-    price: '169',
-    fabric: 'Cotton ripstop',
-    fit: 'Straight',
-    details:
-      'Straight cargo trousers in cotton ripstop, with bellows pockets and a drawcord hem.',
-  },
-  shoes: {
-    src: `${BASE_PATH}/shoes/shoe-hi-navy.webp`,
-    category: 'Shoes',
-    name: 'Canvas High',
+    name: 'Pocket Overshirt',
     colour: 'Navy',
     price: '189',
-    fabric: 'Cotton canvas, rubber sole',
+    fabric: 'Brushed cotton twill',
+    fit: 'Relaxed',
+    details:
+      'A navy overshirt in brushed cotton twill, with two chest pockets. Wear it buttoned or open over a tee.',
+  },
+  bottoms: {
+    src: `${BASE_PATH}/samples/chino-sand.jpg`,
+    category: 'Bottoms',
+    name: 'Slim Chino',
+    colour: 'Sand',
+    price: '149',
+    fabric: 'Stretch cotton twill',
+    fit: 'Slim',
+    details:
+      'Slim chinos in stretch cotton twill, with a clean flat front and a hem you can roll.',
+  },
+  shoes: {
+    src: `${BASE_PATH}/samples/sneaker-white.jpg`,
+    category: 'Shoes',
+    name: 'Everyday Low',
+    colour: 'White',
+    price: '259',
+    fabric: 'Full-grain leather, rubber cupsole',
     fit: 'True to size',
     details:
-      'A high-top in heavy cotton canvas on a vulcanised rubber sole, with a padded collar.',
+      'A low-top in soft full-grain leather on a stitched rubber cupsole. Goes with everything.',
   },
 };
 
