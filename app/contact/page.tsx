@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: 'Contact | Haziq Haiqal',
   description:
     'Get in touch on WhatsApp, email or phone about a website, system, app or automation project.',
+  alternates: { canonical: '/contact' },
 };
 
 export default async function ContactPage() {

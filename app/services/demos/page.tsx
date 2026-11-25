@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: 'Live demos | Haziq Haiqal',
   description:
     'Try every website template and online store demo before you buy.',
+  alternates: { canonical: '/services/demos' },
 };
 
 export default async function DemosPage() {

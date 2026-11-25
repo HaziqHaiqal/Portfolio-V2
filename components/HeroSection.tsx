@@ -243,8 +243,8 @@ const HeroSection = ({ profile }: HeroSectionProps) => {
               className={`mb-4 text-5xl font-black text-gray-900 dark:text-gray-100 md:text-7xl`}
             >
               Hi, I&apos;m{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {'Haziq'}
+              <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {'Haziq Haiqal'}
               </span>
             </h1>
           </div>

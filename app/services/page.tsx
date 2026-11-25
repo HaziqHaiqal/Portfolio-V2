@@ -18,6 +18,7 @@ import {
 } from '@constants/services';
 import { SERVICE_FAQ } from '@constants/faq';
 import { SITE_URL } from '@lib/site';
+import { PERSON_ID } from '@lib/seo';
 import { DEFAULT_CONTACT } from '@constants/contact';
 import { themeClasses } from '@constants/theme';
 import { PAGE_ACCENTS } from '@constants/colors';
@@ -65,6 +66,7 @@ const JSON_LD = {
   '@type': 'ProfessionalService',
   name: 'Haziq Haiqal',
   url: `${SITE_URL}/services`,
+  founder: { '@id': PERSON_ID },
   description: DESCRIPTION,
   areaServed: { '@type': 'Country', name: 'Malaysia' },
   priceRange: `${FROM}+`,

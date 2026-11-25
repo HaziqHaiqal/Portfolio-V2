@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Projects | Haziq Haiqal',
   description:
     'Websites, apps and systems, from client projects to personal builds.',
+  alternates: { canonical: '/projects' },
 };
 
 export default async function ProjectsPage() {
