@@ -45,6 +45,9 @@ const costs = (bundle: Bundle) =>
   `${bundle.name} ${bundle.from ? 'starts from' : 'is'} ${formatRM(bundle.price)}`;
 const both = (tier: CareTier) =>
   `${carePrice(tier)} or ${carePrice(tier, 'yearly')}`;
+const APP_PRICE = MOBILE_APPS.quote?.from
+  ? `from ${formatRM(MOBILE_APPS.quote.from)}`
+  : 'free quote per project';
 const yearOf = (date?: string) => (date ? date.slice(0, 4) : '');
 const points = (items: string[]) => items.map((item) => `• ${item}`).join('\n');
 const lines = (...parts: string[]) => parts.filter(Boolean).join('\n');
@@ -72,7 +75,6 @@ const SYSTEM_PHRASES: Record<string, string[]> = {
   'qr-ordering': ['qr', 'qr ordering', 'food ordering', 'restaurant ordering'],
   inventory: ['inventory', 'stock'],
   invoicing: ['invoice', 'invoicing', 'quotation', 'e-invoice', 'myinvois'],
-  hr: ['hr', 'leave', 'payroll', 'claims', 'attendance', 'cuti'],
   crm: [
     'crm',
     'leads',
@@ -255,7 +257,7 @@ export function buildTopics(
             ? [`Ready-made templates: from ${cheapestTemplate}`]
             : []),
           `Custom systems: from ${formatRM(CUSTOM_SYSTEM.price)}`,
-          'Mobile apps: free quote per project',
+          `Mobile apps: ${APP_PRICE}`,
           `Automation: from ${lowest(AUTOMATION.bundles)}`,
         ]),
         `Maintenance is separate, from ${carePrice(CARE.starter)}. Type whatsapp for a free quote 😊`
@@ -342,6 +344,7 @@ export function buildTopics(
       ],
       answer: lines(
         'Yep, Haziq builds Android and iOS apps!',
+        `Apps start ${APP_PRICE}.`,
         'Every app is different, so each one gets its own quote. It is free, with a written scope and a fixed price before any work starts. Describe your idea on the Services page or just type whatsapp.',
         MOBILE_APPS.note ?? ''
       ),
@@ -501,8 +504,8 @@ export function buildTopics(
         `${name} can help you with:`,
         points([
           `Websites: from ${formatRM(starter.price)}`,
-          `Custom systems like online stores, booking and HR: from ${formatRM(CUSTOM_SYSTEM.price)}`,
-          'Mobile apps: free quote per project',
+          `Custom systems like online stores, booking and inventory: from ${formatRM(CUSTOM_SYSTEM.price)}`,
+          `Mobile apps: ${APP_PRICE}`,
           `Automations: from ${lowest(AUTOMATION.bundles)}`,
           `Maintenance after launch: from ${carePrice(CARE.starter)}`,
         ]),

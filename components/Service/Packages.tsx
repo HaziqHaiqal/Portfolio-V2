@@ -17,7 +17,7 @@ import CardCarousel from './CardCarousel';
 import QuotePanel from './QuotePanel';
 import { BuildPrice, MaintenanceLine, OUTLINE, QuoteLink } from './PriceParts';
 import { useServicePick } from './servicePick';
-import SystemBuilder from './SystemBuilder';
+import SystemBuilder, { type SystemDemos } from './SystemBuilder';
 
 function BundleCard({
   tab,
@@ -157,9 +157,11 @@ function BundleCard({
 export default function Packages({
   tab,
   whatsappHref,
+  systemDemos,
 }: {
   tab: PricingTab;
   whatsappHref: string;
+  systemDemos?: SystemDemos;
 }) {
   const hasRecommended = tab.bundles.some((bundle) => bundle.recommended);
   const custom = CUSTOM_BUILDS[tab.id];
@@ -193,7 +195,11 @@ export default function Packages({
   return (
     <div>
       {tab.layout === 'builder' ? (
-        <SystemBuilder tab={tab} whatsappHref={whatsappHref} />
+        <SystemBuilder
+          tab={tab}
+          whatsappHref={whatsappHref}
+          demos={systemDemos}
+        />
       ) : tab.layout === 'quote' ? (
         <QuotePanel tab={tab} whatsappHref={whatsappHref} />
       ) : tab.layout === 'bento' ? (
@@ -254,7 +260,11 @@ export default function Packages({
               Close
             </button>
           </div>
-          <SystemBuilder tab={custom.builder} whatsappHref={whatsappHref} />
+          <SystemBuilder
+            tab={custom.builder}
+            whatsappHref={whatsappHref}
+            demos={systemDemos}
+          />
         </div>
       )}
 

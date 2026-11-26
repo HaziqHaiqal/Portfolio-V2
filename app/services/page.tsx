@@ -11,8 +11,10 @@ import {
   CARE,
   carePrice,
   isStoreTemplate,
+  packageOfTemplate,
   PRICING_TABS,
   startingPriceOf,
+  SYSTEMS,
   TAKEOVER,
   WEBSITES,
 } from '@constants/services';
@@ -31,6 +33,7 @@ import ContactModal from '@components/Modal/ContactModal';
 import SplashScreen from '@components/Layout/SplashScreen';
 import SectionHeader from '@components/Common/SectionHeader';
 import Packages from '@components/Service/Packages';
+import type { SystemDemos } from '@components/Service/SystemBuilder';
 import ServiceTabs, { type ServiceTab } from '@components/Service/ServiceTabs';
 import TemplateGallery from '@components/Service/TemplateGallery';
 import FaqList from '@components/Service/FaqList';
@@ -47,7 +50,7 @@ const FROM = formatRM(
 );
 
 const TITLE = 'Services | Haziq Haiqal';
-const DESCRIPTION = `Ready-made and custom websites from ${FROM}, online stores, booking, inventory and HR systems, mobile apps and WhatsApp automation for Malaysian businesses. Clear prices and a free quote.`;
+const DESCRIPTION = `Ready-made and custom websites from ${FROM}, online stores, booking and inventory systems, mobile apps and WhatsApp automation for Malaysian businesses. Clear prices and a free quote.`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -122,6 +125,18 @@ export default async function ServicePage() {
   ]);
   const whatsappUrl = profile?.whatsapp_url || DEFAULT_CONTACT.whatsapp;
 
+  // A template built on a system doubles as that system's live demo.
+  const systemDemos: SystemDemos = {};
+  for (const template of templates) {
+    const { tab, bundle } = packageOfTemplate(template);
+    if (tab === SYSTEMS && template.demo_url && !systemDemos[bundle.id]) {
+      systemDemos[bundle.id] = {
+        slug: template.slug,
+        href: template.demo_url,
+      };
+    }
+  }
+
   const fromOf = (tab: (typeof PRICING_TABS)[number]) =>
     tab === WEBSITES
       ? Math.min(
@@ -139,8 +154,18 @@ export default async function ServicePage() {
       shortLabel: tab.shortLabel,
       tagline: tab.tagline,
       price:
-        tab.layout === 'quote' ? 'Free quote' : `From ${formatRM(fromOf(tab))}`,
-      panel: <Packages tab={tab} whatsappHref={whatsappUrl} />,
+        tab.layout === 'quote'
+          ? tab.quote?.from
+            ? `From ${formatRM(tab.quote.from)}`
+            : 'Free quote'
+          : `From ${formatRM(fromOf(tab))}`,
+      panel: (
+        <Packages
+          tab={tab}
+          whatsappHref={whatsappUrl}
+          systemDemos={systemDemos}
+        />
+      ),
     })),
     {
       id: MAINTENANCE_TAB,

@@ -23,6 +23,11 @@ import { useServicePick } from './servicePick';
 const BUTTON =
   'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4';
 export const SOLID = `${BUTTON} bg-green-600 text-white shadow-lg shadow-green-600/20 hover:-translate-y-0.5 hover:bg-green-700 focus-visible:ring-green-500/30`;
+/** The small worded button beside a card's Try it live button. */
+export const SIDE =
+  'inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-gray-300 px-4 text-sm font-semibold text-gray-800 transition-colors hover:border-green-500/60 hover:text-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 dark:border-gray-600 dark:text-gray-200 dark:hover:text-green-400';
+/** The main Try it live button on a card. */
+export const TRY = `${SOLID} min-w-0 flex-1 whitespace-nowrap text-base`;
 export const OUTLINE = `${BUTTON} border border-gray-300 text-gray-800 hover:border-green-500/60 hover:text-green-700 focus-visible:ring-green-500/20 dark:border-gray-600 dark:text-gray-200 dark:hover:text-green-400`;
 
 export const trackWhatsApp = (data: Record<string, string | number | null>) =>
@@ -149,8 +154,11 @@ export function QuoteLink({
   extras = [],
   language,
   solid = true,
+  plain = false,
   className = '',
 }: {
+  /** Words only, sized to sit beside Try it live. */
+  plain?: boolean;
   tab: PricingTab;
   bundle: Bundle;
   whatsappHref: string;
@@ -160,6 +168,11 @@ export function QuoteLink({
   className?: string;
 }) {
   const build = useBuildPrice(tab, bundle);
+  const label = bundle.from
+    ? 'Get a quote'
+    : plain
+      ? 'Order'
+      : 'Order on WhatsApp';
   const url = new URL(whatsappHref);
   url.searchParams.set(
     'text',
@@ -179,10 +192,10 @@ export function QuoteLink({
           features: extras.length,
         })
       }
-      className={`${solid ? SOLID : OUTLINE} ${className}`}
+      className={`${plain ? SIDE : solid ? SOLID : OUTLINE} ${className}`}
     >
-      <SiWhatsapp size={16} aria-hidden="true" />
-      {bundle.from ? 'Get a quote' : 'Order on WhatsApp'}
+      {!plain && <SiWhatsapp size={16} aria-hidden="true" />}
+      {label}
     </PromoLink>
   );
 }

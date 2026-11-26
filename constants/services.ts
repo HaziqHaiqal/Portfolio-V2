@@ -49,12 +49,12 @@ export const CARE: Record<CareId, CareTier> = {
   starter: {
     name: 'Starter',
     for: 'Starter website',
-    monthly: 30,
+    monthly: 50,
   },
   business: {
     name: 'Business',
     for: 'Business website',
-    monthly: 50,
+    monthly: 90,
   },
   store: { name: 'Store', for: 'Ready-made online store', monthly: 150 },
   system: {
@@ -67,7 +67,7 @@ export const CARE: Record<CareId, CareTier> = {
   automation: {
     name: 'Automation',
     for: 'Automation',
-    monthly: 100,
+    monthly: 50,
     from: true,
   },
 };
@@ -181,7 +181,13 @@ export interface PricingTab {
   monthly?: boolean;
   layout?: 'cards' | 'bento' | 'builder' | 'quote';
   /** For tabs quoted per project instead of packages. */
-  quote?: { includes: string[]; examples: string; placeholder: string };
+  quote?: {
+    /** A starting price shown before the free quote. */
+    from?: number;
+    includes: string[];
+    examples: string;
+    placeholder: string;
+  };
   others?: { name: string; summary: string; placeholder: string };
 }
 
@@ -193,6 +199,13 @@ const ONLINE_PAYMENT: AddOn = {
   name: 'Online payment',
   description: `A pay-now button for orders or bookings, by FPX, card or e-wallet. The gateway account is in your business name. ${GATEWAY_FEES}.`,
   price: 1000,
+};
+const GOOGLE_MAPS: AddOn = {
+  id: 'google-maps',
+  name: 'Google Maps setup',
+  description:
+    'The listing is free. I set it up with your hours, photos and website link, and get it verified for you.',
+  price: 150,
 };
 const PAGE_LIMITS = ['1-page website', 'Up to 6 pages'];
 
@@ -219,12 +232,13 @@ export const WEBSITES: PricingTab = {
         'Basic SEO',
       ],
       excludes: ['Content editor (CMS)', CHAT_INTEGRATION],
+      addOns: [GOOGLE_MAPS],
     },
     {
       id: 'business',
       name: 'Business',
       summary: 'A bigger website you edit yourself.',
-      price: 1700,
+      price: 2200,
       recommended: true,
       care: 'business',
       basedOn: 'starter',
@@ -239,6 +253,7 @@ export const WEBSITES: PricingTab = {
         'Basic CMS (text, photos and prices)',
         CHAT_INTEGRATION,
         'On-page SEO for every page',
+        'Google Maps setup',
       ],
       excludes: ['Order and stock management', 'Customer logins'],
       addOns: [ONLINE_PAYMENT],
@@ -613,64 +628,6 @@ export const SYSTEMS: PricingTab = {
       ],
     },
     {
-      id: 'hr',
-      shortName: 'HR & leave',
-      name: 'HR: leave, claims and attendance',
-      summary: 'Staff apply, managers approve, and every record is kept.',
-      price: 12900,
-      from: true,
-      care: 'system',
-      includes: [
-        'Staff profiles and sign-in',
-        'Leave applications with balances',
-        'Claims with receipt photos',
-        'One-tap approvals for managers',
-      ],
-      addOns: [
-        {
-          id: 'attendance',
-          name: 'Clock-in attendance',
-          description: 'Staff clock in from their phone, with location.',
-          price: 3500,
-        },
-        {
-          id: 'shifts',
-          name: 'Shift schedules',
-          description: 'Plan shifts and let staff see their roster.',
-          price: 3000,
-        },
-        {
-          id: 'payroll',
-          name: 'Payroll export',
-          description:
-            'Leave, claims and attendance exported each month to the payroll app you use.',
-          price: 1500,
-        },
-        {
-          id: 'branches',
-          name: 'Multiple branches',
-          description: 'Leave rules, holidays and managers per branch.',
-          price: 2000,
-        },
-        {
-          id: 'reports',
-          name: 'HR reports',
-          description: 'Leave, claims and attendance summaries, with exports.',
-          price: 2000,
-        },
-        alerts('a staff member applies for leave or submits a claim'),
-        {
-          id: 'ai-receipts',
-          name: 'AI receipt reading',
-          description:
-            'Claims fill in from the receipt photo, and duplicate or over-limit claims are flagged.',
-          price: 2500,
-          ai: true,
-        },
-        aiAssistant('2 leave requests are waiting for you'),
-      ],
-    },
-    {
       id: 'crm',
       shortName: 'Sales tracking',
       name: 'Customer and sales tracking',
@@ -927,7 +884,7 @@ export const SYSTEMS: PricingTab = {
   ],
 };
 
-const SYSTEM_CHOICES = 'Online store, booking, HR and more';
+const SYSTEM_CHOICES = 'Online store, booking, inventory and more';
 
 export const CUSTOM_SYSTEM: Bundle = {
   id: 'custom-system',
@@ -962,6 +919,7 @@ export const MOBILE_APPS: PricingTab = {
   note: 'Apple and Google charge you for the store accounts: USD 99 a year and USD 25 once.',
   bundles: [],
   quote: {
+    from: 12000,
     includes: [
       'Android and iOS',
       'App Store and Google Play publishing',
@@ -1283,7 +1241,7 @@ export const TAKEOVER = {
     {
       id: 'system',
       name: 'System or app',
-      summary: 'A booking, inventory or HR system, or a mobile app.',
+      summary: 'A booking, inventory or ordering system, or a mobile app.',
       check: 800,
       care: {
         name: 'Takeover',

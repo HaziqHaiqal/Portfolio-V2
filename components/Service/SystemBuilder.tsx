@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, PencilLine, Plus } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Check,
+  PencilLine,
+  PlayCircle,
+  Plus,
+} from 'lucide-react';
 import {
   type AddOn,
   AI_USAGE_FEES,
@@ -22,15 +28,22 @@ const PILL_ON =
   'border-green-500 bg-green-500/10 text-green-800 dark:border-green-400 dark:bg-green-400/10 dark:text-green-300';
 const PILL_OFF =
   'border-gray-300 bg-white/60 text-gray-700 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-300';
+const DEMO =
+  'mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-green-600 px-4 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30';
 const PANEL =
   'rounded-3xl border border-gray-200 bg-white/70 p-5 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-6';
+
+/** A live demo of a system, keyed by the system's id. */
+export type SystemDemos = Record<string, { slug: string; href: string }>;
 
 export default function SystemBuilder({
   tab,
   whatsappHref,
+  demos = {},
 }: {
   tab: PricingTab;
   whatsappHref: string;
+  demos?: SystemDemos;
 }) {
   const [systemId, setSystemId] = useState(tab.bundles[0].id);
   const [picked, setPicked] = useState<Record<string, string[]>>({});
@@ -71,7 +84,7 @@ export default function SystemBuilder({
     {
       id: 'addons',
       title: 'Add features',
-      note: 'Fixed prices. The final quote is confirmed after we talk.',
+      note: 'Estimated prices. The final quote is confirmed after we talk.',
       items: addOns.filter((item) => !item.ai),
     },
     {
@@ -204,6 +217,18 @@ export default function SystemBuilder({
               <p className="mt-1 text-gray-500 dark:text-gray-400">
                 {system.summary}
               </p>
+              {demos[system.id] && (
+                <a
+                  href={demos[system.id].href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={DEMO}
+                >
+                  <PlayCircle size={16} aria-hidden="true" />
+                  Try a live {system.name.toLowerCase()}
+                  <ArrowUpRight size={15} aria-hidden="true" />
+                </a>
+              )}
               <ul className="mt-5 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
                 {includesOf(system).map((item) => (
                   <li

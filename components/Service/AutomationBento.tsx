@@ -17,7 +17,7 @@ import {
 } from '@components/Templates/automation/Simulations';
 import CardCarousel from './CardCarousel';
 import DemoDialog from './DemoDialog';
-import { MaintenanceLine, QuoteLink } from './PriceParts';
+import { MaintenanceLine, QuoteLink, TRY } from './PriceParts';
 
 function Bubble({
   me = false,
@@ -163,64 +163,60 @@ function Tile({
   bundle,
   whatsappHref,
   onDemo,
+  wide = false,
 }: {
   tab: PricingTab;
   bundle: Bundle;
   whatsappHref: string;
   onDemo: () => void;
+  wide?: boolean;
 }) {
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/70 p-5 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-6">
-      <div className="flex items-baseline justify-between gap-4">
-        <h3 className="text-lg font-extrabold text-gray-900 dark:text-gray-100">
+    <article className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/70 p-3 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70">
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden="true"
+        onClick={onDemo}
+        className="flex min-h-48 cursor-pointer flex-col justify-center rounded-2xl bg-gray-100 p-5 text-left ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10"
+      >
+        {PREVIEWS[bundle.id]}
+      </button>
+
+      <div className="flex flex-1 flex-col px-3 pb-3 pt-4">
+        <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
           {bundle.name}
         </h3>
-        <p className="shrink-0 text-gray-900 dark:text-white">
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          {bundle.summary}
+        </p>
+        <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          {bundle.includes.join(' · ')}
+          {bundle.runningCost && <>. {bundle.runningCost}.</>}
+        </p>
+        <p className="mt-auto pt-4 text-gray-900 dark:text-white">
           {bundle.from && (
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
               from{' '}
             </span>
           )}
-          <span className="text-xl font-black tracking-tight">
+          <span className="text-2xl font-black tracking-tight">
             {formatRM(bundle.price)}
           </span>
         </p>
-      </div>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {bundle.summary}
-      </p>
-
-      <div
-        aria-hidden="true"
-        className="my-6 flex flex-1 flex-col justify-center"
-      >
-        {PREVIEWS[bundle.id]}
-      </div>
-
-      <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-        {bundle.includes.join(' · ')}
-      </p>
-      {bundle.runningCost && (
-        <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-          {bundle.runningCost}.
-        </p>
-      )}
-
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onDemo}
-          className="-ml-1 inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-semibold text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300"
+        <div
+          className={`mt-4 flex items-center gap-2 ${wide ? 'md:max-w-sm' : ''}`}
         >
-          <PlayCircle
-            size={16}
-            aria-hidden="true"
-            className="text-green-600 dark:text-green-400"
+          <button type="button" onClick={onDemo} className={TRY}>
+            <PlayCircle size={18} aria-hidden="true" />
+            Try it live
+          </button>
+          <QuoteLink
+            tab={tab}
+            bundle={bundle}
+            whatsappHref={whatsappHref}
+            plain
           />
-          Try it
-        </button>
-        <div className="w-40 shrink-0">
-          <QuoteLink tab={tab} bundle={bundle} whatsappHref={whatsappHref} />
         </div>
       </div>
     </article>
@@ -256,9 +252,10 @@ export default function AutomationBento({
         dotsClassName="md:hidden"
         centered
       >
-        {tiles.map(({ bundle }) => (
+        {tiles.map(({ bundle, wide }) => (
           <Tile
             key={bundle.id}
+            wide={wide}
             tab={tab}
             bundle={bundle}
             whatsappHref={whatsappHref}

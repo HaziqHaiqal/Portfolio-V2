@@ -5,12 +5,13 @@ import Link from 'next/link';
 import * as Select from '@radix-ui/react-select';
 import {
   ArrowRight,
-  ArrowUpRight,
   Check,
   ChevronDown,
   LayoutGrid,
   LayoutTemplate,
   List,
+  PlayCircle,
+  ShoppingCart,
 } from 'lucide-react';
 import type { WebsiteTemplate } from '@lib/supabase';
 import type { FeaturedDeal } from '@lib/data';
@@ -31,6 +32,7 @@ import UniversalImage from '@components/Media/UniversalImage';
 import { PromoPrice } from '@components/Promo/PromoParts';
 import TemplateOrder from './TemplateOrder';
 import CardCarousel from './CardCarousel';
+import { SIDE, TRY } from './PriceParts';
 
 const ALL = 'all';
 // Two rows on desktop; the page often opens scrolled to the gallery.
@@ -48,8 +50,6 @@ const PHOTO =
   'group relative block aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-gray-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/40 dark:bg-gray-900 dark:ring-white/10';
 const SECONDARY =
   'inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-gray-300 px-3 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/20 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500 dark:hover:bg-white/5';
-const PRIMARY =
-  'group/use inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-green-600 px-3 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30';
 
 function Meta({ template }: { template: WebsiteTemplate }) {
   const count = pageCount(template.pages);
@@ -141,43 +141,22 @@ function CardBody({
       )}
       <div
         className={`mt-auto ${
-          list
-            ? 'flex flex-col gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 sm:flex-row sm:items-end sm:justify-between'
-            : 'pt-3'
+          list ? 'border-t border-gray-200 pt-4 dark:border-gray-700' : 'pt-3'
         }`}
       >
-        <div>
-          <p className="flex flex-wrap items-baseline gap-x-2 text-2xl font-black tracking-tight text-gray-900 dark:text-white">
-            {price}
-          </p>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {priceNote}
-          </p>
-        </div>
+        <p className="flex flex-wrap items-baseline gap-x-2 text-2xl font-black tracking-tight text-gray-900 dark:text-white">
+          {price}
+        </p>
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          {priceNote}
+        </p>
         <div
-          className={
-            list
-              ? 'grid grid-cols-2 gap-2 sm:flex sm:[&>*]:px-5'
-              : 'mt-4 grid grid-cols-2 gap-2'
-          }
+          className={`mt-4 flex items-center gap-2 ${list ? 'sm:max-w-sm' : ''}`}
         >
           {actions}
         </div>
       </div>
     </div>
-  );
-}
-
-function PrimaryLabel({ children }: { children: ReactNode }) {
-  return (
-    <>
-      {children}
-      <ArrowRight
-        size={15}
-        aria-hidden="true"
-        className="hidden transition-transform group-hover/use:translate-x-0.5 min-[400px]:block"
-      />
-    </>
   );
 }
 
@@ -272,7 +251,7 @@ export default function TemplateGallery({
       >
         <a
           href={template.demo_url ?? undefined}
-          aria-label={`Open the ${template.name} live demo`}
+          aria-label={`Try the ${template.name} demo live`}
           className={`${PHOTO} ${layout === 'list' ? 'sm:w-72 sm:shrink-0 sm:self-start lg:w-80' : ''}`}
         >
           {offer && (
@@ -327,16 +306,18 @@ export default function TemplateGallery({
           priceNote={`${pkg.bundle.name} package, ready-made design`}
           actions={
             <>
-              <a href={template.demo_url ?? undefined} className={SECONDARY}>
-                Try it
-                <ArrowUpRight size={15} aria-hidden="true" />
+              <a href={template.demo_url ?? undefined} className={TRY}>
+                <PlayCircle size={18} aria-hidden="true" />
+                Try it live
               </a>
               <button
                 type="button"
                 onClick={() => setOrdering(template)}
-                className={PRIMARY}
+                aria-label={`Order ${template.name}`}
+                title="Order"
+                className={`${SIDE} w-12 !px-0`}
               >
-                <PrimaryLabel>Order</PrimaryLabel>
+                <ShoppingCart size={20} aria-hidden="true" />
               </button>
             </>
           }
