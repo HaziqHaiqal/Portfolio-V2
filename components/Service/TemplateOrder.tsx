@@ -1,8 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowUpRight, Check, LayoutTemplate, Minus, Plus } from 'lucide-react';
-import { SiWhatsapp } from 'react-icons/si';
+import {
+  ArrowUpRight,
+  Check,
+  LayoutTemplate,
+  Minus,
+  Plus,
+  ShoppingCart,
+} from 'lucide-react';
 import type { WebsiteTemplate } from '@lib/supabase';
 import {
   BUG_FIX_INCLUDE,
@@ -188,8 +194,8 @@ export default function TemplateOrder({
       }
       className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-green-600 text-sm font-semibold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/30 ${className}`}
     >
-      <SiWhatsapp size={16} aria-hidden="true" />
-      Order on WhatsApp
+      <ShoppingCart size={16} aria-hidden="true" />
+      Order now
     </a>
   );
 

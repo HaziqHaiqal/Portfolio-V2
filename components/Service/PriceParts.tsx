@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { track } from '@vercel/analytics';
+import { ShoppingCart } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   type AddOn,
@@ -168,11 +169,7 @@ export function QuoteLink({
   className?: string;
 }) {
   const build = useBuildPrice(tab, bundle);
-  const label = bundle.from
-    ? 'Get a quote'
-    : plain
-      ? 'Order'
-      : 'Order on WhatsApp';
+  const label = bundle.from ? 'Get a quote' : 'Order now';
   const url = new URL(whatsappHref);
   url.searchParams.set(
     'text',
@@ -194,7 +191,12 @@ export function QuoteLink({
       }
       className={`${plain ? SIDE : solid ? SOLID : OUTLINE} ${className}`}
     >
-      {!plain && <SiWhatsapp size={16} aria-hidden="true" />}
+      {!plain &&
+        (bundle.from ? (
+          <SiWhatsapp size={16} aria-hidden="true" />
+        ) : (
+          <ShoppingCart size={16} aria-hidden="true" />
+        ))}
       {label}
     </PromoLink>
   );
