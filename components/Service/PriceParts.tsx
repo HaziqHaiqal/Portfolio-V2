@@ -10,16 +10,16 @@ import {
   CARE,
   CARE_PLAN,
   CARE_YEARLY_SAVING,
+  careLabelOf,
+  carePerMonth,
   carePrice,
   type CareTier,
-  careYearly,
   type PricingTab,
 } from '@constants/services';
 import { formatRM } from '@lib/format';
 import { discountedPrice, promoAppliesTo } from '@lib/promo';
 import { usePromo } from '@components/Promo/PromoProvider';
 import { PromoLink } from '@components/Promo/PromoParts';
-import { useServicePick } from './servicePick';
 
 const BUTTON =
   'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4';
@@ -81,8 +81,6 @@ export function BuildPrice({
   );
 }
 
-export const MAINTENANCE_TAB = 'maintenance';
-
 export function SaveBadge() {
   return (
     <span className="inline-block whitespace-nowrap rounded-full bg-green-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -93,31 +91,20 @@ export function SaveBadge() {
 
 const STRONG = 'font-semibold text-gray-900 dark:text-gray-100';
 
+/** Maintenance shown the yearly way: the monthly price crossed out beside what yearly works out to. */
 export function CarePrices({ tier }: { tier: CareTier }) {
   return (
     <>
-      + {CARE_PLAN.toLowerCase()} {tier.from ? 'from ' : ''}
-      <span className={STRONG}>{formatRM(tier.monthly)}/month</span>{' '}
+      {CARE_PLAN}
+      {tier.firstYear ? ' from year 2' : ''}: {tier.from ? 'from ' : ''}
+      <s className="text-gray-400 decoration-red-500 decoration-2 dark:text-gray-500">
+        {formatRM(tier.monthly)}
+      </s>{' '}
+      <span className={STRONG}>{formatRM(carePerMonth(tier))}/month</span>{' '}
       <span className="whitespace-nowrap">
-        or <span className={STRONG}>{formatRM(careYearly(tier))}/year</span>{' '}
-        <SaveBadge />
+        billed yearly <SaveBadge />
       </span>
     </>
-  );
-}
-
-export function MaintenanceLine({ tier }: { tier: CareTier }) {
-  return (
-    <button
-      type="button"
-      onClick={() => useServicePick.getState().choose({ tab: MAINTENANCE_TAB })}
-      className="pointer-events-none mt-2 rounded text-left text-sm leading-relaxed text-gray-500 underline decoration-gray-300 decoration-dotted underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-400 dark:decoration-gray-600"
-    >
-      {/* Only the words take the pointer, not the empty corner of a wrapped line. */}
-      <span className="pointer-events-auto cursor-pointer">
-        <CarePrices tier={tier} />
-      </span>
-    </button>
   );
 }
 
@@ -143,7 +130,7 @@ function messageFor(
           `Estimated build: ${formatRM(estimate)}.`,
         ]
       : []),
-    ...(care ? [`${CARE_PLAN} after launch: ${careChoice(care)}.`] : []),
+    ...(care ? [`${careLabelOf(care)}: ${careChoice(care)}.`] : []),
     'Please let me know what you need from me.',
   ].join('\n');
 }

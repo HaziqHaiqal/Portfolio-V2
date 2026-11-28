@@ -1,23 +1,17 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { ArrowRight, Check, PlayCircle, Sheet } from 'lucide-react';
-import {
-  BUG_FIX_INCLUDE,
-  type Bundle,
-  CARE,
-  type PricingTab,
-} from '@constants/services';
+import { ArrowRight, PlayCircle, Sheet } from 'lucide-react';
+import { type Bundle, type PricingTab } from '@constants/services';
 import { formatRM } from '@lib/format';
 import {
-  Approvals,
   Chatbot,
   MorningReport,
   WhatsAppOrders,
 } from '@components/Templates/automation/Simulations';
 import CardCarousel from './CardCarousel';
 import DemoDialog from './DemoDialog';
-import { MaintenanceLine, QuoteLink, TRY } from './PriceParts';
+import { QuoteLink, TRY } from './PriceParts';
 
 function Bubble({
   me = false,
@@ -107,37 +101,6 @@ const PREVIEWS: Record<string, ReactNode> = {
       </p>
     </div>
   ),
-  approvals: (
-    <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-      <div className="rounded-xl bg-white p-3 text-xs text-[#111] shadow-sm ring-1 ring-black/5">
-        <p className="font-semibold">Farid · Annual leave</p>
-        <p className="mt-0.5 text-black/60">12 to 13 Nov, 2 days</p>
-        <div className="mt-2.5 flex gap-1.5">
-          <span className="rounded-full bg-[#111] px-2.5 py-1 font-semibold text-white">
-            Approve
-          </span>
-          <span className="rounded-full px-2.5 py-1 font-semibold ring-1 ring-black/15">
-            Decline
-          </span>
-        </div>
-      </div>
-      <ArrowRight
-        size={16}
-        className="hidden text-gray-400 dark:text-gray-500 sm:block"
-      />
-      <div className="space-y-2">
-        <p className={`${CHIP} inline-flex items-center gap-1.5`}>
-          <Check size={12} className="text-green-600" />
-          Approved by Siti
-        </p>
-        <p className="font-mono text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
-          09:05 Siti approved it
-          <br />
-          09:05 Farid was told
-        </p>
-      </div>
-    </div>
-  ),
 };
 
 const DEMOS: Record<string, ReactNode> = {
@@ -147,15 +110,14 @@ const DEMOS: Record<string, ReactNode> = {
       <Chatbot />
     </div>
   ),
-  approvals: <Approvals />,
   reports: <MorningReport />,
 };
 
+// The wide tile fills a row on two-column screens, then sits in a row of three.
 const LAYOUT = [
   { id: 'whatsapp-orders', wide: true },
   { id: 'chatbot', wide: false },
   { id: 'reports', wide: false },
-  { id: 'approvals', wide: true },
 ];
 
 function Tile({
@@ -205,7 +167,7 @@ function Tile({
           </span>
         </p>
         <div
-          className={`mt-4 flex items-center gap-2 ${wide ? 'md:max-w-sm' : ''}`}
+          className={`mt-4 flex items-center gap-2 ${wide ? 'md:max-w-sm lg:max-w-none' : ''}`}
         >
           <button type="button" onClick={onDemo} className={TRY}>
             <PlayCircle size={18} aria-hidden="true" />
@@ -236,8 +198,6 @@ export default function AutomationBento({
     return bundle ? [{ bundle, wide }] : [];
   });
   const demoBundle = tab.bundles.find((item) => item.id === demoId);
-  const shared = tab.bundles[0].care;
-  const care = shared && CARE[shared];
 
   return (
     <div>
@@ -246,7 +206,7 @@ export default function AutomationBento({
         className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[11vw] pb-6 pt-4 [scrollbar-width:none] sm:-mx-10 sm:px-[20vw] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:p-0 lg:grid-cols-3"
         itemClassName={(index) =>
           `w-[78vw] shrink-0 snap-center sm:w-[60vw] md:w-auto ${
-            tiles[index]?.wide ? 'md:col-span-2' : ''
+            tiles[index]?.wide ? 'md:col-span-2 lg:col-span-1' : ''
           }`
         }
         dotsClassName="md:hidden"
@@ -263,11 +223,6 @@ export default function AutomationBento({
           />
         ))}
       </CardCarousel>
-
-      <div className="mt-6 flex flex-col items-start gap-1 text-sm text-gray-500 dark:text-gray-400 md:items-center md:text-center">
-        <p>Every one includes {BUG_FIX_INCLUDE.toLowerCase()}.</p>
-        {care && <MaintenanceLine tier={care} />}
-      </div>
 
       {demoBundle && (
         <DemoDialog

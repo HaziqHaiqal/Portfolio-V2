@@ -1,229 +1,140 @@
 'use client';
 
-import { Check, ChevronDown } from 'lucide-react';
+import {
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { SiWhatsapp } from 'react-icons/si';
 import {
   CARE,
+  CARE_YEARLY_SAVING,
   type CareTier,
-  careYearly,
+  carePerMonth,
   TAKEOVER,
-  WEBSITES,
 } from '@constants/services';
 import { formatRM } from '@lib/format';
-import CardCarousel from './CardCarousel';
-import { OUTLINE, SaveBadge, SOLID, trackWhatsApp } from './PriceParts';
-import { useServicePick } from './servicePick';
+import PillTabs from './PillTabs';
+import { SOLID, trackWhatsApp } from './PriceParts';
 
-interface Row {
-  label: string;
-  tier: CareTier;
-}
-
-interface Plan {
-  id: string;
-  name: string;
-  summary: string;
-  rows: Row[];
-  setup?: string;
-  action: { label: string } & ({ tab: string } | { message: string });
-}
-
-const PLANS: Plan[] = [
-  {
-    id: 'mine',
-    name: 'Built by me',
-    summary: 'Hosting, updates and backups.',
-    rows: [
-      { label: 'Starter website', tier: CARE.starter },
-      { label: 'Business website', tier: CARE.business },
-      { label: 'Store template', tier: CARE.store },
-      { label: 'Systems', tier: CARE.system },
-      { label: 'Mobile apps', tier: CARE.app },
-      { label: 'Automation', tier: CARE.automation },
-    ],
-    action: { label: 'See packages', tab: WEBSITES.id },
-  },
-  {
-    id: 'takeover',
-    name: 'Built by someone else',
-    summary: 'Updates and backups, after a one-time check.',
-    rows: TAKEOVER.options.map((option) => ({
-      label: option.name,
-      tier: option.care,
-    })),
-    setup: `One-time check first: ${TAKEOVER.options
-      .map(
-        (option) =>
-          `${formatRM(option.check)} for a ${option.name.toLowerCase()}`
-      )
-      .join(', ')}.`,
-    action: {
-      label: 'Book a takeover check',
-      message: `Hi Haziq, I'd like a takeover check (${TAKEOVER.options
-        .map(
-          (option) =>
-            `${formatRM(option.check)} for a ${option.name.toLowerCase()}`
-        )
-        .join(
-          ', '
-        )}).\nLink: \nBuilt with: \nPlease let me know what you need from me.`,
-    },
-  },
+const BILLING = [
+  { id: 'monthly', label: 'Monthly' },
+  { id: 'yearly', label: 'Yearly', badge: `Save ${CARE_YEARLY_SAVING}%` },
 ];
 
-const INCLUDES = [
-  'Hosting and SSL for what I build',
-  'Security and software updates',
-  'Regular backups',
+const MINE = [
+  { name: 'Landing page', tier: CARE.starter },
+  { name: 'Business website', tier: CARE.business },
+  { name: 'Online store', tier: CARE.store },
+  { name: 'System or app', tier: CARE.system },
+  { name: 'Automation', tier: CARE.automation },
 ];
 
-const GOOD_TO_KNOW = [
-  'Bug fixes on what I build are free for life, with or without a plan.',
-  'You can stop maintenance. The site or app then goes offline from my hosting, and the code is yours to host elsewhere.',
-  'Domain renewals and fees from other companies, such as payment gateways, are paid separately.',
-  `For sites built by someone else, the check comes off your first year when you pay yearly, and problems that were already there are quoted from its list. Works with ${TAKEOVER.platforms.join(', ')}.`,
-];
+const MESSAGE = `Hi Haziq, I'd like a takeover check (${TAKEOVER.options
+  .map(
+    (option) => `${formatRM(option.check)} for a ${option.name.toLowerCase()}`
+  )
+  .join(
+    ', '
+  )}).\nLink: \nBuilt with: \nPlease let me know what you need from me.`;
 
-const price = (amount: number, tier: CareTier) =>
-  `${formatRM(amount)}${tier.from ? '+' : ''}`;
+const ZIGZAG =
+  'conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%';
 
-function PlanCard({
-  plan,
-  whatsappHref,
-}: {
-  plan: Plan;
-  whatsappHref: string;
-}) {
-  const low = plan.rows.reduce((min, row) =>
-    row.tier.monthly < min.tier.monthly ? row : min
-  ).tier;
-  const action = plan.action;
-
+function Row({ name, children }: { name: string; children: ReactNode }) {
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-7">
-      <h3 className="text-xl font-extrabold text-gray-900 dark:text-gray-100">
-        {plan.name}
-      </h3>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {plan.summary}
-      </p>
-      <p className="mt-5 text-xs font-medium text-gray-500 dark:text-gray-400">
-        Starting at
-      </p>
-      <p className="mt-1 flex flex-wrap items-baseline gap-x-1 text-gray-900 dark:text-white">
-        <span className="text-4xl font-black tracking-tight">
-          {formatRM(low.monthly)}
-        </span>
-        <span className="text-base font-semibold text-gray-500 dark:text-gray-400">
-          /month
-        </span>
-      </p>
-      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        or{' '}
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
-          {formatRM(careYearly(low))}/year
-        </span>{' '}
-        <SaveBadge />
-      </p>
-
-      <table className="mt-5 w-full border-t border-gray-200 text-left text-sm dark:border-gray-700">
-        <thead>
-          <tr className="text-xs text-gray-500 dark:text-gray-400">
-            <th scope="col" className="pb-2 pt-4 font-medium">
-              <span className="sr-only">Plan</span>
-            </th>
-            <th scope="col" className="px-2 pb-2 pt-4 text-right font-medium">
-              Monthly
-            </th>
-            <th scope="col" className="pb-2 pt-4 text-right font-medium">
-              <span className="inline-flex items-center gap-1.5">
-                Yearly
-                {/* Phones already see it in the headline, and the table needs the room. */}
-                <span className="hidden sm:inline">
-                  <SaveBadge />
-                </span>
-              </span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {plan.rows.map((row) => (
-            <tr key={row.label}>
-              <th
-                scope="row"
-                className="py-1.5 pr-2 font-normal text-gray-700 dark:text-gray-300"
-              >
-                {row.label}
-              </th>
-              <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums text-gray-500 dark:text-gray-400">
-                {price(row.tier.monthly, row.tier)}
-              </td>
-              <td className="whitespace-nowrap py-1.5 text-right font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                {price(careYearly(row.tier), row.tier)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {plan.setup && (
-        <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-          {plan.setup}
-        </p>
-      )}
-
-      <div className="mt-auto pt-5">
-        {'tab' in action ? (
-          <button
-            type="button"
-            onClick={() =>
-              useServicePick.getState().choose({ tab: action.tab })
-            }
-            className={OUTLINE}
-          >
-            {action.label}
-          </button>
-        ) : (
-          <a
-            href={(() => {
-              const url = new URL(whatsappHref);
-              url.searchParams.set('text', action.message);
-              return url.toString();
-            })()}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() =>
-              trackWhatsApp({ tab: 'maintenance', package: plan.id })
-            }
-            className={SOLID}
-          >
-            {action.label}
-          </a>
-        )}
-      </div>
-    </article>
+    <li className="flex items-end gap-2 py-1.5">
+      <span className="min-w-0 font-semibold">{name}</span>
+      <span
+        aria-hidden="true"
+        className="mb-1.5 min-w-3 flex-1 border-b-2 border-dotted border-gray-300"
+      />
+      <span className="shrink-0 whitespace-nowrap font-mono text-sm tabular-nums">
+        {children}
+      </span>
+    </li>
   );
 }
 
-function List({ title, items }: { title: string; items: string[] }) {
+function Price({ tier, yearly }: { tier: CareTier; yearly: boolean }) {
   return (
-    <div>
-      <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
-        {title}
-      </h3>
-      <ul className="mt-3 space-y-2.5">
-        {items.map((item) => (
-          <li
-            key={item}
-            className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
-          >
-            <Check
-              size={16}
-              aria-hidden="true"
-              className="mt-0.5 shrink-0 text-green-500"
-            />
-            {item}
-          </li>
-        ))}
-      </ul>
+    <>
+      {tier.from && <span className="text-xs text-gray-500">from </span>}
+      {yearly && (
+        <>
+          <s className="text-gray-400 decoration-red-500 decoration-2">
+            {formatRM(tier.monthly)}
+          </s>{' '}
+        </>
+      )}
+      <b className="text-gray-900">
+        {formatRM(yearly ? carePerMonth(tier) : tier.monthly)}
+      </b>
+      <span className="text-gray-500">/mo</span>
+    </>
+  );
+}
+
+// Phones stack the receipts in one pile; a sideways swipe sends the top one to the back.
+const STACKED = '(max-width: 767px)';
+const SWIPE = 70;
+
+function subscribe(onChange: () => void) {
+  const query = window.matchMedia(STACKED);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+function Slip({
+  title,
+  summary,
+  tilt,
+  style,
+  hidden,
+  yearly,
+  children,
+}: {
+  title: string;
+  summary: string;
+  tilt: string;
+  style: CSSProperties;
+  hidden: boolean;
+  yearly: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      inert={hidden}
+      style={style}
+      className={`min-w-0 [filter:drop-shadow(0_14px_24px_rgb(0_0_0/0.18))] max-md:col-start-1 max-md:row-start-1 max-md:transition-transform max-md:duration-300 max-md:[transform:var(--stack)] ${tilt}`}
+    >
+      <article
+        style={{ mask: ZIGZAG, WebkitMask: ZIGZAG }}
+        className="relative h-full bg-white px-6 pb-10 pt-7 text-gray-700 dark:bg-gray-100 sm:px-8"
+      >
+        <div
+          aria-hidden="true"
+          className={`absolute right-5 top-5 flex h-20 w-20 -rotate-12 flex-col items-center justify-center rounded-full border-[3px] border-green-600 text-green-700 transition duration-300 ${
+            yearly ? 'scale-100 opacity-100' : 'scale-150 opacity-0'
+          }`}
+        >
+          <span className="text-2xl font-black leading-none">
+            -{CARE_YEARLY_SAVING}%
+          </span>
+          <span className="mt-1 text-[10px] font-bold uppercase tracking-widest">
+            Yearly
+          </span>
+        </div>
+        <h3 className="pr-24 text-xl font-extrabold text-gray-900">{title}</h3>
+        <p className="mt-1 pr-24 text-sm leading-relaxed text-gray-500">
+          {summary}
+        </p>
+        <hr className="my-5 border-dashed border-gray-300" />
+        {children}
+      </article>
     </div>
   );
 }
@@ -233,35 +144,171 @@ export default function Maintenance({
 }: {
   whatsappHref: string;
 }) {
+  const href = new URL(whatsappHref);
+  href.searchParams.set('text', MESSAGE);
+
+  const stacked = useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(STACKED).matches,
+    () => false
+  );
+  const [yearly, setYearly] = useState(true);
+  const billing = yearly ? 'yearly' : 'monthly';
+  const [front, setFront] = useState(0);
+  const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startX = useRef<number | null>(null);
+  const swiped = useRef(false);
+
+  const onPointerDown = (event: PointerEvent) => {
+    if (!stacked || event.button !== 0) return;
+    startX.current = event.clientX;
+    swiped.current = false;
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (startX.current === null) return;
+    const x = event.clientX - startX.current;
+    if (!dragging) {
+      if (Math.abs(x) < 8) return;
+      setDragging(true);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    swiped.current = true;
+    setDx(x);
+  };
+
+  const onPointerEnd = () => {
+    if (startX.current === null) return;
+    startX.current = null;
+    if (Math.abs(dx) > SWIPE) setFront((index) => 1 - index);
+    setDx(0);
+    setDragging(false);
+  };
+
+  const slip = (index: number) => {
+    const top = index === front;
+    return {
+      yearly,
+      hidden: stacked && !top,
+      style: {
+        '--stack': top
+          ? `translateX(${dx}px) rotate(${dx / 24}deg)`
+          : `translate(6px, 14px) rotate(${index ? 2.5 : -2.5}deg) scale(0.96)`,
+        zIndex: top ? 2 : 1,
+        transitionDuration: dragging && top ? '0ms' : undefined,
+      } as CSSProperties,
+    };
+  };
+
   return (
     <div>
-      <CardCarousel
-        label="Maintenance plans"
-        className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[11vw] pb-6 pt-4 [scrollbar-width:none] sm:-mx-10 sm:px-[20vw] md:mx-auto md:grid md:max-w-4xl md:grid-cols-2 md:gap-6 md:overflow-visible md:p-0"
-        itemClassName="w-[78vw] shrink-0 snap-center sm:w-[60vw] md:w-auto"
-        dotsClassName="md:hidden"
-        centered
-      >
-        {PLANS.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} whatsappHref={whatsappHref} />
-        ))}
-      </CardCarousel>
+      <div className="mx-auto mb-10 max-w-xs sm:max-w-none">
+        <PillTabs
+          tabs={BILLING}
+          activeId={billing}
+          onChange={(id) => setYearly(id === 'yearly')}
+          label="Billing"
+          idPrefix="care"
+        />
+      </div>
 
-      <details className="group mx-auto mt-8 max-w-4xl">
-        <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full px-2 py-2 text-sm font-semibold text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 dark:text-gray-300 [&::-webkit-details-marker]:hidden">
-          What&apos;s included and good to know
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className="transition-transform duration-200 group-open:rotate-180"
-          />
-        </summary>
-        <div className="mt-6 grid gap-8 border-t border-gray-200 pt-8 dark:border-gray-700 md:grid-cols-3">
-          <List title="Every plan includes" items={INCLUDES} />
-          <List title="The takeover check" items={TAKEOVER.checkIncludes} />
-          <List title="Good to know" items={GOOD_TO_KNOW} />
-        </div>
-      </details>
+      <div
+        id={`care-panel-${billing}`}
+        role="tabpanel"
+        aria-labelledby={`care-tab-${billing}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onClickCapture={(event) => {
+          if (!swiped.current) return;
+          swiped.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        className={`mx-auto grid max-w-4xl max-md:[touch-action:pan-y] md:grid-cols-2 md:gap-8 ${
+          dragging ? 'select-none' : ''
+        }`}
+      >
+        <Slip
+          title="Built by me"
+          summary="Hosting, SSL, updates and backups."
+          tilt="md:-rotate-1"
+          {...slip(0)}
+        >
+          <ul>
+            {MINE.map((row) => (
+              <Row key={row.name} name={row.name}>
+                <Price tier={row.tier} yearly={yearly} />
+              </Row>
+            ))}
+          </ul>
+          <hr className="my-5 border-dashed border-gray-300" />
+          <p className="text-xs leading-relaxed text-gray-500">
+            {yearly ? 'Billed yearly.' : 'Billed monthly.'} Landing pages and
+            business websites include the first year.
+          </p>
+        </Slip>
+
+        <Slip
+          title="Built by someone else"
+          summary="After a one-time check of the code, security and speed."
+          tilt="md:rotate-1"
+          {...slip(1)}
+        >
+          <ul>
+            {TAKEOVER.options.map((option) => (
+              <Row key={option.id} name={option.name}>
+                <Price tier={option.care} yearly={yearly} />
+              </Row>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs font-semibold text-gray-500">
+            One-time check first
+          </p>
+          <ul>
+            {TAKEOVER.options.map((option) => (
+              <Row key={option.id} name={option.name}>
+                <b className="text-gray-900">{formatRM(option.check)}</b>
+              </Row>
+            ))}
+          </ul>
+          <a
+            href={href.toString()}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              trackWhatsApp({ tab: 'maintenance', package: 'takeover' })
+            }
+            className={`${SOLID} mt-6 w-full`}
+          >
+            <SiWhatsapp size={15} aria-hidden="true" />
+            Book a check
+          </a>
+        </Slip>
+      </div>
+
+      <div className="mt-8 flex justify-center md:hidden">
+        {['Built by me', 'Built by someone else'].map((label, index) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => setFront(index)}
+            aria-label={`Show ${label}`}
+            aria-current={index === front}
+            className="flex h-8 w-6 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+          >
+            <span
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === front
+                  ? 'w-5 bg-green-600 dark:bg-green-400'
+                  : 'w-2 bg-gray-300 dark:bg-gray-600'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

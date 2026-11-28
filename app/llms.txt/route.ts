@@ -30,7 +30,7 @@ export async function GET() {
 
 > ${HOME_DESCRIPTION}
 
-Full name: ${profile?.full_name ?? 'Muhammad Haziq Haiqal Kamaruddin'}. "Haziq Haiqal" and "Muhammad Haziq Haiqal Kamaruddin" are the same person. Based in ${profile?.location ?? 'Selangor'}, Malaysia.
+Full name: ${profile?.full_name ?? 'Muhammad Haziq Haiqal Kamaruddin'}. "Haziq Haiqal" and "Muhammad Haziq Haiqal Kamaruddin" are the same person. Web developer in Malaysia.
 
 ## Experience
 ${jobs.join('\n')}

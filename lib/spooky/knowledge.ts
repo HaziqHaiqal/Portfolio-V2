@@ -5,14 +5,14 @@ import {
   BUG_FIX_INCLUDE,
   type Bundle,
   CARE,
-  CARE_YEARLY_SAVING,
+  CARE_YEARLY_MONTHS,
   carePrice,
   type CareTier,
-  CUSTOM_SYSTEM,
   includesOf,
-  MOBILE_APPS,
   packageOfTemplate,
   PAYMENT_TERMS,
+  PHONE_APP,
+  startingPriceOf,
   SYSTEMS,
   TAKEOVER,
   WEBSITES,
@@ -44,10 +44,10 @@ const price = (bundle: Bundle) =>
 const costs = (bundle: Bundle) =>
   `${bundle.name} ${bundle.from ? 'starts from' : 'is'} ${formatRM(bundle.price)}`;
 const both = (tier: CareTier) =>
-  `${carePrice(tier)} or ${carePrice(tier, 'yearly')}`;
-const APP_PRICE = MOBILE_APPS.quote?.from
-  ? `from ${formatRM(MOBILE_APPS.quote.from)}`
-  : 'free quote per project';
+  `${tier.firstYear ? 'first year included, then ' : ''}${carePrice(tier)} or ${carePrice(tier, 'yearly')}`;
+const SYSTEMS_FROM = formatRM(startingPriceOf(SYSTEMS));
+const PHONE_APP_PRICE = `+${formatRM(PHONE_APP.price)}`;
+const APP_PRICE = `any system (from ${SYSTEMS_FROM}), ${PHONE_APP_PRICE} for the App Store and Google Play`;
 const yearOf = (date?: string) => (date ? date.slice(0, 4) : '');
 const points = (items: string[]) => items.map((item) => `• ${item}`).join('\n');
 const lines = (...parts: string[]) => parts.filter(Boolean).join('\n');
@@ -91,7 +91,6 @@ const AUTOMATION_PHRASES: Record<string, string[]> = {
   reports: ['report', 'reports', 'alerts', 'daily report'],
   'whatsapp-orders': ['whatsapp orders', 'whatsapp order', 'whatsapp bot'],
   chatbot: ['chatbot', 'chat bot', 'ai chatbot'],
-  approvals: ['approval', 'approvals', 'approval flow'],
 };
 
 const FAQ_PHRASES: Record<string, string[]> = {
@@ -251,16 +250,16 @@ export function buildTopics(
       answer: lines(
         "Sure! Here's where prices start:",
         points([
-          `Starter website (1 page): ${formatRM(starter.price)}`,
+          `Landing page (1 page): ${formatRM(starter.price)}`,
           `Business website (up to 6 pages, you edit it yourself): ${formatRM(business.price)}`,
           ...(cheapestTemplate
             ? [`Ready-made templates: from ${cheapestTemplate}`]
             : []),
-          `Custom systems: from ${formatRM(CUSTOM_SYSTEM.price)}`,
+          `Systems, like booking, stock or an online store: from ${SYSTEMS_FROM}`,
           `Mobile apps: ${APP_PRICE}`,
           `Automation: from ${lowest(AUTOMATION.bundles)}`,
         ]),
-        `Maintenance is separate, from ${carePrice(CARE.starter)}. Type whatsapp for a free quote 😊`
+        `Websites include the first year of domain, hosting and maintenance. After that, maintenance is from ${carePrice(CARE.starter)}. Type whatsapp for a free quote 😊`
       ),
     },
     bundleTopic(
@@ -292,9 +291,10 @@ export function buildTopics(
         'sistem',
       ],
       answer: lines(
-        `Custom systems start from ${formatRM(CUSTOM_SYSTEM.price)}. Haziq can build:`,
+        'Pick what you want to build, then the features it needs:',
         points(SYSTEMS.bundles.map((item) => `${item.name}: ${price(item)}`)),
-        'Each one comes with logins, daily backups and an admin dashboard. Try the estimate builder on the Services page for an exact price!'
+        `Every system works on phones and computers, and installs like an app. Want it on the App Store and Google Play too? That's ${PHONE_APP_PRICE}.`,
+        'Each one comes with logins, daily backups and an admin dashboard. Try the estimate builder under Systems & apps on the Services page for an exact price!'
       ),
     },
     ...SYSTEMS.bundles.map((item) =>
@@ -344,9 +344,9 @@ export function buildTopics(
       ],
       answer: lines(
         'Yep, Haziq builds Android and iOS apps!',
-        `Apps start ${APP_PRICE}.`,
-        'Every app is different, so each one gets its own quote. It is free, with a written scope and a fixed price before any work starts. Describe your idea on the Services page or just type whatsapp.',
-        MOBILE_APPS.note ?? ''
+        `Pick the system your app runs, like bookings or members (from ${SYSTEMS_FROM}), then add the App Store and Google Play version for ${PHONE_APP_PRICE}.`,
+        'The estimate builder under Systems & apps on the Services page shows the total, or just type whatsapp for a free quote.',
+        PHONE_APP.description
       ),
     },
     {
@@ -377,14 +377,13 @@ export function buildTopics(
       answer: lines(
         'Maintenance covers hosting, SSL, updates and backups:',
         points([
-          `Starter website: ${both(CARE.starter)}`,
+          `Landing page: ${both(CARE.starter)}`,
           `Business website: ${both(CARE.business)}`,
           `Store template: ${both(CARE.store)}`,
-          `Systems: ${both(CARE.system)}`,
-          `Apps: ${both(CARE.app)}`,
+          `Systems and phone apps: ${both(CARE.system)}`,
           `Automation: ${both(CARE.automation)}`,
         ]),
-        `Paying yearly saves ${CARE_YEARLY_SAVING}%, and bug fixes on Haziq's work are free for life 👍`
+        `Landing pages and business websites include the first year. Paying yearly gets you ${12 - CARE_YEARLY_MONTHS} months free, and bug fixes on Haziq's work are free for life 👍`
       ),
     },
     {
@@ -504,7 +503,7 @@ export function buildTopics(
         `${name} can help you with:`,
         points([
           `Websites: from ${formatRM(starter.price)}`,
-          `Custom systems like online stores, booking and inventory: from ${formatRM(CUSTOM_SYSTEM.price)}`,
+          `Systems like booking, inventory and online stores: from ${SYSTEMS_FROM}`,
           `Mobile apps: ${APP_PRICE}`,
           `Automations: from ${lowest(AUTOMATION.bundles)}`,
           `Maintenance after launch: from ${carePrice(CARE.starter)}`,

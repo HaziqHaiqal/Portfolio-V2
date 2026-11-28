@@ -13,10 +13,12 @@ import type { WebsiteTemplate } from '@lib/supabase';
 import {
   BUG_FIX_INCLUDE,
   BUSINESS_MAX_PAGES,
-  CARE_PLAN,
+  careLabelOf,
   careForTemplate,
   CARE_YEARLY_SAVING,
+  carePerMonth,
   carePrice,
+  careYearly,
   countLabel,
   DEFAULT_LANGUAGE,
   languageAddOn,
@@ -45,7 +47,7 @@ import type { FeaturedDeal } from '@lib/data';
 import OrderSummary from './OrderSummary';
 import OrderDialog from './OrderDialog';
 import { ExtraLanguages, MainLanguage, nextLanguage } from './Languages';
-import { CarePrices, careChoice, trackWhatsApp } from './PriceParts';
+import { CarePrices, careChoice, SaveBadge, trackWhatsApp } from './PriceParts';
 
 function AddOnText({
   item,
@@ -93,7 +95,7 @@ export default function TemplateOrder({
   const { promo } = usePromo();
   const store = isStoreTemplate(template.category);
   const care = careForTemplate(template);
-  const careLabel = CARE_PLAN;
+  const careLabel = careLabelOf(care);
   const pages = pageCount(template.pages);
   const { tab, bundle } = packageOfTemplate(template);
   const real = realPriceOf(template);
@@ -172,7 +174,7 @@ export default function TemplateOrder({
         ...(eligiblePromo && promoAmount
           ? [`• Promo ${eligiblePromo.code}: −${formatRM(promoAmount)}`]
           : []),
-        `• ${careLabel} after launch: ${careChoice(care)}`,
+        `• ${careLabel}: ${careChoice(care)}`,
         `Total: ${formatRM(grandTotal)}`,
         'Please let me know what you need from me to get started.',
       ].join('\n')
@@ -398,12 +400,12 @@ export default function TemplateOrder({
               value: formatRM(item.amount),
             })),
             {
-              label: `${careLabel} after launch`,
-              value: carePrice(care),
+              label: careLabel,
+              value: `${care.from ? 'from ' : ''}${formatRM(carePerMonth(care))}/month`,
               detail: (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  or {carePrice(care, 'yearly')} (save {CARE_YEARLY_SAVING}%).
-                  Choose on WhatsApp.
+                  Billed {formatRM(careYearly(care))} yearly <SaveBadge />, or{' '}
+                  {carePrice(care)} monthly. Choose on WhatsApp.
                 </p>
               ),
             },

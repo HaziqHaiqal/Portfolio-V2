@@ -69,15 +69,6 @@ export function personJsonLd({
       ...schools.map((name) => ({ '@type': 'CollegeOrUniversity', name })),
       ...pastEmployers.map((name) => org(name)),
     ],
-    ...(profile?.location
-      ? {
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: profile.location,
-            addressCountry: 'MY',
-          },
-        }
-      : {}),
     knowsAbout: skills
       .filter((skill) => skill.is_featured)
       .map((skill) => skill.name),

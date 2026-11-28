@@ -27,8 +27,7 @@ export const getPromoTargets = (): PromoTarget[] => [
   TEMPLATE_PROMO_TARGET,
 ];
 
-export type CareId =
-  'starter' | 'business' | 'store' | 'system' | 'app' | 'automation';
+export type CareId = 'starter' | 'business' | 'store' | 'system' | 'automation';
 
 export interface CareTier {
   name: string;
@@ -36,6 +35,8 @@ export interface CareTier {
   monthly: number;
   /** A starting price, confirmed in the quote. */
   from?: boolean;
+  /** The first year comes with the build, so payments start in year two. */
+  firstYear?: boolean;
 }
 
 export type CareBillingPeriod = 'monthly' | 'yearly';
@@ -47,23 +48,24 @@ export const CARE_YEARLY_SAVING = 17;
 /** Every project needs one to stay online; priced by how much there is to look after. */
 export const CARE: Record<CareId, CareTier> = {
   starter: {
-    name: 'Starter',
-    for: 'Starter website',
+    name: 'Landing page',
+    for: 'Landing page',
     monthly: 50,
+    firstYear: true,
   },
   business: {
     name: 'Business',
     for: 'Business website',
     monthly: 90,
+    firstYear: true,
   },
   store: { name: 'Store', for: 'Ready-made online store', monthly: 150 },
   system: {
     name: 'System',
-    for: 'Systems',
+    for: 'Systems and phone apps',
     monthly: 250,
     from: true,
   },
-  app: { name: 'App', for: 'Mobile apps', monthly: 150, from: true },
   automation: {
     name: 'Automation',
     for: 'Automation',
@@ -73,6 +75,12 @@ export const CARE: Record<CareId, CareTier> = {
 };
 
 export const CARE_PLAN = 'Maintenance';
+
+export const FIRST_YEAR = 'First year of domain, hosting and maintenance';
+
+/** "Maintenance after launch", or "from year 2" when the first year is included. */
+export const careLabelOf = (tier: CareTier) =>
+  `${CARE_PLAN} ${tier.firstYear ? 'from year 2' : 'after launch'}`;
 
 /** The displayed monthly or yearly hosting price. */
 export const carePrice = (
@@ -93,6 +101,10 @@ export const careYearlySaving = (tier: CareTier) =>
 export function careYearly(tier: CareTier) {
   return tier.monthly * CARE_YEARLY_MONTHS;
 }
+
+/** What a yearly payment works out to each month, rounded up. */
+export const carePerMonth = (tier: CareTier) =>
+  Math.ceil(careYearly(tier) / 12);
 
 export const PAYMENT_TERMS =
   '20% to start, 40% when testing starts, and 40% on completion';
@@ -147,12 +159,6 @@ export interface Bundle {
   basedOn?: string;
   includes: string[];
   excludes?: string[];
-  includeInfo?: {
-    item: string;
-    heading: string;
-    items: string[];
-    note?: string;
-  };
   /** A running cost paid to someone else, in plain words. */
   runningCost?: string;
   /** The hosting tier it needs after launch. */
@@ -170,97 +176,35 @@ export interface PricingTab {
   shortLabel?: string;
   tagline: string;
   bundles: Bundle[];
-  /** One line under the bundles. */
-  note?: string;
-  link?: { href: string; label: string };
+  /** One line under the bundles that opens another tab. */
+  seeAlso?: { text: string; label: string; tab: string };
   /** Only fixed prices take promo codes. */
   promoTarget?: string;
   /** "website", "online store", used in the WhatsApp message. */
   noun: string;
   /** Prices are per month, such as maintenance. */
   monthly?: boolean;
-  layout?: 'cards' | 'bento' | 'builder' | 'quote';
-  /** For tabs quoted per project instead of packages. */
-  quote?: {
-    /** A starting price shown before the free quote. */
-    from?: number;
-    includes: string[];
-    examples: string;
-    placeholder: string;
-  };
+  layout?: 'cards' | 'bento' | 'builder';
   others?: { name: string; summary: string; placeholder: string };
 }
 
 const CUSTOM_DESIGN = 'Custom design, not a template';
-const CHAT_INTEGRATION = 'WhatsApp/Telegram integration';
+const CHAT_INTEGRATION = 'Forms sent to your WhatsApp or Telegram';
+const CONTENT_EDITOR = 'Content editor (CMS)';
 
+const CHAT_FORMS: AddOn = {
+  id: 'chat',
+  name: CHAT_INTEGRATION,
+  description:
+    'Order, booking and enquiry forms sent to your WhatsApp or Telegram.',
+  price: 300,
+};
 const ONLINE_PAYMENT: AddOn = {
   id: 'payment',
   name: 'Online payment',
   description: `A pay-now button for orders or bookings, by FPX, card or e-wallet. The gateway account is in your business name. ${GATEWAY_FEES}.`,
   price: 1000,
 };
-const GOOGLE_MAPS: AddOn = {
-  id: 'google-maps',
-  name: 'Google Maps setup',
-  description:
-    'The listing is free. I set it up with your hours, photos and website link, and get it verified for you.',
-  price: 150,
-};
-const PAGE_LIMITS = ['1-page website', 'Up to 6 pages'];
-
-export const WEBSITES: PricingTab = {
-  id: 'website',
-  label: 'Websites',
-  shortLabel: 'Web',
-  tagline: 'Ready-made, custom-designed, or a full system',
-  noun: 'website',
-  promoTarget: WEBSITE_PROMO_TARGET.id,
-  note: 'Need something not listed? It is quoted before any work starts.',
-  bundles: [
-    {
-      id: 'starter',
-      name: 'Starter',
-      summary: 'A one-page website to get found and contacted.',
-      price: 800,
-      care: 'starter',
-      includes: [
-        PAGE_LIMITS[0],
-        CUSTOM_DESIGN,
-        'Mobile responsive',
-        'Contact and map buttons',
-        'Basic SEO',
-      ],
-      excludes: ['Content editor (CMS)', CHAT_INTEGRATION],
-      addOns: [GOOGLE_MAPS],
-    },
-    {
-      id: 'business',
-      name: 'Business',
-      summary: 'A bigger website you edit yourself.',
-      price: 2200,
-      recommended: true,
-      care: 'business',
-      basedOn: 'starter',
-      includeInfo: {
-        item: CHAT_INTEGRATION,
-        heading: CHAT_INTEGRATION,
-        items: ['Order forms', 'Booking forms', 'Enquiry forms'],
-        note: 'Each one arrives in your WhatsApp or Telegram, so you can reply from your phone.',
-      },
-      includes: [
-        PAGE_LIMITS[1],
-        'Basic CMS (text, photos and prices)',
-        CHAT_INTEGRATION,
-        'On-page SEO for every page',
-        'Google Maps setup',
-      ],
-      excludes: ['Order and stock management', 'Customer logins'],
-      addOns: [ONLINE_PAYMENT],
-    },
-  ],
-};
-
 const alerts = (when: string): AddOn => ({
   id: 'alerts',
   name: 'WhatsApp or Telegram alerts',
@@ -276,10 +220,93 @@ const aiAssistant = (update: string): AddOn => ({
   ai: true,
 });
 
+const ONLINE_STORE: Bundle = {
+  id: 'online-store',
+  name: 'Online store',
+  summary: 'Customers order and pay on your site.',
+  price: 14400,
+  from: true,
+  care: 'system',
+  includes: [
+    'Product catalogue with options and stock',
+    'Cart and checkout with FPX, card and e-wallet',
+    'Delivery options and rates',
+    'Order and payment emails',
+    'Admin portal for products, orders and discount codes',
+  ],
+  runningCost: GATEWAY_FEES,
+  addOns: [
+    {
+      id: 'accounts',
+      name: 'Customer accounts',
+      description: 'Customers sign in, save addresses and see past orders.',
+      price: 2000,
+    },
+    {
+      id: 'shipping',
+      name: 'Shipping labels and tracking',
+      description:
+        'Print courier labels and send tracking numbers from the admin portal.',
+      price: 3000,
+    },
+    {
+      id: 'loyalty',
+      name: 'Loyalty points',
+      description: 'Points on every order, redeemed at checkout.',
+      price: 3500,
+    },
+    {
+      id: 'reviews',
+      name: 'Product reviews',
+      description: 'Star ratings and reviews from customers who bought.',
+      price: 1500,
+    },
+    {
+      id: 'languages',
+      name: 'Extra language',
+      description: 'Translated for you.',
+      price: 2000,
+      perLanguage: true,
+    },
+    {
+      id: 'reports',
+      name: 'Sales reports',
+      description: 'Sales by day and product, with CSV exports.',
+      price: 2000,
+    },
+    {
+      id: 'import',
+      name: 'Product import',
+      description: 'Up to 500 products loaded from your spreadsheet.',
+      price: 1500,
+    },
+    alerts('a new order is paid'),
+    {
+      id: 'ai-shopping',
+      name: 'AI shopping assistant',
+      description:
+        'A chat on your store answers questions about products, stock, delivery and orders, and hands over to WhatsApp when unsure.',
+      price: 3000,
+      ai: true,
+    },
+    aiAssistant('12 orders yesterday, 2 still to ship'),
+  ],
+};
+
+/** Every system runs on the web; this puts it in the app stores too. */
+export const PHONE_APP: AddOn = {
+  id: 'phone-app',
+  name: 'Phone app',
+  description:
+    'Apple and Google charge you for the store accounts: USD 99 a year and USD 25 once.',
+  price: 5000,
+};
+
 export const SYSTEMS: PricingTab = {
   id: 'systems',
-  label: 'Systems',
-  tagline: 'Pick a system, then the features it needs',
+  label: 'Systems & apps',
+  shortLabel: 'Systems',
+  tagline: 'Bookings, orders and payments, on the web or as a phone app',
   noun: 'system',
   layout: 'builder',
   others: {
@@ -290,78 +317,7 @@ export const SYSTEMS: PricingTab = {
       'For example: a system for my workshop to track repair jobs, parts used and when customers can collect.',
   },
   bundles: [
-    {
-      id: 'online-store',
-      name: 'Online store',
-      summary: 'Customers order and pay on your site.',
-      price: 14400,
-      from: true,
-      care: 'system',
-      includes: [
-        'Product catalogue with options and stock',
-        'Cart and checkout with FPX, card and e-wallet',
-        'Delivery options and rates',
-        'Order and payment emails',
-        'Admin portal for products, orders and discount codes',
-      ],
-      runningCost: GATEWAY_FEES,
-      addOns: [
-        {
-          id: 'accounts',
-          name: 'Customer accounts',
-          description: 'Customers sign in, save addresses and see past orders.',
-          price: 2000,
-        },
-        {
-          id: 'shipping',
-          name: 'Shipping labels and tracking',
-          description:
-            'Print courier labels and send tracking numbers from the admin portal.',
-          price: 3000,
-        },
-        {
-          id: 'loyalty',
-          name: 'Loyalty points',
-          description: 'Points on every order, redeemed at checkout.',
-          price: 3500,
-        },
-        {
-          id: 'reviews',
-          name: 'Product reviews',
-          description: 'Star ratings and reviews from customers who bought.',
-          price: 1500,
-        },
-        {
-          id: 'languages',
-          name: 'Extra language',
-          description: 'Translated for you.',
-          price: 2000,
-          perLanguage: true,
-        },
-        {
-          id: 'reports',
-          name: 'Sales reports',
-          description: 'Sales by day and product, with CSV exports.',
-          price: 2000,
-        },
-        {
-          id: 'import',
-          name: 'Product import',
-          description: 'Up to 500 products loaded from your spreadsheet.',
-          price: 1500,
-        },
-        alerts('a new order is paid'),
-        {
-          id: 'ai-shopping',
-          name: 'AI shopping assistant',
-          description:
-            'A chat on your store answers questions about products, stock, delivery and orders, and hands over to WhatsApp when unsure.',
-          price: 3000,
-          ai: true,
-        },
-        aiAssistant('12 orders yesterday, 2 still to ship'),
-      ],
-    },
+    ONLINE_STORE,
     {
       id: 'booking-system',
       shortName: 'Booking',
@@ -884,63 +840,59 @@ export const SYSTEMS: PricingTab = {
   ],
 };
 
-const SYSTEM_CHOICES = 'Online store, booking, inventory and more';
-
-export const CUSTOM_SYSTEM: Bundle = {
-  id: 'custom-system',
-  name: 'Enterprise',
-  summary: 'Customise a system for your business, with anything you need.',
-  price: Math.min(...SYSTEMS.bundles.map((bundle) => bundle.price)),
-  from: true,
-  care: 'system',
-  includeInfo: {
-    item: SYSTEM_CHOICES,
-    heading: 'Systems you can pick',
-    items: SYSTEMS.bundles.map((bundle) => bundle.shortName ?? bundle.name),
-    note: 'Not listed? Pick "Something Else" in the estimate and describe it.',
+export const WEBSITES: PricingTab = {
+  id: 'website',
+  label: 'Websites',
+  shortLabel: 'Web',
+  tagline: 'Pages that show your business and get you contacted',
+  noun: 'website',
+  promoTarget: WEBSITE_PROMO_TARGET.id,
+  seeAlso: {
+    text: "Need bookings, payments or a phone app? That's a system.",
+    label: 'See Systems & apps',
+    tab: SYSTEMS.id,
   },
-  includes: [
-    SYSTEM_CHOICES,
-    'Payment gateway, if needed',
-    'AI features, if needed',
-    'Staff or customer logins',
-    'Database with daily backups',
-    'Admin dashboard',
+  bundles: [
+    {
+      id: 'starter',
+      name: 'Landing page',
+      summary: 'One page to get found and contacted.',
+      price: 800,
+      care: 'starter',
+      includes: [
+        CUSTOM_DESIGN,
+        'Mobile responsive',
+        'WhatsApp, call and map buttons',
+        'Basic SEO',
+        FIRST_YEAR,
+      ],
+      excludes: [CONTENT_EDITOR],
+    },
+    {
+      id: 'business',
+      name: 'Business website',
+      summary: 'A bigger website you edit yourself.',
+      price: 3200,
+      recommended: true,
+      care: 'business',
+      basedOn: 'starter',
+      includes: [
+        'Up to 6 pages',
+        `${CONTENT_EDITOR} for text, photos and prices`,
+      ],
+      excludes: ['Order and stock management', 'Customer logins'],
+      addOns: [CHAT_FORMS, ONLINE_PAYMENT],
+    },
   ],
-};
-
-export const MOBILE_APPS: PricingTab = {
-  id: 'mobile-app',
-  label: 'Mobile apps',
-  shortLabel: 'Apps',
-  tagline: 'Android and iOS apps',
-  noun: 'mobile app',
-  layout: 'quote',
-  note: 'Apple and Google charge you for the store accounts: USD 99 a year and USD 25 once.',
-  bundles: [],
-  quote: {
-    from: 12000,
-    includes: [
-      'Android and iOS',
-      'App Store and Google Play publishing',
-      'Admin dashboard',
-      BUG_FIX_INCLUDE,
-    ],
-    examples:
-      'For example: loyalty and member apps, booking apps, ordering apps or apps for your staff.',
-    placeholder:
-      'For example: an app for my gym where members book classes, pay monthly and check in with a QR code.',
-  },
 };
 
 export const AUTOMATION: PricingTab = {
   id: 'automation',
   label: 'Automation',
   shortLabel: 'Automate',
-  tagline: 'Reports, WhatsApp orders, chatbots and approvals',
+  tagline: 'Reports, WhatsApp orders and chatbots',
   noun: 'automation',
   layout: 'bento',
-  note: 'Each one works with the tools you already use, and is tested with your real data before it goes live.',
   bundles: [
     {
       id: 'reports',
@@ -987,31 +939,10 @@ export const AUTOMATION: PricingTab = {
       ],
       runningCost: AI_USAGE_FEES,
     },
-    {
-      id: 'approvals',
-      name: 'Approval flows',
-      summary: 'Requests reach the right person, and get answered.',
-      price: 1700,
-      from: true,
-      care: 'automation',
-      includes: [
-        'Leave, claims or purchase requests',
-        'One-tap approve or reject',
-        'Full audit trail',
-      ],
-    },
   ],
 };
 
-export const PRICING_TABS = [WEBSITES, SYSTEMS, MOBILE_APPS, AUTOMATION];
-
-/** Package tabs that end with an Enterprise card and its estimate builder. */
-export const CUSTOM_BUILDS: Record<
-  string,
-  { bundle: Bundle; builder: PricingTab }
-> = {
-  [WEBSITES.id]: { bundle: CUSTOM_SYSTEM, builder: SYSTEMS },
-};
+export const PRICING_TABS = [WEBSITES, SYSTEMS, AUTOMATION];
 
 export const startingPriceOf = (tab: PricingTab) =>
   Math.min(...tab.bundles.map((bundle) => bundle.price));
@@ -1054,7 +985,7 @@ export function packageOfTemplate(template: {
   const id =
     template.package ??
     (isStoreTemplate(template.category) ? 'online-store' : 'business');
-  for (const tab of [WEBSITES, SYSTEMS]) {
+  for (const tab of [SYSTEMS, WEBSITES]) {
     const bundle = tab.bundles.find((item) => item.id === id);
     if (bundle) return { tab, bundle };
   }
@@ -1062,16 +993,18 @@ export function packageOfTemplate(template: {
 }
 
 // What a design adds to its package, or leaves out of it, priced as if built from scratch.
-const TEMPLATE_BUILD_CHANGES: Record<string, { name: string; price: number }[]> =
-  {
-    gaya: [
-      { name: 'Photo upload with automatic cut-out', price: 1000 },
-      { name: 'Photo-real ampaian shop scene', price: 2000 },
-      { name: 'Measurement sheet for every piece and size', price: 1200 },
-      { name: 'Rail and shoe rack list pages', price: 800 },
-      { name: 'Matching product photos with shadows', price: 500 },
-    ],
-  };
+const TEMPLATE_BUILD_CHANGES: Record<
+  string,
+  { name: string; price: number }[]
+> = {
+  gaya: [
+    { name: 'Photo upload with automatic cut-out', price: 1000 },
+    { name: 'Photo-real ampaian shop scene', price: 2000 },
+    { name: 'Measurement sheet for every piece and size', price: 1200 },
+    { name: 'Rail and shoe rack list pages', price: 800 },
+    { name: 'Matching product photos with shadows', price: 500 },
+  ],
+};
 
 /** What this exact design would cost built from scratch. */
 export function realPriceOf(template: {
@@ -1094,9 +1027,7 @@ export function fullIncludesOf(tab: PricingTab, bundle: Bundle): string[] {
 }
 
 export const templateIncludesOf = (tab: PricingTab, bundle: Bundle) =>
-  fullIncludesOf(tab, bundle).filter(
-    (item) => item !== CUSTOM_DESIGN && !PAGE_LIMITS.includes(item)
-  );
+  fullIncludesOf(tab, bundle).filter((item) => item !== CUSTOM_DESIGN);
 
 export function careForTemplate(template: {
   package?: string | null;
@@ -1108,7 +1039,7 @@ export function careForTemplate(template: {
 }
 
 export const TEMPLATE_PACKAGES = [
-  { id: 'starter', label: 'Starter' },
+  { id: 'starter', label: 'Landing page' },
   { id: 'business', label: 'Business' },
   { id: 'online-store', label: 'Online store' },
 ] as const;
@@ -1162,13 +1093,13 @@ const TEMPLATE_ADD_ONS: Record<string, TemplateAddOn[]> = {
   starter: [
     {
       id: 'cms',
-      name: 'Content editor (CMS)',
+      name: CONTENT_EDITOR,
       description: 'Change your text, photos and prices yourself.',
       price: 300,
     },
     {
       id: 'chat',
-      name: 'WhatsApp/Telegram integration',
+      name: CHAT_INTEGRATION,
       description:
         'Orders or bookings sent to your WhatsApp or Telegram. You confirm each one.',
       price: 300,
@@ -1265,7 +1196,7 @@ export const TAKEOVER = {
   ],
   careIncludes: [
     'Security and software updates',
-    'Regular backups',
+    'Weekly backups',
     'Anything my changes break is fixed free',
   ],
   platforms: [

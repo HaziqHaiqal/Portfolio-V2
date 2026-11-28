@@ -1,4 +1,12 @@
-import { PAYMENT_TERMS } from './services';
+import { formatRM } from '@lib/format';
+import {
+  CARE_YEARLY_MONTHS,
+  CARE_YEARLY_SAVING,
+  PAYMENT_TERMS,
+  TAKEOVER,
+} from './services';
+
+const [WEBSITE, SYSTEM] = TAKEOVER.options;
 
 export const SERVICE_FAQ = [
   {
@@ -13,7 +21,25 @@ export const SERVICE_FAQ = [
   {
     question: 'Is the domain included?',
     answer:
-      'No. The domain is registered in your name and paid by you, usually under RM100 a year for .com or .com.my. I connect it to your website, and can help you register one if you do not have it yet. Hosting is part of maintenance.',
+      'Yes, for the first year on landing pages and business websites. It is registered in your name, and from the second year it renews at cost, usually under RM100 a year for .com or .com.my. Hosting is part of maintenance, and the first year of that is included too.',
+  },
+  {
+    question: 'What does maintenance cover?',
+    answer: `Hosting, SSL, security updates, regular backups and bug fixes, so your site or app stays online. Pay yearly and ${12 - CARE_YEARLY_MONTHS} months are free (save ${CARE_YEARLY_SAVING}%), or pay monthly. Landing pages and business websites include the first year.`,
+  },
+  {
+    question: 'Can I stop maintenance?',
+    answer:
+      'Yes, any time. The site or app then goes offline from my hosting, and the code is yours to host elsewhere. Bug fixes on my work stay free, with or without maintenance.',
+  },
+  {
+    question: 'Can you look after a site or app someone else built?',
+    answer: `Yes. It starts with a one-time check: ${formatRM(WEBSITE.check)} for a website, ${formatRM(SYSTEM.check)} for a system or app. I back everything up, move access into your name if needed, review the code, security and speed, and send a list of issues, each with a fixed price. If you then pay maintenance yearly, the check comes off your first year. It works for WordPress, React, Next.js and Node.js sites, React Native apps, and Wix, Shopify or Webflow (content and settings only).`,
+  },
+  {
+    question: 'Does automation work with the tools I already use?',
+    answer:
+      'Yes. Each one connects to what you already use, such as WhatsApp, Google Sheets or email, and is tested with your real data before it goes live.',
   },
   {
     question: 'Can I pay over time?',
@@ -33,7 +59,7 @@ export const SERVICE_FAQ = [
   {
     question: 'Can I change things myself after launch?',
     answer:
-      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Enterprise systems come with an admin dashboard.',
+      'Business websites and Business templates come with a content editor (CMS) for your text, photos and prices. Online stores and systems come with an admin dashboard.',
   },
   {
     question: 'Why a custom system instead of a ready-made app?',

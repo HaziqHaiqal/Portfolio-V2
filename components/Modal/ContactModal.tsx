@@ -118,7 +118,7 @@ const ContactModal = ({ profile }: ContactModalProps) => {
           <m.button
             key="contact-launcher"
             onClick={toggleContact}
-            className="group fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-3 z-[70] flex h-12 w-12 items-center justify-center overflow-visible rounded-full outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
+            className="group fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-3 z-[70] flex h-12 w-12 items-center justify-center overflow-visible rounded-full outline-none transition-[bottom] duration-200 ease-out focus-visible:ring-4 focus-visible:ring-emerald-400/30 motion-reduce:transition-none sm:bottom-6 sm:right-6 sm:h-14 sm:w-14 [html[data-quote-bar]_&]:bottom-[var(--spooky-lift)]"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}

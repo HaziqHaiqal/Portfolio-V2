@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Calculator, CircleHelp, PlayCircle } from 'lucide-react';
+import {
+  ArrowRight,
+  Calculator,
+  CircleHelp,
+  PlayCircle,
+  Wrench,
+} from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import {
   getCachedFeaturedDeals,
@@ -8,15 +14,11 @@ import {
   getCachedTemplates,
 } from '@lib/data';
 import {
-  CARE,
-  carePrice,
-  isStoreTemplate,
   packageOfTemplate,
   PRICING_TABS,
   startingPriceOf,
   SYSTEMS,
   TAKEOVER,
-  WEBSITES,
 } from '@constants/services';
 import { SERVICE_FAQ } from '@constants/faq';
 import { SITE_URL } from '@lib/site';
@@ -38,7 +40,6 @@ import ServiceTabs, { type ServiceTab } from '@components/Service/ServiceTabs';
 import TemplateGallery from '@components/Service/TemplateGallery';
 import FaqList from '@components/Service/FaqList';
 import Maintenance from '@components/Service/Maintenance';
-import { MAINTENANCE_TAB } from '@components/Service/PriceParts';
 import { PromoProvider } from '@components/Promo/PromoProvider';
 
 const GREEN = PAGE_ACCENTS.green;
@@ -137,45 +138,20 @@ export default async function ServicePage() {
     }
   }
 
-  const fromOf = (tab: (typeof PRICING_TABS)[number]) =>
-    tab === WEBSITES
-      ? Math.min(
-          startingPriceOf(tab),
-          ...templates
-            .filter((template) => !isStoreTemplate(template.category))
-            .map((template) => template.price)
-        )
-      : startingPriceOf(tab);
-
-  const tabs: ServiceTab[] = [
-    ...PRICING_TABS.filter((tab) => tab.layout !== 'builder').map((tab) => ({
-      id: tab.id,
-      label: tab.label,
-      shortLabel: tab.shortLabel,
-      tagline: tab.tagline,
-      price:
-        tab.layout === 'quote'
-          ? tab.quote?.from
-            ? `From ${formatRM(tab.quote.from)}`
-            : 'Free quote'
-          : `From ${formatRM(fromOf(tab))}`,
-      panel: (
-        <Packages
-          tab={tab}
-          whatsappHref={whatsappUrl}
-          systemDemos={systemDemos}
-        />
-      ),
-    })),
-    {
-      id: MAINTENANCE_TAB,
-      label: 'Maintenance',
-      shortLabel: 'Care',
-      tagline: 'Hosting, updates and backups after launch',
-      price: `From ${carePrice(CARE.starter)}`,
-      panel: <Maintenance whatsappHref={whatsappUrl} />,
-    },
-  ];
+  const tabs: ServiceTab[] = PRICING_TABS.map((tab) => ({
+    id: tab.id,
+    label: tab.label,
+    shortLabel: tab.shortLabel,
+    tagline: tab.tagline,
+    price: `From ${formatRM(startingPriceOf(tab))}`,
+    panel: (
+      <Packages
+        tab={tab}
+        whatsappHref={whatsappUrl}
+        systemDemos={systemDemos}
+      />
+    ),
+  }));
 
   return (
     <div className="relative min-h-screen overflow-x-clip">
@@ -221,6 +197,18 @@ export default async function ServicePage() {
                   gradientClass={GREEN.bar}
                 />
                 <ServiceTabs tabs={tabs} />
+              </div>
+            </section>
+
+            <section className="px-6 pb-20 sm:px-10 md:pb-28 lg:px-16">
+              <div className="mx-auto max-w-6xl">
+                <SectionHeader
+                  icon={Wrench}
+                  title="Maintenance"
+                  accentClass={GREEN.icon}
+                  gradientClass={GREEN.bar}
+                />
+                <Maintenance whatsappHref={whatsappUrl} />
               </div>
             </section>
 
